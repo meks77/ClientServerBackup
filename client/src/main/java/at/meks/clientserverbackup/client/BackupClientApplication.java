@@ -24,6 +24,9 @@ public class BackupClientApplication {
     @Inject
     private BackupManager backupManager;
 
+    @Inject
+    private FileWatcher fileWatcher;
+
     public static void main(String[] args) {
         java.util.logging.Logger.getGlobal().setLevel(Level.INFO);
         Injector injector = Guice.createInjector();
@@ -33,7 +36,8 @@ public class BackupClientApplication {
 
     private void run() {
         Path[] pathesToWatch = config.getBackupedDirs();
-        FileWatcher fileWatcher = new FileWatcher(pathesToWatch, this::fileChanged);
+        fileWatcher.setOnChangeConsumer(this::fileChanged);
+        fileWatcher.setPathsToWatch(pathesToWatch);
         fileWatcher.startWatching();
     }
 

@@ -25,14 +25,18 @@ class FileWatcher {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Path[] pathsToWatch;
-    private final BiConsumer<WatchEvent.Kind, Path> onChangeConsumer;
+    private Path[] pathsToWatch;
+    private BiConsumer<WatchEvent.Kind, Path> onChangeConsumer;
     private Map<WatchKey, Path> pathMap = new HashMap<>();
     private Thread listenThread;
     private WatchService watchService;
 
-    FileWatcher(Path[] pathToWatch, BiConsumer<WatchEvent.Kind, Path> onChangeConsumer) {
-        this.pathsToWatch = pathToWatch;
+
+    void setPathsToWatch(Path[] pathsToWatch) {
+        this.pathsToWatch = pathsToWatch;
+    }
+
+    void setOnChangeConsumer(BiConsumer<WatchEvent.Kind, Path> onChangeConsumer) {
         this.onChangeConsumer = onChangeConsumer;
     }
 

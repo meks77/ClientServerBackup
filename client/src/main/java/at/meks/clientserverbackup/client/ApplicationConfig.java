@@ -1,14 +1,27 @@
 package at.meks.clientserverbackup.client;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 
 class ApplicationConfig {
 
     Path[] getBackupedDirs() {
-        //TODO read paths from config
-        return new Path[]{Paths.get("C:\\development\\clientServerBackupDirs\\folder1"),
-                Paths.get("C:\\development\\clientServerBackupDirs\\folder1")};
+        try {
+            Properties configProps = new Properties();
+            configProps.load(new FileInputStream(Paths.get(System.getProperty("user.home"),
+                    ".ClientServerBackup",".config").toFile()));
+            return configProps.stringPropertyNames().stream()
+                    .filter(s -> s.startsWith("backupset.dir"))
+                    .map(configProps::get)
+                    .map(o -> (String) o)
+                    .map(Paths::get)
+                    .toArray(Path[]::new);
+        } catch (IOException e) {
+            throw new ClientBackupException("couldn't read config file", e);
+        }
     }
 
 }

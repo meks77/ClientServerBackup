@@ -70,7 +70,9 @@ public class FileWatcherTest {
     }
 
     private void startWatcher(BiConsumer<WatchEvent.Kind, Path> consumer) {
-        fileWatcher = new FileWatcher(new Path[]{testDir.toPath()}, consumer);
+        fileWatcher = new FileWatcher();
+        fileWatcher.setPathsToWatch(new Path[]{testDir.toPath()});
+        fileWatcher.setOnChangeConsumer(consumer);
         fileWatcher.startWatching();
     }
 
