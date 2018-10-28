@@ -45,6 +45,7 @@ class FileWatcher {
             watchService = FileSystems.getDefault().newWatchService();
             initializeWatching(watchService);
             listenThread = new Thread(() ->  listenToChanges(watchService));
+            listenThread.setDaemon(true);
             listenThread.start();
         } catch (IOException e) {
             throw new ClientBackupException("couldn't create watchService", e);
@@ -95,7 +96,6 @@ class FileWatcher {
                         logger.info("register for changes for new directory {}", changedPath);
                         registerDirectory(watchService, absoluteChangedPath);
                     }
-                    //TODO if directory deleted unregister directory
                     //TODO ignore directory modifications?
                     onChangeConsumer.accept(kind, absoluteChangedPath);
                 }
@@ -112,6 +112,10 @@ class FileWatcher {
         } catch (IOException e) {
             throw new ClientBackupException(String.format("Error happened while registering to listen for changes for %s", changedPath), e);
         }
+    }
+
+    void join() throws InterruptedException {
+        listenThread.join();
     }
 }
 

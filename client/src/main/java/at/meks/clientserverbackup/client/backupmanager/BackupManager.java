@@ -1,6 +1,5 @@
-package at.meks.clientserverbackup.client;
+package at.meks.clientserverbackup.client.backupmanager;
 
-import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,37 +7,17 @@ import java.nio.file.Path;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
-class BackupManager {
-
-    private enum PathChangeType {
-        CREATED, MODIFIED, DELETED
-    }
-
-    private class TodoEntry{
-
-        private final PathChangeType type;
-        private final Path path;
-
-        private TodoEntry(PathChangeType type, Path path) {
-            this.type = type;
-            this.path = path;
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("type", type)
-                    .add("path", path)
-                    .toString();
-        }
-    }
+public class BackupManager {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     private BlockingDeque<TodoEntry> backupQueue = new LinkedBlockingDeque<>();
+    private final Thread queueReaderThread;
 
     public BackupManager() {
-        new Thread(this::backupQueueItems).start();
+        queueReaderThread = new Thread(this::backupQueueItems);
+        queueReaderThread.setDaemon(true);
+        queueReaderThread.start();
     }
 
     private void backupQueueItems() {
@@ -58,15 +37,15 @@ class BackupManager {
         //TODO send file for backup to server
     }
 
-    void created(Path path) {
+    public void created(Path path) {
         backupQueue.add(new TodoEntry(PathChangeType.CREATED, path));
     }
 
-    void modified(Path path) {
+    public void modified(Path path) {
         backupQueue.add(new TodoEntry(PathChangeType.MODIFIED, path));
     }
 
-    void deleted(Path path) {
+    public void deleted(Path path) {
         backupQueue.add(new TodoEntry(PathChangeType.DELETED, path));
     }
 }
