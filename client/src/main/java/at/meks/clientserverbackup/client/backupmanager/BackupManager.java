@@ -1,9 +1,18 @@
 package at.meks.clientserverbackup.client.backupmanager;
 
+import at.meks.clientserverbackup.client.ApplicationConfig;
+import at.meks.clientserverbackup.client.ClientBackupException;
+import com.google.inject.Inject;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
+import java.net.InetAddress;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -13,6 +22,9 @@ public class BackupManager {
 
     private BlockingDeque<TodoEntry> backupQueue = new LinkedBlockingDeque<>();
     private final Thread queueReaderThread;
+
+    @Inject
+    private ApplicationConfig config;
 
     public BackupManager() {
         queueReaderThread = new Thread(this::backupQueueItems);
@@ -33,19 +45,46 @@ public class BackupManager {
 
     private void backup(TodoEntry item) {
         logger.info("backup {}", item);
+        if (item.getChangedFile().toFile().isFile()) {
+            if (item.getType() == PathChangeType.DELETED) {
+                deleteFileOnServer(item);
+            } else {
+                backupFile(item);
+            }
+        }
         //TODO ask server if backup is necessary
         //TODO send file for backup to server
     }
 
-    public void created(Path path) {
-        backupQueue.add(new TodoEntry(PathChangeType.CREATED, path));
+    private void deleteFileOnServer(TodoEntry item) {
+        // TODO delete file on server
     }
 
-    public void modified(Path path) {
-        backupQueue.add(new TodoEntry(PathChangeType.MODIFIED, path));
+    private void backupFile(TodoEntry item) {
+        try {
+            HttpEntity httpEntity =
+                    MultipartEntityBuilder.create()
+                            .addTextBody("relativePath", getRelativePath(item))
+                            .addTextBody("hostName", InetAddress.getLocalHost().getHostName())
+                            .addBinaryBody("file", item.getChangedFile().toFile(), ContentType.APPLICATION_OCTET_STREAM, item.getChangedFile().toFile().getName())
+                            .addTextBody("backupedPath", item.getWatchedPath().toString())
+                            .build();
+
+            HttpPost httpPost = new HttpPost("http://" + config.getServerHost() + ":" + config.getServerPort() + "/api/v1" +
+                    ".0/backup");
+            httpPost.setEntity(httpEntity);
+            CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+            httpClient.execute(httpPost);
+        } catch (Exception e) {
+            throw new ClientBackupException("couldn't backup file " + item.getChangedFile(), e);
+        }
     }
 
-    public void deleted(Path path) {
-        backupQueue.add(new TodoEntry(PathChangeType.DELETED, path));
+    private String getRelativePath(TodoEntry item) {
+        return item.getWatchedPath().relativize(item.getChangedFile().getParent()).toString();
+    }
+
+    public void addForBackup(TodoEntry item) {
+        backupQueue.add(item);
     }
 }

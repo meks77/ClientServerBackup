@@ -1,6 +1,9 @@
 package at.meks.clientserverbackup.client;
 
 import at.meks.clientserverbackup.client.backupmanager.BackupManager;
+import at.meks.clientserverbackup.client.backupmanager.PathChangeType;
+import at.meks.clientserverbackup.client.backupmanager.TodoEntry;
+import org.fest.assertions.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -14,6 +17,7 @@ import java.nio.file.WatchEvent;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,32 +38,47 @@ public class FileChangeHandlerTest {
 
     @Test
     public void givenEntryCreatedWhenFileChangedThenBackupManagerCreatedIsInvoked() {
-        Path path = mock(Path.class);
-        handler.fileChanged(StandardWatchEventKinds.ENTRY_CREATE, path);
-        verify(backupManager).created(same(path));
+        Path changedFile = mock(Path.class);
+        Path watchedPath = mock(Path.class);
+        TodoEntry expectedTodoEntry = new TodoEntry(PathChangeType.CREATED, changedFile, watchedPath);
+
+        handler.fileChanged(watchedPath, StandardWatchEventKinds.ENTRY_CREATE, changedFile);
+
+        verify(backupManager).addForBackup(expectedTodoEntry);
         verifyNoMoreInteractions(backupManager);
     }
 
     @Test
     public void givenEntryModifiedWhenFileChangedThenBackupManagerMoodifiedIsInvoked() {
-        Path path = mock(Path.class);
-        handler.fileChanged(StandardWatchEventKinds.ENTRY_MODIFY, path);
-        verify(backupManager).modified(same(path));
+        Path changedFile = mock(Path.class);
+        Path watchedPath = mock(Path.class);
+        TodoEntry expectedTodoEntry = new TodoEntry(PathChangeType.MODIFIED, changedFile, watchedPath);
+
+        handler.fileChanged(watchedPath, StandardWatchEventKinds.ENTRY_MODIFY, changedFile);
+
+        verify(backupManager).addForBackup(expectedTodoEntry);
         verifyNoMoreInteractions(backupManager);
     }
 
     @Test
     public void givenEntryDeletedWhenFileChangedThenBackupManagerDeletedIsInvoked() {
-        Path path = mock(Path.class);
-        handler.fileChanged(StandardWatchEventKinds.ENTRY_DELETE, path);
-        verify(backupManager).deleted(same(path));
+        Path changedFile = mock(Path.class);
+        Path watchedPath = mock(Path.class);
+        TodoEntry expectedTodoEntry = new TodoEntry(PathChangeType.DELETED, changedFile, watchedPath);
+        Assertions.assertThat(changedFile).isNotEqualTo(watchedPath);
+
+        handler.fileChanged(watchedPath, StandardWatchEventKinds.ENTRY_DELETE, changedFile);
+        verify(backupManager).addForBackup(expectedTodoEntry);
         verifyNoMoreInteractions(backupManager);
     }
 
     @Test
     public void givenUnexpectedEntryWhenFileChangedThenLogIsWritten() {
-        Path path = mock(Path.class);
-        handler.fileChanged(StandardWatchEventKinds.OVERFLOW, path);
+        Path changedFile = mock(Path.class);
+        Path watchedPath = mock(Path.class);
+
+        handler.fileChanged(watchedPath, StandardWatchEventKinds.OVERFLOW, changedFile);
+
         verifyZeroInteractions(backupManager);
         verify(logger).error(anyString(), any(WatchEvent.Kind.class));
     }

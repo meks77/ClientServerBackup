@@ -27,9 +27,10 @@ public class BackupClientApplication {
 
     private void run() throws InterruptedException {
         Path[] pathesToWatch = config.getBackupedDirs();
-        fileWatcher.setOnChangeConsumer(fileChangeHandler::fileChanged);
+        fileWatcher.setOnChangeConsumer(fileChangeHandler);
         fileWatcher.setPathsToWatch(pathesToWatch);
         fileWatcher.startWatching();
+        //TODO verify each file if backup is necessary and schedule for backup if necessary
         fileWatcher.join();
     }
 

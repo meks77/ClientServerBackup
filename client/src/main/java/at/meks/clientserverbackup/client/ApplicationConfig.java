@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-class ApplicationConfig {
+public class ApplicationConfig {
 
     Path[] getBackupedDirs() {
         try {
@@ -22,6 +22,14 @@ class ApplicationConfig {
         } catch (IOException e) {
             throw new ClientBackupException("couldn't read config file", e);
         }
+    }
+
+    public String getServerHost() {
+        return "localhost";
+    }
+
+    public int getServerPort() {
+        return 8080;
     }
 
 }

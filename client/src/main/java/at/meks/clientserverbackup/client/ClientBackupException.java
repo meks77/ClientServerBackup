@@ -1,8 +1,12 @@
 package at.meks.clientserverbackup.client;
 
-class ClientBackupException extends RuntimeException {
+public class ClientBackupException extends RuntimeException {
 
-    ClientBackupException(String message, Exception cause) {
+    ClientBackupException(String message) {
+        super(message);
+    }
+
+    public ClientBackupException(String message, Exception cause) {
         super(message, cause);
     }
 }

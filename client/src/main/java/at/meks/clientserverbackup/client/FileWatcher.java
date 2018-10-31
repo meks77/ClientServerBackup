@@ -12,11 +12,13 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.Optional;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -26,7 +28,7 @@ class FileWatcher {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     private Path[] pathsToWatch;
-    private BiConsumer<WatchEvent.Kind, Path> onChangeConsumer;
+    private IFileChangeHandler onChangeConsumer;
     private Map<WatchKey, Path> pathMap = new HashMap<>();
     private Thread listenThread;
     private WatchService watchService;
@@ -36,7 +38,7 @@ class FileWatcher {
         this.pathsToWatch = pathsToWatch;
     }
 
-    void setOnChangeConsumer(BiConsumer<WatchEvent.Kind, Path> onChangeConsumer) {
+    void setOnChangeConsumer(IFileChangeHandler onChangeConsumer) {
         this.onChangeConsumer = onChangeConsumer;
     }
 
@@ -91,13 +93,24 @@ class FileWatcher {
                     logger.info("event context {}", event.context());
                     Path changedPath = (Path) event.context();
                     logger.info("event {} happened for {}", kind, changedPath.getFileName());
-                    Path absoluteChangedPath = Paths.get(pathMap.get(key).toString(), changedPath.toString());
+                    Path watchedPath = pathMap.get(key);
+                    Path absoluteChangedPath = Paths.get(watchedPath.toString(), changedPath.toString());
                     if (absoluteChangedPath.toFile().isDirectory() && kind == ENTRY_CREATE) {
                         logger.info("register for changes for new directory {}", changedPath);
                         registerDirectory(watchService, absoluteChangedPath);
                     }
-                    //TODO ignore directory modifications?
-                    onChangeConsumer.accept(kind, absoluteChangedPath);
+                    // TODO ignore directory modifications?
+                    // TODO delay adding while tracking the last change for the file.
+                    // When big files are written otherwise
+                    // they are backed up many times currently. Eg. the file is written for 3 Seconds with a size of
+                    // 150 MB the file is added to the queue 3 time and also 3 times backed up to the server
+                    Optional<Path> first = Stream.of(pathsToWatch).filter(watchedPath::startsWith).findFirst();
+                    if (!first.isPresent()) {
+                        throw new ClientBackupException(
+                                format("couldn't find root backuped path. Watched path: %s;%npathsToWatch: %s",
+                                        watchedPath, Arrays.toString(pathsToWatch)));
+                    }
+                    onChangeConsumer.fileChanged(first.get(), kind, absoluteChangedPath);
                 }
                 key.reset();
             }
@@ -110,7 +123,7 @@ class FileWatcher {
         try {
             return changedPath.register(watchService, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
         } catch (IOException e) {
-            throw new ClientBackupException(String.format("Error happened while registering to listen for changes for %s", changedPath), e);
+            throw new ClientBackupException(format("Error happened while registering to listen for changes for %s", changedPath), e);
         }
     }
 
