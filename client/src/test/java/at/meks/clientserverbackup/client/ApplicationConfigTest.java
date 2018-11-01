@@ -74,4 +74,14 @@ public class ApplicationConfigTest {
     public void givenEmptyConfigFileWhenGetBackupedDirsReturnsEmptyArray() {
         assertThat(config.getBackupedDirs()).isEmpty();
     }
+
+    @Test
+    public void testGetServerHostReturnsLocalhost() {
+        assertThat(config.getServerHost()).isEqualTo("localhost");
+    }
+
+    @Test
+    public void testGetServerPortReturns8080() {
+        assertThat(config.getServerPort()).isEqualTo(8080);
+    }
 }

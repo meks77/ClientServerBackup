@@ -16,7 +16,7 @@ public class BackupClientApplication {
     private FileWatcher fileWatcher;
 
     @Inject
-    private FileChangeHandler fileChangeHandler;
+    private FileChangeHandlerImpl fileChangeHandler;
 
     public static void main(String[] args) throws InterruptedException {
         java.util.logging.Logger.getGlobal().setLevel(Level.INFO);

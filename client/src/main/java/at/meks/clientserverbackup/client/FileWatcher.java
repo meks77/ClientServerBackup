@@ -28,7 +28,7 @@ class FileWatcher {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     private Path[] pathsToWatch;
-    private IFileChangeHandler onChangeConsumer;
+    private FileChangeHandler onChangeConsumer;
     private Map<WatchKey, Path> pathMap = new HashMap<>();
     private Thread listenThread;
     private WatchService watchService;
@@ -38,7 +38,7 @@ class FileWatcher {
         this.pathsToWatch = pathsToWatch;
     }
 
-    void setOnChangeConsumer(IFileChangeHandler onChangeConsumer) {
+    void setOnChangeConsumer(FileChangeHandler onChangeConsumer) {
         this.onChangeConsumer = onChangeConsumer;
     }
 

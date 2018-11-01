@@ -3,9 +3,9 @@ package at.meks.clientserverbackup.client;
 import at.meks.clientserverbackup.client.backupmanager.BackupManager;
 import at.meks.clientserverbackup.client.backupmanager.PathChangeType;
 import at.meks.clientserverbackup.client.backupmanager.TodoEntry;
-import org.fest.assertions.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -15,10 +15,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 
+import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -34,7 +33,7 @@ public class FileChangeHandlerTest {
     private BackupManager backupManager;
 
     @InjectMocks
-    private FileChangeHandler handler = new FileChangeHandler();
+    private FileChangeHandlerImpl handler = new FileChangeHandlerImpl();
 
     @Test
     public void givenEntryCreatedWhenFileChangedThenBackupManagerCreatedIsInvoked() {
@@ -44,7 +43,7 @@ public class FileChangeHandlerTest {
 
         handler.fileChanged(watchedPath, StandardWatchEventKinds.ENTRY_CREATE, changedFile);
 
-        verify(backupManager).addForBackup(expectedTodoEntry);
+        verifyBackupManagerInvocation(expectedTodoEntry);
         verifyNoMoreInteractions(backupManager);
     }
 
@@ -56,8 +55,14 @@ public class FileChangeHandlerTest {
 
         handler.fileChanged(watchedPath, StandardWatchEventKinds.ENTRY_MODIFY, changedFile);
 
-        verify(backupManager).addForBackup(expectedTodoEntry);
+        verifyBackupManagerInvocation(expectedTodoEntry);
         verifyNoMoreInteractions(backupManager);
+    }
+
+    private void verifyBackupManagerInvocation(TodoEntry expectedTodoEntry) {
+        ArgumentCaptor<TodoEntry> argumentCaptor = ArgumentCaptor.forClass(TodoEntry.class);
+        verify(backupManager).addForBackup(argumentCaptor.capture());
+        assertThat(argumentCaptor.getValue()).isEqualsToByComparingFields(expectedTodoEntry);
     }
 
     @Test
@@ -65,10 +70,10 @@ public class FileChangeHandlerTest {
         Path changedFile = mock(Path.class);
         Path watchedPath = mock(Path.class);
         TodoEntry expectedTodoEntry = new TodoEntry(PathChangeType.DELETED, changedFile, watchedPath);
-        Assertions.assertThat(changedFile).isNotEqualTo(watchedPath);
+        assertThat(changedFile).isNotEqualTo(watchedPath);
 
         handler.fileChanged(watchedPath, StandardWatchEventKinds.ENTRY_DELETE, changedFile);
-        verify(backupManager).addForBackup(expectedTodoEntry);
+        verifyBackupManagerInvocation(expectedTodoEntry);
         verifyNoMoreInteractions(backupManager);
     }
 

@@ -1,7 +1,5 @@
 package at.meks.clientserverbackup.client.backupmanager;
 
-import at.meks.clientserverbackup.client.ClientBackupException;
-
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 

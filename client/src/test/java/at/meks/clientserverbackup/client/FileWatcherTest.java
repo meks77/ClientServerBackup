@@ -52,7 +52,7 @@ public class FileWatcherTest {
     public void whenFileChangesConsumerIsInformed() throws IOException, InterruptedException {
         File testFile = new File(testDir, "whenFileChanges.txt");
         assertTrue(testFile.createNewFile());
-        IFileChangeHandler consumer = mockConsumerAndStartWatcher();
+        FileChangeHandler consumer = mockConsumerAndStartWatcher();
         FileUtils.writeLines(testFile, Collections.singleton("x"));
         waitForConsumerInvocation();
         // I have no idea why it is invoked 2 times, it should only be once
@@ -65,15 +65,15 @@ public class FileWatcherTest {
         }
     }
 
-    private void startWatcher(IFileChangeHandler consumer) {
+    private void startWatcher(FileChangeHandler consumer) {
         fileWatcher = new FileWatcher();
         fileWatcher.setPathsToWatch(new Path[]{testDir.toPath()});
         fileWatcher.setOnChangeConsumer(consumer);
         fileWatcher.startWatching();
     }
 
-    private IFileChangeHandler mockConsumer() {
-        IFileChangeHandler consumer = Mockito.mock(IFileChangeHandler.class);
+    private FileChangeHandler mockConsumer() {
+        FileChangeHandler consumer = Mockito.mock(FileChangeHandler.class);
         doAnswer(invocationOnMock -> {
             logger.info("consumer was invoked");
             mockInvoked = true;
@@ -85,7 +85,7 @@ public class FileWatcherTest {
     @Test(timeout = 5000)
     public void whenFileIsCreatedConsumerIsInformed() throws InterruptedException, IOException {
         File testFile = new File(testDir, "whenFileIsCreated.txt");
-        IFileChangeHandler consumer = mockConsumerAndStartWatcher();
+        FileChangeHandler consumer = mockConsumerAndStartWatcher();
 
         assertTrue(testFile.createNewFile());
         waitForConsumerInvocation();
@@ -95,7 +95,7 @@ public class FileWatcherTest {
     @Test(timeout = 5000)
     public void whenDirectoryIsCreatedConsumerIsInformed() throws InterruptedException {
         File subDir = new File(testDir, "whenDirectoryIsCreated");
-        IFileChangeHandler consumer = mockConsumerAndStartWatcher();
+        FileChangeHandler consumer = mockConsumerAndStartWatcher();
 
         assertTrue(subDir.mkdirs());
         waitForConsumerInvocation();
@@ -107,7 +107,7 @@ public class FileWatcherTest {
         File testFile = new File(testDir, "whenFileIsDeleted.txt");
         assertTrue(testFile.createNewFile());
 
-        IFileChangeHandler consumer = mockConsumerAndStartWatcher();
+        FileChangeHandler consumer = mockConsumerAndStartWatcher();
 
         Files.delete(testFile.toPath());
         waitForConsumerInvocation();
@@ -120,7 +120,7 @@ public class FileWatcherTest {
         File subDir = new File(testDir, "whenDirectoryIsDeleted");
         //noinspection ResultOfMethodCallIgnored
         subDir.mkdirs();
-        IFileChangeHandler consumer = mockConsumerAndStartWatcher();
+        FileChangeHandler consumer = mockConsumerAndStartWatcher();
 
         Files.delete(subDir.toPath());
         waitForConsumerInvocation();
@@ -130,7 +130,7 @@ public class FileWatcherTest {
     @Test(timeout = 5000)
     public void givenDirectoryAndFileWithinNewDirIsCreatedConsumerIsInformed() throws IOException, InterruptedException {
         File subDir = new File(testDir, "givenDirectoryAndFileWithinNewDirIsCreated");
-        IFileChangeHandler consumer = mockConsumerAndStartWatcher();
+        FileChangeHandler consumer = mockConsumerAndStartWatcher();
 
         File newFileInSubdir = new File(subDir, "newFileInSubdir.txt");
         assertTrue(subDir.mkdirs());
@@ -149,7 +149,7 @@ public class FileWatcherTest {
         File subDir = new File(testDir, "whenFileIsAddedToSubDir");
         subDir.mkdirs();
         Thread.sleep(50L);
-        IFileChangeHandler consumer = mockConsumerAndStartWatcher();
+        FileChangeHandler consumer = mockConsumerAndStartWatcher();
 
         File newFileInSubdir = new File(subDir, "newFileInSubdir.txt");
         assertTrue(newFileInSubdir.createNewFile());
@@ -163,7 +163,7 @@ public class FileWatcherTest {
         //noinspection ResultOfMethodCallIgnored
         subDir.mkdirs();
         Thread.sleep(50L);
-        IFileChangeHandler consumer = mockConsumerAndStartWatcher();
+        FileChangeHandler consumer = mockConsumerAndStartWatcher();
 
         File subSubDir = new File(subDir, "subSubDir");
         assertTrue(subSubDir.mkdir());
@@ -176,7 +176,7 @@ public class FileWatcherTest {
         File originFile = new File(testDir, "whenFileIsRenamed-Origin.txt");
         assertTrue(originFile.createNewFile());
         Thread.sleep(50L);
-        IFileChangeHandler consumer = mockConsumerAndStartWatcher();
+        FileChangeHandler consumer = mockConsumerAndStartWatcher();
 
         File renamedFile = new File(testDir, "whenFileIsRenamed-RenamedFile.txt");
         assertTrue(originFile.renameTo(renamedFile));
@@ -191,7 +191,7 @@ public class FileWatcherTest {
         //noinspection ResultOfMethodCallIgnored
         originDir.mkdirs();
         Thread.sleep(50L);
-        IFileChangeHandler consumer = mockConsumerAndStartWatcher();
+        FileChangeHandler consumer = mockConsumerAndStartWatcher();
 
         File renamedDir = new File(testDir, "whenDirectoryIsRenamed-RenamedDir");
         assertTrue(originDir.renameTo(renamedDir));
@@ -200,8 +200,8 @@ public class FileWatcherTest {
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, renamedDir.toPath());
     }
 
-    private IFileChangeHandler mockConsumerAndStartWatcher() throws InterruptedException {
-        IFileChangeHandler consumer = mockConsumer();
+    private FileChangeHandler mockConsumerAndStartWatcher() throws InterruptedException {
+        FileChangeHandler consumer = mockConsumer();
         startWatcher(consumer);
         Thread.sleep(50L);
         return consumer;
