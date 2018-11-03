@@ -12,6 +12,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -21,15 +22,19 @@ public class BackupManager {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     private BlockingDeque<TodoEntry> backupQueue = new LinkedBlockingDeque<>();
-    private final Thread queueReaderThread;
+    private Thread queueReaderThread;
+    private CloseableHttpClient httpClient = HttpClientBuilder.create().build();
 
     @Inject
     private ApplicationConfig config;
 
-    public BackupManager() {
-        queueReaderThread = new Thread(this::backupQueueItems);
-        queueReaderThread.setDaemon(true);
-        queueReaderThread.start();
+    @PostConstruct
+    private void start() {
+        if (queueReaderThread == null || !queueReaderThread.isAlive()) {
+            queueReaderThread = new Thread(this::backupQueueItems);
+            queueReaderThread.setDaemon(true);
+            queueReaderThread.start();
+        }
     }
 
     private void backupQueueItems() {
@@ -64,16 +69,15 @@ public class BackupManager {
         try {
             HttpEntity httpEntity =
                     MultipartEntityBuilder.create()
-                            .addTextBody("relativePath", getRelativePath(item))
-                            .addTextBody("hostName", InetAddress.getLocalHost().getHostName())
-                            .addBinaryBody("file", item.getChangedFile().toFile(), ContentType.APPLICATION_OCTET_STREAM, item.getChangedFile().toFile().getName())
-                            .addTextBody("backupedPath", item.getWatchedPath().toString())
+                            .addTextBody("relativePath", getRelativePath(item), ContentType.TEXT_PLAIN)
+                            .addTextBody("hostName", InetAddress.getLocalHost().getHostName(), ContentType.TEXT_PLAIN)
+                            .addTextBody("backupedPath", item.getWatchedPath().toString(), ContentType.TEXT_PLAIN)
+                            .addBinaryBody("file", item.getChangedFile().toFile(),
+            ContentType.APPLICATION_OCTET_STREAM, item.getChangedFile().toFile().getName())
                             .build();
-
-            HttpPost httpPost = new HttpPost("http://" + config.getServerHost() + ":" + config.getServerPort() + "/api/v1" +
-                    ".0/backup");
+            HttpPost httpPost = new HttpPost("http://" + config.getServerHost() + ":" + config.getServerPort() +
+                    "/api/v1.0/backup");
             httpPost.setEntity(httpEntity);
-            CloseableHttpClient httpClient = HttpClientBuilder.create().build();
             httpClient.execute(httpPost);
         } catch (Exception e) {
             throw new ClientBackupException("couldn't backup file " + item.getChangedFile(), e);
