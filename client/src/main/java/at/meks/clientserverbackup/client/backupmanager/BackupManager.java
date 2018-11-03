@@ -28,7 +28,7 @@ public class BackupManager {
     @Inject
     private ApplicationConfig config;
 
-    @PostConstruct
+    @Inject
     private void start() {
         if (queueReaderThread == null || !queueReaderThread.isAlive()) {
             queueReaderThread = new Thread(this::backupQueueItems);
@@ -57,12 +57,10 @@ public class BackupManager {
                 backupFile(item);
             }
         }
-        //TODO ask server if backup is necessary
-        //TODO send file for backup to server
     }
 
     private void deleteFileOnServer(TodoEntry item) {
-        // TODO delete file on server
+        // a ticket exists for that
     }
 
     private void backupFile(TodoEntry item) {

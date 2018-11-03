@@ -99,11 +99,6 @@ class FileWatcher {
                         logger.info("register for changes for new directory {}", changedPath);
                         registerDirectory(watchService, absoluteChangedPath);
                     }
-                    // TODO ignore directory modifications?
-                    // TODO delay adding while tracking the last change for the file.
-                    // When big files are written otherwise
-                    // they are backed up many times currently. Eg. the file is written for 3 Seconds with a size of
-                    // 150 MB the file is added to the queue 3 time and also 3 times backed up to the server
                     Optional<Path> first = Stream.of(pathsToWatch).filter(watchedPath::startsWith).findFirst();
                     if (!first.isPresent()) {
                         throw new ClientBackupException(

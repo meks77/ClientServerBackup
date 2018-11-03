@@ -30,7 +30,6 @@ public class BackupClientApplication {
         fileWatcher.setOnChangeConsumer(fileChangeHandler);
         fileWatcher.setPathsToWatch(pathesToWatch);
         fileWatcher.startWatching();
-        //TODO verify each file if backup is necessary and schedule for backup if necessary
         fileWatcher.join();
     }
 
