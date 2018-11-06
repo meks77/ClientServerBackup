@@ -1,5 +1,6 @@
 package at.meks.backupclientserver.backend.services;
 
+import at.meks.backupclientserver.backend.TestDirectoryProvider;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.assertj.core.api.Assertions;
 import org.glassfish.jersey.internal.guava.ThreadFactoryBuilder;
@@ -15,6 +16,7 @@ import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -75,5 +77,26 @@ public class DirectoryServiceTest {
 
     private Path getExpectedPath(Path tempDir, String clientBackupSetPath, String clientHostName) {
         return Paths.get(tempDir.toString(), md5Hex(clientHostName), md5Hex(clientBackupSetPath));
+    }
+
+    @Test
+    public void whenGetMetadataDirectoryPathReturnsExcpectedPath() {
+        Path tempRootPath = TestDirectoryProvider.createTempDirectory();
+        Path result = service.getMetadataDirectoryPath(tempRootPath);
+        assertThat(result).isEqualTo(Paths.get(tempRootPath.toString(), ".metadata"));
+    }
+
+    @Test
+    public void givenMetadataDirNotExistsWhenGetMetadataDirectoryPathThenDirIsCreated() {
+        Path tempRootPath = TestDirectoryProvider.createTempDirectory();
+        Path result = service.getMetadataDirectoryPath(tempRootPath);
+        assertThat(result).exists();
+    }
+
+    @Test
+    public void givenMetadataDirExistsWhenGetMetadataDirectoryPathThenNoExceptionIsThrown() throws IOException {
+        Path tempRootPath = TestDirectoryProvider.createTempDirectory();
+        Files.createDirectory(Paths.get(tempRootPath.toString(), ".metadata"));
+        service.getMetadataDirectoryPath(tempRootPath);
     }
 }

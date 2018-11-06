@@ -1,5 +1,7 @@
 package at.meks.backupclientserver.backend.services;
 
+import at.meks.backupclientserver.backend.TestDirectoryProvider;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -9,10 +11,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -25,6 +29,9 @@ public class BackupServiceTest {
 
     @Mock
     private DirectoryService directoryService;
+
+    @Mock
+    private MetaDataService metaDataService;
 
     @Mock
     private MultipartFile multipartFile;
@@ -58,4 +65,40 @@ public class BackupServiceTest {
         service.backup(multipartFile, "myHostName", "C:\\f1\\f2", "a\\b\\c");
     }
 
+    @Test
+    public void whenIsFileUp2dateThenMetaDataServiceIsInvokedWithExpectedArgs() {
+        String hostName = "theHostName";
+        String backupedPath = "theBackupedPath";
+        String relativePath = "theRelativePath";
+        String fileName = "theFileName";
+        String md5Checksum = "theMd5Checksum";
+
+        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+        File backupedFile = Paths.get(backupSetPath.toString(), relativePath, fileName).toFile();
+
+        when(directoryService.getBackupSetPath(hostName, backupedPath)).thenReturn(backupSetPath);
+        service.isFileUpToDate(hostName, backupedPath, relativePath, fileName, md5Checksum);
+
+        verify(metaDataService).isMd5Equal(backupedFile, md5Checksum);
+    }
+
+    @Test
+    public void givenMd5EqualsWhenIsFileUp2dateReturnsTrue() {
+        when(directoryService.getBackupSetPath(any(), any())).thenReturn(TestDirectoryProvider.createTempDirectory());
+        when(metaDataService.isMd5Equal(any(), any())).thenReturn(true);
+
+        boolean result = service.isFileUpToDate("hostName", "backedupPath", "relativePath", "fileName",
+                "md5Checksum");
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void givenMd5NotEqualsWhenIsFileUp2dateReturnsTrue() {
+        when(directoryService.getBackupSetPath(any(), any())).thenReturn(TestDirectoryProvider.createTempDirectory());
+        when(metaDataService.isMd5Equal(any(), any())).thenReturn(false);
+
+        boolean result = service.isFileUpToDate("hostName", "backedupPath", "relativePath", "fileName",
+                "md5Checksum");
+        assertThat(result).isFalse();
+    }
 }

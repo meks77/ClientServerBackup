@@ -40,18 +40,18 @@ public class DirectoryService {
         String backupSetRelativePath = DigestUtils.md5Hex(clientBackupSetPath);
         Path backupSetPath = Paths.get(clientRootDir.toString(), backupSetRelativePath);
 
-        createIfNotExists(hostName, backupSetPath);
+        createIfNotExists(backupSetPath);
         return backupSetPath;
     }
 
     private Path getClientRootDirectory(String hostName) {
         Path path = Paths.get(configuration.getApplicationRootDirectory().toString(), DigestUtils.md5Hex(hostName));
-        createIfNotExists(hostName, path);
+        createIfNotExists(path);
         return path;
     }
 
-    private void createIfNotExists(String hostName, Path path) {
-        ReentrantLock lock = getClientLock(hostName);
+    private void createIfNotExists(Path path) {
+        ReentrantLock lock = getLock(path);
         lock.lock();
         try {
             if (!path.toFile().exists()) {
@@ -67,11 +67,17 @@ public class DirectoryService {
         }
     }
 
-    private ReentrantLock getClientLock(String hostName) {
+    private ReentrantLock getLock(Path path) {
         try {
-            return clientLocks.get(hostName);
+            return clientLocks.get(path.toString());
         } catch (ExecutionException e) {
             throw new ServerBackupException("couldn't get lock from cache", e);
         }
+    }
+
+    Path getMetadataDirectoryPath(Path targetDir) {
+        Path metaDataDir = Paths.get(targetDir.toString(), ".metadata");
+        createIfNotExists(metaDataDir);
+        return metaDataDir;
     }
 }
