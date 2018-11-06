@@ -19,6 +19,7 @@
     <modules>
         <module>backend</module>
         <module>client</module>
+        <module>common</module>
     </modules>
 
     <dependencyManagement>

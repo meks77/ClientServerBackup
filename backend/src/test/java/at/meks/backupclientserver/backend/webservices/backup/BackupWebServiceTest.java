@@ -1,8 +1,8 @@
 package at.meks.backupclientserver.backend.webservices.backup;
 
 import at.meks.backupclientserver.backend.services.BackupService;
-import at.meks.backupclientserver.backend.webservices.backup.fileup2date.FileUp2dateInput;
-import at.meks.backupclientserver.backend.webservices.backup.fileup2date.FileUp2dateResult;
+import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
+import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

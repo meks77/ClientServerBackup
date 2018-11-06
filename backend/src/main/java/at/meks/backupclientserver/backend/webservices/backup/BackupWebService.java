@@ -1,13 +1,12 @@
 package at.meks.backupclientserver.backend.webservices.backup;
 
 import at.meks.backupclientserver.backend.services.BackupService;
-import at.meks.backupclientserver.backend.webservices.backup.fileup2date.FileUp2dateInput;
-import at.meks.backupclientserver.backend.webservices.backup.fileup2date.FileUp2dateResult;
+import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
+import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,7 +32,7 @@ public class BackupWebService {
         logger.info("backup completed");
     }
 
-    @GetMapping(value = "/isFileUpToDate",
+    @PostMapping(value = "/isFileUpToDate",
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public FileUp2dateResult isFileUp2date(@RequestBody FileUp2dateInput fileUp2DateInput) {
         FileUp2dateResult result = new FileUp2dateResult();
