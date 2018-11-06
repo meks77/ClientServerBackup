@@ -1,10 +1,8 @@
 package at.meks.backupclientserver.backend.webservices.backup;
 
 import at.meks.backupclientserver.backend.services.BackupService;
-import at.meks.backupclientserver.backend.webservices.backup.BackupWebService;
 import at.meks.backupclientserver.backend.webservices.backup.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.backend.webservices.backup.fileup2date.FileUp2dateResult;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -15,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.verify;

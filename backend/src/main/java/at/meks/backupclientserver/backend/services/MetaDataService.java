@@ -1,11 +1,10 @@
 package at.meks.backupclientserver.backend.services;
 
-import org.apache.commons.codec.digest.DigestUtils;
+import at.meks.backupclientserver.common.Md5CheckSumGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,11 +16,11 @@ class MetaDataService {
     @Autowired
     private DirectoryService directoryService;
 
+    private Md5CheckSumGenerator md5CheckSumGenerator = new Md5CheckSumGenerator();
+
     void writeMd5Checksum(File target) throws IOException {
-        try (FileInputStream fileInputStream = new FileInputStream(target)) {
-            String md5Hex = DigestUtils.md5Hex(fileInputStream);
-            Files.write(getMd5FilePath(target), md5Hex.getBytes());
-        }
+        String md5Hex = md5CheckSumGenerator.md5HexFor(target);
+        Files.write(getMd5FilePath(target), md5Hex.getBytes());
     }
 
     private Path getMd5FilePath(File backupedFile) {

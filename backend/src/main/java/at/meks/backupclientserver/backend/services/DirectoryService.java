@@ -1,6 +1,6 @@
 package at.meks.backupclientserver.backend.services;
 
-import org.apache.commons.codec.digest.DigestUtils;
+import at.meks.backupclientserver.common.Md5CheckSumGenerator;
 import org.glassfish.jersey.internal.guava.CacheBuilder;
 import org.glassfish.jersey.internal.guava.CacheLoader;
 import org.glassfish.jersey.internal.guava.LoadingCache;
@@ -27,6 +27,8 @@ public class DirectoryService {
     @Autowired
     private BackupConfiguration configuration;
 
+    private Md5CheckSumGenerator md5CheckSumGenerator = new Md5CheckSumGenerator();
+
     private LoadingCache<String, ReentrantLock> clientLocks = CacheBuilder.newBuilder().build(
             new CacheLoader<String, ReentrantLock>() {
                 @Override
@@ -37,7 +39,7 @@ public class DirectoryService {
 
     Path getBackupSetPath(String hostName, String clientBackupSetPath) {
         Path clientRootDir = getClientRootDirectory(hostName);
-        String backupSetRelativePath = DigestUtils.md5Hex(clientBackupSetPath);
+        String backupSetRelativePath = md5CheckSumGenerator.md5HexFor(clientBackupSetPath);
         Path backupSetPath = Paths.get(clientRootDir.toString(), backupSetRelativePath);
 
         createIfNotExists(backupSetPath);
@@ -45,7 +47,8 @@ public class DirectoryService {
     }
 
     private Path getClientRootDirectory(String hostName) {
-        Path path = Paths.get(configuration.getApplicationRootDirectory().toString(), DigestUtils.md5Hex(hostName));
+        Path path = Paths.get(configuration.getApplicationRootDirectory().toString(),
+                md5CheckSumGenerator.md5HexFor(hostName));
         createIfNotExists(path);
         return path;
     }
