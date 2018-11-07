@@ -5,11 +5,7 @@ import at.meks.backupclientserver.client.ClientBackupException;
 import at.meks.backupclientserver.common.Md5CheckSumGenerator;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 import com.google.inject.Inject;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -25,6 +21,9 @@ class BackupRemoteService {
 
     @Inject
     private ApplicationConfig config;
+
+    @Inject
+    private JsonHttpClient jsonHttpClient;
 
     private CloseableHttpClient httpClient = HttpClientBuilder.create().build();
     private final Md5CheckSumGenerator md5CheckSumGenerator = new Md5CheckSumGenerator();
@@ -52,36 +51,29 @@ class BackupRemoteService {
     }
 
     boolean isFileUpToDate(Path backupSetPath, Path file) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            FileUp2dateInput input = getFileUp2DateRequestInput(backupSetPath, file);
-            String inputJson = mapper.writeValueAsString(input);
-            Client client = Client.create();
-            WebResource webResource = client.resource(getBackupMethodUrl("isFileUpToDate"));
-            String result = webResource.type("application/json").post(String.class, inputJson);
-            if (Strings.isNullOrEmpty(result)) {
-                return false;
-            }
-            FileUp2dateResult deserializedResult = mapper.readValue(result, FileUp2dateResult.class);
-            return deserializedResult.isUp2date();
-        } catch (IOException e) {
-            throw new ClientBackupException("error while asking if file is up2date", e);
-        }
+        return jsonHttpClient.post(
+                getBackupMethodUrl("isFileUpToDate"),
+                getFileUp2DateRequestInput(backupSetPath, file),
+                FileUp2dateResult.class)
+                .isUp2date();
     }
 
-    private FileUp2dateInput getFileUp2DateRequestInput(Path backupSetPath, Path file) throws IOException {
+    private FileUp2dateInput getFileUp2DateRequestInput(Path backupSetPath, Path file)  {
         FileUp2dateInput input = new FileUp2dateInput();
         input.setBackupedPath(backupSetPath.toString());
         input.setRelativePath(backupSetPath.relativize(file.getParent()).toString());
         input.setFileName(file.toFile().getName());
-        input.setHostName(InetAddress.getLocalHost().getHostName());
-        input.setMd5Checksum(md5CheckSumGenerator.md5HexFor(file.toFile()));
+        try {
+            input.setHostName(InetAddress.getLocalHost().getHostName());
+            input.setMd5Checksum(md5CheckSumGenerator.md5HexFor(file.toFile()));
+        } catch (IOException e) {
+            throw new ClientBackupException("error while preparing the json input hostname and md5 checksum", e);
+        }
         return input;
     }
 
     private String getBackupMethodUrl(String method) {
         return "http://" + config.getServerHost() + ":" + config.getServerPort() + "/api/v1.0/backup/" + method;
     }
-
 
 }

@@ -3,18 +3,20 @@ package at.meks.backupclientserver.client.backupmanager;
 
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.client.ApplicationConfig;
+import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.fest.assertions.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -31,6 +33,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 
 public class BackupRemoteServiceTest {
 
@@ -43,8 +49,12 @@ public class BackupRemoteServiceTest {
     @Mock
     private ApplicationConfig config;
 
+    @Spy
+    private JsonHttpClient jsonHttpClient = new JsonHttpClient();
+
     @InjectMocks
     private BackupRemoteService backupRemoteService = new BackupRemoteService();
+
     private Path backupSetPath;
     private Path fileForBackup;
 
@@ -59,7 +69,7 @@ public class BackupRemoteServiceTest {
     @Test
     public void whenBackupFileThenHttpRequestIsInvokedAsExpected() throws IOException {
         byte[] expectedUploadedBytes = FileUtils.readFileToByteArray(fileForBackup.toFile());
-        String expectedRelativePath = Paths.get("at", "meks", "backupclientserver", "client", "backupmanager").toString();
+        String expectedRelativePath = getRelativePathOfPackage();
         String hostName = InetAddress.getLocalHost().getHostName();
 
         backupRemoteService.backupFile(backupSetPath, fileForBackup);
@@ -79,8 +89,27 @@ public class BackupRemoteServiceTest {
 
         backupRemoteService.isFileUpToDate(backupSetPath, fileForBackup);
 
+        ArgumentCaptor<FileUp2dateInput> captor = ArgumentCaptor.forClass(FileUp2dateInput.class);
+        verify(jsonHttpClient).post(endsWith("/api/v1.0/backup/isFileUpToDate"), captor.capture(), eq(FileUp2dateResult.class));
+        FileUp2dateInput up2dateInput = captor.getValue();
+        assertThat(up2dateInput.getBackupedPath()).isEqualTo(backupSetPath.toString());
+        assertThat(up2dateInput.getFileName()).isEqualTo(fileForBackup.toFile().getName());
+        assertThat(up2dateInput.getHostName()).isEqualTo(InetAddress.getLocalHost().getHostName());
+        assertThat(up2dateInput.getRelativePath()).isEqualTo(getRelativePathOfPackage());
+        assertThat(up2dateInput.getMd5Checksum()).isEqualTo(getMd5Checksum(fileForBackup));
+
         WireMock.verify(postRequestedFor(urlEqualTo("/api/v1.0/backup/isFileUpToDate"))
                 .withRequestBody(equalTo(inputString)));
+    }
+
+    private String getMd5Checksum(Path file) throws IOException {
+        try (FileInputStream fis = new FileInputStream(file.toFile())) {
+            return DigestUtils.md5Hex(fis);
+        }
+    }
+
+    private String getRelativePathOfPackage() {
+        return Paths.get("at", "meks", "backupclientserver", "client", "backupmanager").toString();
     }
 
     private String getExpectedJsonInputString(Path fileForBackup) throws IOException {
@@ -93,7 +122,7 @@ public class BackupRemoteServiceTest {
         FileUp2dateInput input = new FileUp2dateInput();
         input.setHostName(InetAddress.getLocalHost().getHostName());
         input.setBackupedPath(backupSetPath.toString());
-        input.setRelativePath(Paths.get("at", "meks", "backupclientserver", "client", "backupmanager").toString());
+        input.setRelativePath(getRelativePathOfPackage());
         input.setFileName(fileForBackup.toFile().getName());
         try (FileInputStream fis = new FileInputStream(fileForBackup.toFile())) {
             input.setMd5Checksum(DigestUtils.md5Hex(fis));
@@ -105,13 +134,13 @@ public class BackupRemoteServiceTest {
     public void givenUpToDateFileWhenIsFileUpToDateReturnsTrue() throws URISyntaxException {
         Path fileForBackup = Paths.get(getClass().getResource("up2date.txt").toURI());
         boolean result = backupRemoteService.isFileUpToDate(backupSetPath, fileForBackup);
-        Assertions.assertThat(result).isTrue();
+        assertThat(result).isTrue();
     }
 
     @Test
     public void givenOutOfDateFileWhenIsFileUpToDateReturnsFalse() throws URISyntaxException {
         Path fileForBackup = Paths.get(getClass().getResource("outOfDate.txt").toURI());
         boolean result = backupRemoteService.isFileUpToDate(backupSetPath, fileForBackup);
-        Assertions.assertThat(result).isFalse();
+        assertThat(result).isFalse();
     }
 }
