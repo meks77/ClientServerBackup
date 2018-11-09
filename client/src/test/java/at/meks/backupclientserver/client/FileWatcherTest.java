@@ -1,5 +1,6 @@
 package at.meks.backupclientserver.client;
 
+import at.meks.backupclientserver.client.filechangehandler.FileChangeHandler;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;

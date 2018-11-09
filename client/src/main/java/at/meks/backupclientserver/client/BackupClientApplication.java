@@ -1,5 +1,6 @@
 package at.meks.backupclientserver.client;
 
+import at.meks.backupclientserver.client.filechangehandler.FileChangeHandlerImpl;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;

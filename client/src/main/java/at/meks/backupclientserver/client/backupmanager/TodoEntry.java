@@ -16,15 +16,15 @@ public class TodoEntry {
         this.watchedPath = watchedPath;
     }
 
-    PathChangeType getType() {
+    public PathChangeType getType() {
         return type;
     }
 
-    Path getChangedFile() {
+    public Path getChangedFile() {
         return changedFile;
     }
 
-    Path getWatchedPath() {
+    public Path getWatchedPath() {
         return watchedPath;
     }
 
