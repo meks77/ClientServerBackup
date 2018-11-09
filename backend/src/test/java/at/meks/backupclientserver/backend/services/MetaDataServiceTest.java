@@ -1,23 +1,18 @@
 package at.meks.backupclientserver.backend.services;
 
-import at.meks.backupclientserver.backend.TestDirectoryProvider;
+import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;

@@ -13,6 +13,7 @@ import java.nio.file.Path;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +28,9 @@ public class BackupClientApplicationTest {
 
     @Mock
     private FileWatcher fileWatcher;
+
+    @Mock
+    private StartupBackuper startupBackuper;
 
     @InjectMocks
     private BackupClientApplication application;
@@ -72,10 +76,13 @@ public class BackupClientApplicationTest {
     }
 
     @Test
-    public void whenRunThenFileWatcherIsJoined() throws InterruptedException, NoSuchMethodException,
-            IllegalAccessException, InvocationTargetException {
+    public void whenRunThenStartupBackuperIsInvoked() throws NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException {
+        Path[] paths = createPathsArray();
+        when(applicationConfig.getBackupedDirs()).thenReturn(paths);
+
         invokePrivateRunMethod();
-        verify(fileWatcher).join();
+        verify(startupBackuper, timeout(1000)).backupIfNecessary(paths);
     }
 
 }

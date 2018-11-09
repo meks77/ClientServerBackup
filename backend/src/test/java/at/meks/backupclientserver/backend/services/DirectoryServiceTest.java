@@ -1,29 +1,23 @@
 package at.meks.backupclientserver.backend.services;
 
-import at.meks.backupclientserver.backend.TestDirectoryProvider;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.assertj.core.api.Assertions;
-import org.glassfish.jersey.internal.guava.ThreadFactoryBuilder;
+import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;

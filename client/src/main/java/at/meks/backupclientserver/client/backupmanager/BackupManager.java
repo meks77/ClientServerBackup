@@ -39,25 +39,19 @@ public class BackupManager {
 
     private void backup(TodoEntry item) {
         logger.info("backup {}", item);
-        if (item.getChangedFile().toFile().isFile()) {
-            if (item.getType() == PathChangeType.DELETED) {
-                deleteFileOnServer(item);
-            } else {
-                if (!isFileUpToDate(item)) {
-                    backupFile(item);
-                }
-            }
+        if (item.getChangedFile().toFile().isFile() &&
+                item.getType() != PathChangeType.DELETED &&
+                !isFileUpToDate(item)) {
+            backupFile(item);
         }
+
+
     }
 
     private boolean isFileUpToDate(TodoEntry item) {
         boolean fileUpToDate = backupRemoteService.isFileUpToDate(item.getWatchedPath(), item.getChangedFile());
         logger.info("the file {} is update2date: {}", item.getChangedFile(), fileUpToDate);
         return fileUpToDate;
-    }
-
-    private void deleteFileOnServer(TodoEntry item) {
-        // a ticket exists for that
     }
 
     private void backupFile(TodoEntry item) {

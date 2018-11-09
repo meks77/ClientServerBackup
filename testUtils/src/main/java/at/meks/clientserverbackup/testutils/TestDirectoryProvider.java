@@ -1,4 +1,4 @@
-package at.meks.backupclientserver.backend;
+package at.meks.clientserverbackup.testutils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

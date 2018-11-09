@@ -47,7 +47,6 @@ class FileWatcher {
             watchService = FileSystems.getDefault().newWatchService();
             initializeWatching(watchService);
             listenThread = new Thread(() ->  listenToChanges(watchService));
-            listenThread.setDaemon(true);
             listenThread.start();
         } catch (IOException e) {
             throw new ClientBackupException("couldn't create watchService", e);
@@ -122,8 +121,5 @@ class FileWatcher {
         }
     }
 
-    void join() throws InterruptedException {
-        listenThread.join();
-    }
 }
 

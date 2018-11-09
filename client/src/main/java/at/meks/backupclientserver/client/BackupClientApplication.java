@@ -18,19 +18,22 @@ public class BackupClientApplication {
     @Inject
     private FileChangeHandlerImpl fileChangeHandler;
 
-    public static void main(String[] args) throws InterruptedException {
+    @Inject
+    private StartupBackuper startupBackuper;
+
+    public static void main(String[] args) {
         java.util.logging.Logger.getGlobal().setLevel(Level.INFO);
         Injector injector = Guice.createInjector();
         BackupClientApplication application = injector.getInstance(BackupClientApplication.class);
         application.run();
     }
 
-    private void run() throws InterruptedException {
+    private void run() {
         Path[] pathesToWatch = config.getBackupedDirs();
         fileWatcher.setOnChangeConsumer(fileChangeHandler);
         fileWatcher.setPathsToWatch(pathesToWatch);
         fileWatcher.startWatching();
-        fileWatcher.join();
+        startupBackuper.backupIfNecessary(pathesToWatch);
     }
 
 }
