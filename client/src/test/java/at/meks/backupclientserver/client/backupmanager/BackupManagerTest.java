@@ -1,5 +1,8 @@
 package at.meks.backupclientserver.client.backupmanager;
 
+import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
+import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -9,9 +12,11 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -88,6 +93,34 @@ public class BackupManagerTest {
 
         verify(backupRemoteService).isFileUpToDate(backupSetPath, uplodedFilePath);
         verify(backupRemoteService).backupFile(backupSetPath, uplodedFilePath);
+    }
+
+    @Test
+    public void givenWritingAFileWhileAddForBackupThenBackupOfFileIsDoneAfterWritingFinished() throws IOException,
+            InterruptedException {
+        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+        Path hugeFile = Files.createTempFile(backupSetPath, "hugeFile", ".txt");
+        Thread fileWritingThread = new Thread(() -> {
+            long startTime = System.currentTimeMillis();
+            long writeTimeDurationInMs = 5000;
+            while (System.currentTimeMillis() < startTime + writeTimeDurationInMs) {
+                try {
+                    FileUtils.write(hugeFile.toFile(), "x", "utf8");
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                    Assert.fail("couldn't write file. Excepion occured: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+        fileWritingThread.start();
+        manager.addForBackup(new TodoEntry(PathChangeType.MODIFIED, hugeFile, backupSetPath));
+
+        verify(backupRemoteService, timeout(1000).times(0)).isFileUpToDate(backupSetPath, hugeFile);
+        verify(backupRemoteService, timeout(1000).times(0)).backupFile(backupSetPath, hugeFile);
+        fileWritingThread.join();
+        verify(backupRemoteService, timeout(5000).times(1)).isFileUpToDate(backupSetPath, hugeFile);
+        verify(backupRemoteService, timeout(1000).times(1)).backupFile(backupSetPath, hugeFile);
     }
 
 }
