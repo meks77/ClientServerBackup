@@ -8,6 +8,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
@@ -24,7 +25,9 @@ class JsonHttpClient {
 
     <I, R> R post(String url, I input, Class<R> resultClass) {
         try {
-            HttpEntity httpEntity = EntityBuilder.create().setText(mapper.writeValueAsString(input)).build();
+            HttpEntity httpEntity =
+                    EntityBuilder.create().setContentType(ContentType.APPLICATION_JSON.withCharset("utf8"))
+                            .setText(mapper.writeValueAsString(input)).build();
             HttpPost post = new HttpPost(url);
             post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
             post.setEntity(httpEntity);

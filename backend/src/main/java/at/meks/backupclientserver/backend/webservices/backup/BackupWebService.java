@@ -24,7 +24,7 @@ public class BackupWebService {
     private BackupService backupService;
 
     @PostMapping(value="/file")
-    public void backupFile(@RequestParam MultipartFile file, @RequestParam String relativePath,
+    public void backupFile(@RequestParam MultipartFile file, @RequestParam String[] relativePath,
             @RequestParam("hostName") String hostName, @RequestParam String backupedPath) {
         logger.info("received file for hostName {} and backedupPath {} and relative path {}. File: {}",
                 hostName, backupedPath, relativePath, file);

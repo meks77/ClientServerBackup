@@ -4,7 +4,7 @@ public class FileUp2dateInput {
 
     private String hostName;
     private String backupedPath;
-    private String relativePath;
+    private String[] relativePath;
     private String fileName;
     private String md5Checksum;
 
@@ -24,11 +24,11 @@ public class FileUp2dateInput {
         this.backupedPath = backupedPath;
     }
 
-    public String getRelativePath() {
+    public String[] getRelativePath() {
         return relativePath;
     }
 
-    public void setRelativePath(String relativePath) {
+    public void setRelativePath(String[] relativePath) {
         this.relativePath = relativePath;
     }
 

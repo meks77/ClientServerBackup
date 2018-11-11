@@ -29,7 +29,7 @@ public class BackupWebServiceTest {
 
     @Test
     public void whenBackupFileThenBackupServiceIsInvoked() {
-        String relativePath = "expRltvPth";
+        String[] relativePath = new String[] {"expRltvPth"};
         String hostName = "hstNm";
         String backupedPath = "bckpdPth";
         MultipartFile expectedFile = Mockito.mock(MultipartFile.class);
@@ -44,7 +44,7 @@ public class BackupWebServiceTest {
         String expectedBackupPath = "theExpectedBackupPath";
         String expectedFileName = "theExpectedFileName";
         String expectedHostName = "theExpectedHostName";
-        String expectedRelativePath = "theExpectedRelativePath";
+        String[] expectedRelativePath = new String[] {"theExpectedRelativePath"};
         String expectedMd5Checksum = "theExpectedMd5Checksum";
 
         FileUp2dateInput fileUp2dateInput = new FileUp2dateInput();

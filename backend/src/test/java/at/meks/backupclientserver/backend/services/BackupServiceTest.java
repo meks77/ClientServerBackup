@@ -49,7 +49,7 @@ public class BackupServiceTest {
         when(multipartFile.getOriginalFilename()).thenReturn(fileNameOfBackedupFile);
         when(directoryService.getBackupSetPath(hostName, clientBackupSetPath)).thenReturn(backupSetTargetPath);
 
-        service.backup(multipartFile, hostName, clientBackupSetPath, "expected\\target");
+        service.backup(multipartFile, hostName, clientBackupSetPath, new String[]{"expected", "target"});
 
         verify(multipartFile).transferTo(expectedTarget);
     }
@@ -59,19 +59,19 @@ public class BackupServiceTest {
         when(multipartFile.getOriginalFilename()).thenReturn("expctdName.txt");
         doThrow(new IOException("ut expktd exc")).when(multipartFile).transferTo(any());
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(Files.createTempDirectory("utThrw"));
-        service.backup(multipartFile, "myHostName", "C:\\f1\\f2", "a\\b\\c");
+        service.backup(multipartFile, "myHostName", "C:\\f1\\f2", new String[]{"a", "b", "c"});
     }
 
     @Test
     public void whenIsFileUp2dateThenMetaDataServiceIsInvokedWithExpectedArgs() {
         String hostName = "theHostName";
         String backupedPath = "theBackupedPath";
-        String relativePath = "theRelativePath";
+        String[] relativePath = new String[] {"theRelativePath"};
         String fileName = "theFileName";
         String md5Checksum = "theMd5Checksum";
 
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        File backupedFile = Paths.get(backupSetPath.toString(), relativePath, fileName).toFile();
+        File backupedFile = Paths.get(backupSetPath.toString(), relativePath).resolve(fileName).toFile();
 
         when(directoryService.getBackupSetPath(hostName, backupedPath)).thenReturn(backupSetPath);
         service.isFileUpToDate(hostName, backupedPath, relativePath, fileName, md5Checksum);
@@ -84,7 +84,7 @@ public class BackupServiceTest {
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(TestDirectoryProvider.createTempDirectory());
         when(metaDataService.isMd5Equal(any(), any())).thenReturn(true);
 
-        boolean result = service.isFileUpToDate("hostName", "backedupPath", "relativePath", "fileName",
+        boolean result = service.isFileUpToDate("hostName", "backedupPath", new String[]{"relativePath"}, "fileName",
                 "md5Checksum");
         assertThat(result).isTrue();
     }
@@ -94,7 +94,7 @@ public class BackupServiceTest {
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(TestDirectoryProvider.createTempDirectory());
         when(metaDataService.isMd5Equal(any(), any())).thenReturn(false);
 
-        boolean result = service.isFileUpToDate("hostName", "backedupPath", "relativePath", "fileName",
+        boolean result = service.isFileUpToDate("hostName", "backedupPath", new String[]{"relativePath"}, "fileName",
                 "md5Checksum");
         assertThat(result).isFalse();
     }

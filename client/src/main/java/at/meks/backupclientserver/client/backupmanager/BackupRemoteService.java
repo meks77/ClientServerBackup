@@ -16,6 +16,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Path;
+import java.util.stream.StreamSupport;
 
 class BackupRemoteService {
 
@@ -32,9 +33,9 @@ class BackupRemoteService {
         try {
             HttpEntity httpEntity =
                     MultipartEntityBuilder.create()
-                            .addTextBody("relativePath", getRelativePath(backupSetPath, changedFile), ContentType.TEXT_PLAIN)
-                            .addTextBody("hostName", InetAddress.getLocalHost().getHostName(), ContentType.TEXT_PLAIN)
-                            .addTextBody("backupedPath", backupSetPath.toString(), ContentType.TEXT_PLAIN)
+                            .addTextBody("relativePath", getRelativePath(backupSetPath, changedFile), ContentType.TEXT_PLAIN.withCharset("utf8"))
+                            .addTextBody("hostName", InetAddress.getLocalHost().getHostName(), ContentType.TEXT_PLAIN.withCharset("utf8"))
+                            .addTextBody("backupedPath", backupSetPath.toString(), ContentType.TEXT_PLAIN.withCharset("utf8"))
                             .addBinaryBody("file", changedFile.toFile(),
                                     ContentType.APPLICATION_OCTET_STREAM, changedFile.toFile().getName())
                             .build();
@@ -47,7 +48,7 @@ class BackupRemoteService {
     }
 
     private String getRelativePath(Path backupSetPath, Path changedFile) {
-        return backupSetPath.relativize(changedFile.getParent()).toString();
+        return String.join(", ", getRelativePathAsStringArray(backupSetPath, changedFile));
     }
 
     boolean isFileUpToDate(Path backupSetPath, Path file) {
@@ -61,7 +62,7 @@ class BackupRemoteService {
     private FileUp2dateInput getFileUp2DateRequestInput(Path backupSetPath, Path file)  {
         FileUp2dateInput input = new FileUp2dateInput();
         input.setBackupedPath(backupSetPath.toString());
-        input.setRelativePath(backupSetPath.relativize(file.getParent()).toString());
+        input.setRelativePath(getRelativePathAsStringArray(backupSetPath, file));
         input.setFileName(file.toFile().getName());
         try {
             input.setHostName(InetAddress.getLocalHost().getHostName());
@@ -70,6 +71,12 @@ class BackupRemoteService {
             throw new ClientBackupException("error while preparing the json input hostname and md5 checksum", e);
         }
         return input;
+    }
+
+    private String[] getRelativePathAsStringArray(Path backupSetPath, Path file) {
+        return StreamSupport.stream(backupSetPath.relativize(file.getParent()).spliterator(), false)
+                .map(Path::toString)
+                .toArray(String[]::new);
     }
 
     private String getBackupMethodUrl(String method) {

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
@@ -75,7 +76,10 @@ class FileWatcher {
         if (file.isDirectory()) {
             File[] subDirs = file.listFiles(File::isDirectory);
             if (subDirs != null) {
-                Stream.of(subDirs).forEach(file1 -> registerDirectory(watchService, file1.toPath()));
+                Stream.of(subDirs)
+                        .filter(File::exists)
+                        .filter(file1 -> Files.isReadable(file1.toPath()))
+                        .forEach(file1 -> registerDirectory(watchService, file1.toPath()));
             }
         }
     }

@@ -1,8 +1,8 @@
 package at.meks.backupclientserver.client.backupmanager;
 
 
-import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.client.ApplicationConfig;
+import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -26,6 +26,8 @@ import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aMultipart;
 import static com.github.tomakehurst.wiremock.client.WireMock.binaryEqualTo;
@@ -69,7 +71,8 @@ public class BackupRemoteServiceTest {
     @Test
     public void whenBackupFileThenHttpRequestIsInvokedAsExpected() throws IOException {
         byte[] expectedUploadedBytes = FileUtils.readFileToByteArray(fileForBackup.toFile());
-        String expectedRelativePath = getRelativePathOfPackage();
+        String expectedRelativePath = Stream.of(getRelativePathOfPackage())
+                .map(value -> "\""+value+"\"").collect(Collectors.joining(", ", "[ ", " ]"));
         String hostName = InetAddress.getLocalHost().getHostName();
 
         backupRemoteService.backupFile(backupSetPath, fileForBackup);
@@ -108,8 +111,8 @@ public class BackupRemoteServiceTest {
         }
     }
 
-    private String getRelativePathOfPackage() {
-        return Paths.get("at", "meks", "backupclientserver", "client", "backupmanager").toString();
+    private String[] getRelativePathOfPackage() {
+        return new String[]{"at", "meks", "backupclientserver", "client", "backupmanager"};
     }
 
     private String getExpectedJsonInputString(Path fileForBackup) throws IOException {

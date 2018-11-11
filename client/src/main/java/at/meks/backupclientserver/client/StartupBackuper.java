@@ -34,7 +34,7 @@ class StartupBackuper {
                 }
             });
         } catch (IOException e) {
-            throw new ClientBackupException("error while doing initial backup");
+            throw new ClientBackupException("error while doing initial backup", e);
         }
     }
 }

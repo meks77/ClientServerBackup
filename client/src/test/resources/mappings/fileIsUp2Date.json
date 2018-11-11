@@ -5,7 +5,7 @@
     "url" : "/api/v1.0/backup/isFileUpToDate",
     "method" : "POST",
     "bodyPatterns" : [ {
-      "equalToJson" : "{\n    \"hostName\": \"MEKS-ZENBOOK\",\n    \"backupedPath\": \"C:\\\\Users\\\\mhager\\\\IdeaProjects\\\\ClientServerBackup\\\\client\\\\target\\\\test-classes\",\n    \"relativePath\": \"at\\\\meks\\\\backupclientserver\\\\client\\\\backupmanager\",\n    \"fileName\": \"up2date.txt\",\n    \"md5Checksum\": \"1b992e39dc55f0c79dbe613b3ad02f29\"\n}",
+      "equalToJson" : "{\n    \"hostName\": \"MEKS-ZENBOOK\",\n    \"backupedPath\": \"C:\\\\Users\\\\mhager\\\\IdeaProjects\\\\ClientServerBackup\\\\client\\\\target\\\\test-classes\",\n    \"relativePath\": [ \"at\", \"meks\", \"backupclientserver\", \"client\", \"backupmanager\" ],\n    \"fileName\": \"up2date.txt\",\n    \"md5Checksum\": \"1b992e39dc55f0c79dbe613b3ad02f29\"\n}",
       "ignoreArrayOrder" : true,
       "ignoreExtraElements" : true
     } ]

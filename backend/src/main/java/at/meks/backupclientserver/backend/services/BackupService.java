@@ -23,7 +23,7 @@ public class BackupService {
     @Autowired
     private MetaDataService metaDataService;
 
-    public void backup(MultipartFile file, String hostName, String backupedPath, String relativePath) {
+    public void backup(MultipartFile file, String hostName, String backupedPath, String[] relativePath) {
         File target = getTargetFile(file.getOriginalFilename(), hostName, backupedPath, relativePath);
         try {
             logger.info("copy file to target {}", target.getAbsolutePath());
@@ -34,7 +34,7 @@ public class BackupService {
         }
     }
 
-    private File getTargetFile(String fileName, String hostName, String backedupDir, String relativePathWithinDir) {
+    private File getTargetFile(String fileName, String hostName, String backedupDir, String[] relativePathWithinDir) {
         Path backupSetPath = directoryService.getBackupSetPath(hostName, backedupDir);
         Path targetDir = Paths.get(backupSetPath.toString(), relativePathWithinDir);
         if (!targetDir.toFile().exists()) {
@@ -47,7 +47,7 @@ public class BackupService {
         return new File(targetDir.toFile(), fileName);
     }
 
-    public boolean isFileUpToDate(String hostName, String backupedPath, String relativePath, String fileName, String md5Checksum) {
+    public boolean isFileUpToDate(String hostName, String backupedPath, String[] relativePath, String fileName, String md5Checksum) {
         File backupedFile = getTargetFile(fileName, hostName, backupedPath, relativePath);
         return metaDataService.isMd5Equal(backupedFile, md5Checksum);
     }

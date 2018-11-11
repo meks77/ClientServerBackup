@@ -79,7 +79,7 @@ public class DirectoryService {
     }
 
     Path getMetadataDirectoryPath(Path targetDir) {
-        Path metaDataDir = Paths.get(targetDir.toString(), ".metadata");
+        Path metaDataDir = Paths.get(targetDir.toString(), ".backupClientServer");
         createIfNotExists(metaDataDir);
         return metaDataDir;
     }
