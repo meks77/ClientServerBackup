@@ -23,8 +23,8 @@ public class BackupService {
     @Autowired
     private MetaDataService metaDataService;
 
-    public void backup(MultipartFile file, String hostName, String backupedPath, String[] relativePath) {
-        File target = getTargetFile(file.getOriginalFilename(), hostName, backupedPath, relativePath);
+    public void backup(MultipartFile file, String hostName, String backupedPath, String[] relativePath, String fileName) {
+        File target = getTargetFile(fileName, hostName, backupedPath, relativePath);
         try {
             logger.info("copy file to target {}", target.getAbsolutePath());
             file.transferTo(target);

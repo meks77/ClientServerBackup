@@ -26,8 +26,6 @@ import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aMultipart;
 import static com.github.tomakehurst.wiremock.client.WireMock.binaryEqualTo;
@@ -71,16 +69,25 @@ public class BackupRemoteServiceTest {
     @Test
     public void whenBackupFileThenHttpRequestIsInvokedAsExpected() throws IOException {
         byte[] expectedUploadedBytes = FileUtils.readFileToByteArray(fileForBackup.toFile());
-        String expectedRelativePath = Stream.of(getRelativePathOfPackage())
-                .map(value -> "\""+value+"\"").collect(Collectors.joining(", ", "[ ", " ]"));
+        String expectedRelativePath = String.join(", ", getRelativePathOfPackage());
         String hostName = InetAddress.getLocalHost().getHostName();
 
         backupRemoteService.backupFile(backupSetPath, fileForBackup);
 
+        WireMock.findAll(postRequestedFor(urlEqualTo("/api/v1.0/backup/file")));
         WireMock.verify(postRequestedFor(urlEqualTo("/api/v1.0/backup/file"))
-                .withRequestBodyPart(aMultipart("relativePath").withBody(equalTo(expectedRelativePath)).build())
-                .withRequestBodyPart(aMultipart("hostName").withBody(equalTo(hostName)).build())
-                .withRequestBodyPart(aMultipart("backupedPath").withBody(equalTo(backupSetPath.toString())).build())
+                .withRequestBodyPart(aMultipart("relativePath")
+                        .withHeader("Content-Type", equalTo("text/plain; charset=UTF-8"))
+                        .withBody(equalTo(expectedRelativePath)).build())
+                .withRequestBodyPart(aMultipart("hostName")
+                        .withHeader("Content-Type", equalTo("text/plain; charset=UTF-8"))
+                        .withBody(equalTo(hostName)).build())
+                .withRequestBodyPart(aMultipart("backupedPath")
+                        .withHeader("Content-Type", equalTo("text/plain; charset=UTF-8"))
+                        .withBody(equalTo(backupSetPath.toString())).build())
+                .withRequestBodyPart(aMultipart("fileName")
+                        .withHeader("Content-Type", equalTo("text/plain; charset=UTF-8"))
+                        .withBody(equalTo(fileForBackup.toFile().getName())).build())
                 .withRequestBodyPart(aMultipart("file").withBody(binaryEqualTo(expectedUploadedBytes)).build())
         );
     }

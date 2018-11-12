@@ -33,10 +33,12 @@ public class BackupWebServiceTest {
         String hostName = "hstNm";
         String backupedPath = "bckpdPth";
         MultipartFile expectedFile = Mockito.mock(MultipartFile.class);
+        String fileName = "backedUpFileName.txt";
 
-        webService.backupFile(expectedFile, relativePath, hostName, backupedPath);
+        webService.backupFile(expectedFile, relativePath, hostName, backupedPath, fileName);
 
-        verify(backupService).backup(same(expectedFile), eq(hostName), eq(backupedPath), eq(relativePath));
+        verify(backupService).backup(same(expectedFile), eq(hostName), eq(backupedPath), eq(relativePath),
+                eq(fileName));
     }
 
     @Test

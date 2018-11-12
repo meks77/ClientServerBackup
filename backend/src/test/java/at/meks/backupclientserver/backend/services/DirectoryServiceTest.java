@@ -77,7 +77,7 @@ public class DirectoryServiceTest {
     public void whenGetMetadataDirectoryPathReturnsExcpectedPath() {
         Path tempRootPath = TestDirectoryProvider.createTempDirectory();
         Path result = service.getMetadataDirectoryPath(tempRootPath);
-        assertThat(result).isEqualTo(Paths.get(tempRootPath.toString(), ".metadata"));
+        assertThat(result).isEqualTo(Paths.get(tempRootPath.toString(), ".backupClientServer"));
     }
 
     @Test
@@ -90,7 +90,7 @@ public class DirectoryServiceTest {
     @Test
     public void givenMetadataDirExistsWhenGetMetadataDirectoryPathThenNoExceptionIsThrown() throws IOException {
         Path tempRootPath = TestDirectoryProvider.createTempDirectory();
-        Files.createDirectory(Paths.get(tempRootPath.toString(), ".metadata"));
+        Files.createDirectory(Paths.get(tempRootPath.toString(), ".backupClientServer"));
         service.getMetadataDirectoryPath(tempRootPath);
     }
 }

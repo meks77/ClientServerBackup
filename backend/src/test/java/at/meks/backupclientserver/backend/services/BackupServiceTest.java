@@ -46,20 +46,19 @@ public class BackupServiceTest {
         File expectedTarget = Paths.get(backupSetTargetPath.toString(), "expected", "target",
                 fileNameOfBackedupFile).toFile();
 
-        when(multipartFile.getOriginalFilename()).thenReturn(fileNameOfBackedupFile);
         when(directoryService.getBackupSetPath(hostName, clientBackupSetPath)).thenReturn(backupSetTargetPath);
 
-        service.backup(multipartFile, hostName, clientBackupSetPath, new String[]{"expected", "target"});
+        service.backup(multipartFile, hostName, clientBackupSetPath, new String[]{"expected", "target"},
+                fileNameOfBackedupFile);
 
         verify(multipartFile).transferTo(expectedTarget);
     }
 
     @Test(expected = ServerBackupException.class)
     public void givenIoExceptionWhenBackupThenServerBackupExceptionIsThrown() throws IOException {
-        when(multipartFile.getOriginalFilename()).thenReturn("expctdName.txt");
         doThrow(new IOException("ut expktd exc")).when(multipartFile).transferTo(any());
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(Files.createTempDirectory("utThrw"));
-        service.backup(multipartFile, "myHostName", "C:\\f1\\f2", new String[]{"a", "b", "c"});
+        service.backup(multipartFile, "myHostName", "C:\\f1\\f2", new String[]{"a", "b", "c"}, "whatever");
     }
 
     @Test

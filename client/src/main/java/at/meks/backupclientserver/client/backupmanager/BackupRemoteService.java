@@ -6,6 +6,7 @@ import at.meks.backupclientserver.common.Md5CheckSumGenerator;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import com.google.inject.Inject;
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -31,11 +32,13 @@ class BackupRemoteService {
 
     void backupFile(Path backupSetPath, Path changedFile) {
         try {
+            ContentType textContentType = ContentType.TEXT_PLAIN.withCharset(Consts.UTF_8);
             HttpEntity httpEntity =
                     MultipartEntityBuilder.create()
-                            .addTextBody("relativePath", getRelativePath(backupSetPath, changedFile), ContentType.TEXT_PLAIN.withCharset("utf8"))
-                            .addTextBody("hostName", InetAddress.getLocalHost().getHostName(), ContentType.TEXT_PLAIN.withCharset("utf8"))
-                            .addTextBody("backupedPath", backupSetPath.toString(), ContentType.TEXT_PLAIN.withCharset("utf8"))
+                            .addTextBody("relativePath", getRelativePath(backupSetPath, changedFile), textContentType)
+                            .addTextBody("hostName", InetAddress.getLocalHost().getHostName(), textContentType)
+                            .addTextBody("backupedPath", backupSetPath.toString(), textContentType)
+                            .addTextBody("fileName", changedFile.toFile().getName(), textContentType)
                             .addBinaryBody("file", changedFile.toFile(),
                                     ContentType.APPLICATION_OCTET_STREAM, changedFile.toFile().getName())
                             .build();
