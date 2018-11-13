@@ -1,5 +1,6 @@
 package at.meks.backupclientserver.client.backupmanager;
 
+import at.meks.backupclientserver.client.ErrorReporter;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,9 +16,11 @@ public class BackupManager {
 
     private Thread queueReaderThread;
 
-
     @Inject
     private BackupRemoteService backupRemoteService;
+
+    @Inject
+    private ErrorReporter errorReporter;
 
     @Inject
     private void start() {
@@ -35,22 +38,26 @@ public class BackupManager {
                 backup(backupQueue.take());
             } while (true);
         } catch (InterruptedException e) {
-            logger.error("listening for Backup items was interrupted", e);
+            errorReporter.reportError("listening for Backup items was interrupted", e);
         }
     }
 
     private void backup(TodoEntry item) {
-        logger.info("backup {}", item);
-        if (item.getChangedFile().toFile().isFile() &&
-                item.getType() != PathChangeType.DELETED &&
-                !isFileUpToDate(item)) {
-            backupFile(item);
+        logger.debug("backup {}", item);
+        try {
+            if (item.getChangedFile().toFile().isFile() &&
+                    item.getType() != PathChangeType.DELETED &&
+                    !isFileUpToDate(item)) {
+                backupFile(item);
+            }
+        } catch (Exception e) {
+            errorReporter.reportError("error while backing up file " + item.getChangedFile(), e);
         }
     }
 
     private boolean isFileUpToDate(TodoEntry item) {
         boolean fileUpToDate = backupRemoteService.isFileUpToDate(item.getWatchedPath(), item.getChangedFile());
-        logger.info("the file {} is update2date: {}", item.getChangedFile(), fileUpToDate);
+        logger.debug("the file {} is update2date: {}", item.getChangedFile(), fileUpToDate);
         return fileUpToDate;
     }
 

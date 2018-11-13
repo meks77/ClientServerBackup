@@ -16,6 +16,9 @@ class StartupBackuper {
     @Inject
     private BackupManager backupManager;
 
+    @Inject
+    private ErrorReporter errorReporter;
+
     void backupIfNecessary(Path[] paths) {
         Thread initialBackupThread = new Thread(() ->
         Stream.of(paths).forEach(path -> walkThroughDirectoryAndBackupFiles(path, path)));
@@ -34,7 +37,7 @@ class StartupBackuper {
                 }
             });
         } catch (IOException e) {
-            throw new ClientBackupException("error while doing initial backup", e);
+            errorReporter.reportError("error while doing initial backup", e);
         }
     }
 }

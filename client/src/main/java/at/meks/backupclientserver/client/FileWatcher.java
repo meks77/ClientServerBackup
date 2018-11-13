@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.client;
 
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandler;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,9 @@ class FileWatcher {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Inject
+    private ErrorReporter errorReporter;
+
     private Path[] pathsToWatch;
     private FileChangeHandler onChangeConsumer;
     private Map<WatchKey, Path> pathMap = new HashMap<>();
@@ -51,6 +55,7 @@ class FileWatcher {
             listenThread = new Thread(() ->  listenToChanges(watchService));
             listenThread.start();
         } catch (IOException e) {
+            errorReporter.reportError("couldn't create watchService", e);
             throw new ClientBackupException("couldn't create watchService", e);
         }
     }
@@ -60,6 +65,7 @@ class FileWatcher {
         try {
             watchService.close();
         } catch (IOException e) {
+            errorReporter.reportError("couldn't close watchService", e);
             throw new ClientBackupException("couldn't close watchService", e);
         }
     }
@@ -115,6 +121,8 @@ class FileWatcher {
             }
         } catch (InterruptedException e) {
             logger.info("listening to file changes was interrupted", e);
+        } catch (Exception e) {
+            errorReporter.reportError("error while listening to changes", e);
         }
     }
 
