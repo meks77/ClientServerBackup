@@ -13,11 +13,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -97,4 +100,46 @@ public class BackupServiceTest {
                 "md5Checksum");
         assertThat(result).isFalse();
     }
+
+    @Test
+    public void givenFirstVersionOfFileWhenBackupThenNoFileIsCreatedInVersionsDir() throws IOException {
+        Path testRootDir = TestDirectoryProvider.createTempDirectory();
+        Path backupSetPath = testRootDir.resolve("backupSetPath");
+        Path versionsDir = backupSetPath.resolve(".versions");
+        Path fileToBackup = testRootDir.resolve("fileForBackup.txt");
+        Files.createFile(fileToBackup);
+
+        when(directoryService.getBackupSetPath(any(), any())).thenReturn(backupSetPath);
+
+        service.backup(multipartFile, "hostName", "backupSetPath", new String[0], fileToBackup.toFile().getName());
+
+        assertThat(versionsDir).doesNotExist();
+    }
+
+    @Test
+    public void givenSecondVersionOfFileWhenBackupThenTheOldFileIsMovedToVersionsDir() throws IOException {
+        Path testRootDir = TestDirectoryProvider.createTempDirectory();
+        Path backupSetPath = testRootDir.resolve("backupSetPath");
+        Files.createDirectories(backupSetPath);
+        Path versionsDir = backupSetPath.resolve(".versions");
+        Files.createDirectories(versionsDir);
+        Path fileToBackup = testRootDir.resolve("fileForBackup.txt");
+        Files.createFile(fileToBackup);
+        Path backupTargetFile = backupSetPath.resolve(fileToBackup.toFile().getName());
+        Files.createFile(backupTargetFile);
+
+        when(directoryService.getFileVersionsDirectory(backupTargetFile)).thenReturn(versionsDir);
+        when(directoryService.getBackupSetPath(any(), any())).thenReturn(backupSetPath);
+
+        LocalDateTime timeStampBeforeBackup = LocalDateTime.now();
+
+        service.backup(multipartFile, "hostName", "backupSetPath", new String[0], fileToBackup.toFile().getName());
+
+        assertThat(versionsDir).exists().isDirectory();
+        assertThat(versionsDir.toFile().list()).hasSize(1);
+        @SuppressWarnings("ConstantConditions") String foundVersionFile = versionsDir.toFile().listFiles()[0].getName();
+        TemporalAccessor timestampFromFilename = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss.SSS").parse(foundVersionFile);
+        assertThat(LocalDateTime.from(timestampFromFilename)).isAfterOrEqualTo(timeStampBeforeBackup);
+    }
+
 }

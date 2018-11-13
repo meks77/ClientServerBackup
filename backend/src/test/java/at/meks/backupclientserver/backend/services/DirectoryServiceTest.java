@@ -93,4 +93,47 @@ public class DirectoryServiceTest {
         Files.createDirectory(Paths.get(tempRootPath.toString(), ".backupClientServer"));
         service.getMetadataDirectoryPath(tempRootPath);
     }
+
+    @Test
+    public void givenNotExistingVersionsDirWhenGetVersionDirectoryThenVersionDirIsCreatedAndReturned() {
+        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+        Path backupedFile = backupSetPath.resolve("backupedFile.txt");
+        Path expectedVersionsDir = backupSetPath.resolve(".backupClientServer")
+                .resolve(backupedFile.toFile().getName());
+
+        Path versionDir = service.getFileVersionsDirectory(backupedFile);
+
+        assertThat(versionDir).isEqualTo(expectedVersionsDir);
+        assertThat(versionDir).isDirectory();
+    }
+
+    @Test
+    public void givenExistingVersionsDirWhenGetVersionDirectoryThenVersionDirIsCreatedAndReturned() throws IOException {
+        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+        Path backupedFile = backupSetPath.resolve("backupedFile.txt");
+        Path expectedVersionsDir = backupSetPath.resolve(".backupClientServer")
+                .resolve(backupedFile.toFile().getName());
+        Files.createDirectories(expectedVersionsDir);
+
+        Path versionDir = service.getFileVersionsDirectory(backupedFile);
+
+        assertThat(versionDir).isEqualTo(expectedVersionsDir);
+        assertThat(versionDir).isDirectory();
+    }
+
+    @Test
+    public void givenFileInSubDirWhenGetVersionDirectoryThenExpectedDirectoryIsReturned() {
+        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+        Path backupedFile = backupSetPath.resolve("subDir").resolve("backupedFile.txt");
+        Path expectedVersionsDir = backupedFile.getParent()
+                .resolve(".backupClientServer")
+                .resolve(backupedFile.toFile().getName());
+
+        Path versionDir = service.getFileVersionsDirectory(backupedFile);
+
+        assertThat(versionDir).isEqualTo(expectedVersionsDir);
+        assertThat(versionDir).isDirectory();
+    }
+
+
 }

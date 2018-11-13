@@ -11,9 +11,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class BackupService {
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss.SSS");
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -27,6 +31,7 @@ public class BackupService {
         File target = getTargetFile(fileName, hostName, backupedPath, relativePath);
         try {
             logger.info("copy file to target {}", target.getAbsolutePath());
+            moveOldFileToVersionsDir(target.toPath());
             file.transferTo(target);
             metaDataService.writeMd5Checksum(target);
         } catch (IOException e) {
@@ -45,6 +50,13 @@ public class BackupService {
             }
         }
         return new File(targetDir.toFile(), fileName);
+    }
+
+    private void moveOldFileToVersionsDir(Path outDatedFile) throws IOException {
+        if (outDatedFile.toFile().exists()) {
+            String fileNameInVersionsDir = DATE_TIME_FORMATTER.format(LocalDateTime.now());
+            Files.move(outDatedFile, directoryService.getFileVersionsDirectory(outDatedFile).resolve(fileNameInVersionsDir));
+        }
     }
 
     public boolean isFileUpToDate(String hostName, String backupedPath, String[] relativePath, String fileName, String md5Checksum) {

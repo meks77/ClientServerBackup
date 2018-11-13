@@ -60,7 +60,7 @@ public class DirectoryService {
             if (!path.toFile().exists()) {
                 try {
                     logger.info("create directory {}", path);
-                    Files.createDirectory(path);
+                    Files.createDirectories(path);
                 } catch (IOException e) {
                     throw new ServerBackupException("couldn't create directory", e);
                 }
@@ -82,5 +82,11 @@ public class DirectoryService {
         Path metaDataDir = Paths.get(targetDir.toString(), ".backupClientServer");
         createIfNotExists(metaDataDir);
         return metaDataDir;
+    }
+
+    Path getFileVersionsDirectory(Path changedFile) {
+        Path versionsDir = getMetadataDirectoryPath(changedFile.getParent()).resolve(changedFile.toFile().getName());
+        createIfNotExists(versionsDir);
+        return versionsDir;
     }
 }
