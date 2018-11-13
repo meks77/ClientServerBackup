@@ -10,4 +10,8 @@ public class ErrorReporter {
     public void reportError(String message, Exception e) {
         logger.error(message, e);
     }
+
+    public void reportError(String message) {
+        logger.error(message);
+    }
 }

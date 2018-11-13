@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.client.filechangehandler;
 
 import at.meks.backupclientserver.client.ClientBackupException;
+import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.PathChangeType;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
@@ -11,15 +12,18 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.attribute.FileTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 public class FileChangeHandlerImpl implements FileChangeHandler {
 
@@ -38,17 +42,51 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
     @Inject
     private BackupManager backupManager;
 
+    @Inject
+    private ErrorReporter errorReporter;
+
     @Override
     public void fileChanged(Path watchedRootPath, WatchEvent.Kind kind, Path changedFile) {
         startQueueReaderIfNecessary();
-        if (!isFileAlreadyInQueue(changedFile)) {
-            PathChangeType pathChangeType = PathChangeType.from(kind);
-            if (pathChangeType == null) {
-                logger.error("unknown WatchEvent.Kind {}", kind);
-                return;
+        try {
+            if (changedFile.toFile().isFile()) {
+                addFileToQueue(watchedRootPath, kind, changedFile);
+            } else if (changedFile.toFile().isDirectory()) {
+                addDirectoryToQueue(watchedRootPath, kind, changedFile);
             }
-            delyedQueue.put(new DelayedFileChange(new TodoEntry(pathChangeType, changedFile, watchedRootPath)));
+        } catch (Exception e) {
+            String message = "error while adding file change to queue. backupSetPath: " + watchedRootPath + " kind: " +
+                    kind + " changedFile: " + changedFile;
+            errorReporter.reportError(message, e);
         }
+    }
+
+    private void addDirectoryToQueue(Path watchedRootPath, WatchEvent.Kind kind, Path changedDirectory) throws IOException {
+        if (!kind.equals(StandardWatchEventKinds.ENTRY_DELETE)) {
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(changedDirectory)) {
+                directoryStream.forEach(path -> fileChanged(watchedRootPath, kind, path));
+            }
+        }
+    }
+
+    private void addFileToQueue(Path watchedRootPath, WatchEvent.Kind kind, Path changedFile) {
+        if (!isFileAlreadyInQueue(changedFile)) {
+            forKind(kind,
+                    pathChangeType -> delyedQueue.put(createDelayedFileChange(watchedRootPath, changedFile, pathChangeType)));
+        }
+    }
+
+    private DelayedFileChange createDelayedFileChange(Path watchedRootPath, Path changedFile, PathChangeType pathChangeType) {
+        return new DelayedFileChange(new TodoEntry(pathChangeType, changedFile, watchedRootPath));
+    }
+
+    private void forKind(WatchEvent.Kind kind, Consumer<PathChangeType> consumer) {
+        PathChangeType pathChangeType = PathChangeType.from(kind);
+        if (pathChangeType == null) {
+            errorReporter.reportError("unknown WatchEvent.Kind " + kind);
+            return;
+        }
+        consumer.accept(pathChangeType);
     }
 
     private void startQueueReaderIfNecessary() {
