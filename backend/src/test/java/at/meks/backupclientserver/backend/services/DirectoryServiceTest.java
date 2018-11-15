@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 public class DirectoryServiceTest {
@@ -54,7 +55,7 @@ public class DirectoryServiceTest {
         Path tempDir = Files.createTempDirectory("utThreading");
         String clientBackupSetPath = "C:\\backup\\set\\path";
 
-        when(configuration.getApplicationRootDirectory()).thenReturn(tempDir);
+        when(configuration.getApplicationRoot()).thenReturn(tempDir.toString());
 
         ExecutorService executorService = Executors.newFixedThreadPool(20);
         String clientHostName = "utHostName";
@@ -67,19 +68,19 @@ public class DirectoryServiceTest {
     }
 
     @Test
-    public void givenHostNameAndBackupSetPathWhenGetBackupSetPathReturnsExpected() throws IOException {
-        Path tempDir = Files.createTempDirectory("utBckstPth");
+    public void givenHostNameAndBackupSetPathWhenGetBackupSetPathReturnsExpected() {
+        Path tempDir = TestDirectoryProvider.createTempDirectory();
         String clientBackupSetPath = "C:\\backup\\set\\path";
         String clientHostName = "utHostName";
 
-        when(configuration.getApplicationRootDirectory()).thenReturn(tempDir);
+        when(configuration.getApplicationRoot()).thenReturn(tempDir.toString());
 
         service.getBackupSetPath(clientHostName, clientBackupSetPath);
         assertThat(getExpectedPath(tempDir, clientBackupSetPath, clientHostName)).exists();
     }
 
     private Path getExpectedPath(Path tempDir, String clientBackupSetPath, String clientHostName) {
-        return Paths.get(tempDir.toString(), md5Hex(clientHostName), md5Hex(clientBackupSetPath));
+        return Paths.get(tempDir.toString(), "backups", md5Hex(clientHostName), md5Hex(clientBackupSetPath));
     }
 
     @Test
@@ -185,6 +186,9 @@ public class DirectoryServiceTest {
         assertThat(deletedDirsDirectory.getParent()).exists().isDirectory().hasParent(expectedDeletedDirs);
     }
 
-
+    @Test
+    public void givenNoDirWhenGetApplicationRootDirectoryThenExceptionIsThrown() {
+        assertThrows(ServerBackupException.class, () -> service.getBackupSetPath("host", "path"));
+    }
 
 }

@@ -50,7 +50,7 @@ class DirectoryService {
     }
 
     private Path getClientRootDirectory(String hostName) {
-        Path path = Paths.get(configuration.getApplicationRootDirectory().toString(),
+        Path path = Paths.get(getBackupRootDirectory().toString(),
                 md5CheckSumGenerator.md5HexFor(hostName));
         return createIfNotExists(path);
     }
@@ -99,5 +99,14 @@ class DirectoryService {
     private Path getDeletedDirsDirectory(Path deletedDirectory){
         Path deletedDirsDirectory = getMetadataDirectoryPath(deletedDirectory.getParent()).resolve("deletedDirs");
         return createIfNotExists(deletedDirsDirectory);
+    }
+
+    private Path getBackupRootDirectory() {
+        String applicationRoot = configuration.getApplicationRoot();
+        if (applicationRoot == null) {
+            throw new ServerBackupException("applicationRoot directory is not set");
+        }
+        Path backupDir = Paths.get(applicationRoot, "backups");
+        return createIfNotExists(backupDir);
     }
 }
