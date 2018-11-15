@@ -15,12 +15,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class DirectoryService {
+class DirectoryService {
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss.SSS");
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -42,18 +46,16 @@ public class DirectoryService {
         String backupSetRelativePath = md5CheckSumGenerator.md5HexFor(clientBackupSetPath);
         Path backupSetPath = Paths.get(clientRootDir.toString(), backupSetRelativePath);
 
-        createIfNotExists(backupSetPath);
-        return backupSetPath;
+        return createIfNotExists(backupSetPath);
     }
 
     private Path getClientRootDirectory(String hostName) {
         Path path = Paths.get(configuration.getApplicationRootDirectory().toString(),
                 md5CheckSumGenerator.md5HexFor(hostName));
-        createIfNotExists(path);
-        return path;
+        return createIfNotExists(path);
     }
 
-    private void createIfNotExists(Path path) {
+    private Path createIfNotExists(Path path) {
         ReentrantLock lock = getLock(path);
         lock.lock();
         try {
@@ -65,6 +67,7 @@ public class DirectoryService {
                     throw new ServerBackupException("couldn't create directory", e);
                 }
             }
+            return path;
         } finally {
             lock.unlock();
         }
@@ -80,13 +83,21 @@ public class DirectoryService {
 
     Path getMetadataDirectoryPath(Path targetDir) {
         Path metaDataDir = Paths.get(targetDir.toString(), ".backupClientServer");
-        createIfNotExists(metaDataDir);
-        return metaDataDir;
+        return createIfNotExists(metaDataDir);
     }
 
     Path getFileVersionsDirectory(Path changedFile) {
         Path versionsDir = getMetadataDirectoryPath(changedFile.getParent()).resolve(changedFile.toFile().getName());
-        createIfNotExists(versionsDir);
-        return versionsDir;
+        return createIfNotExists(versionsDir);
+    }
+
+    Path getDirectoryForDeletedDir(Path deletedDir) {
+        Path versionsDir = getDeletedDirsDirectory(deletedDir).resolve(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
+        return createIfNotExists(versionsDir).resolve(deletedDir.toFile().getName());
+    }
+
+    private Path getDeletedDirsDirectory(Path deletedDirectory){
+        Path deletedDirsDirectory = getMetadataDirectoryPath(deletedDirectory.getParent()).resolve("deletedDirs");
+        return createIfNotExists(deletedDirsDirectory);
     }
 }

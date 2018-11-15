@@ -1,5 +1,6 @@
 package at.meks.backupclientserver.backend.services;
 
+import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.Callable;
 
 @Service
 public class BackupService {
@@ -27,40 +29,75 @@ public class BackupService {
     @Autowired
     private MetaDataService metaDataService;
 
-    public void backup(MultipartFile file, String hostName, String backupedPath, String[] relativePath, String fileName) {
-        File target = getTargetFile(fileName, hostName, backupedPath, relativePath);
-        try {
+    public void backup(MultipartFile file, FileInputArgs fileArgs) {
+        runHandlingException("error while backup", () -> {
+            File target = getTargetFile(fileArgs);
             logger.info("copy file to target {}", target.getAbsolutePath());
-            moveOldFileToVersionsDir(target.toPath());
+            moveOldFileToVersionsDir(target.toPath(), false);
             file.transferTo(target);
             metaDataService.writeMd5Checksum(target);
-        } catch (IOException e) {
-            throw new ServerBackupException("error while tranfer to target file", e);
-        }
+            return Void.TYPE;
+        });
     }
 
-    private File getTargetFile(String fileName, String hostName, String backedupDir, String[] relativePathWithinDir) {
-        Path backupSetPath = directoryService.getBackupSetPath(hostName, backedupDir);
-        Path targetDir = Paths.get(backupSetPath.toString(), relativePathWithinDir);
-        if (!targetDir.toFile().exists()) {
-            try {
-                Files.createDirectories(targetDir);
-            } catch (IOException e) {
-                throw new ServerBackupException("couldn't create directories " + targetDir, e);
-            }
-        }
-        return new File(targetDir.toFile(), fileName);
+    private File getTargetFile(FileInputArgs fileArgs)
+            throws IOException {
+        return getTargetFile(fileArgs, true);
     }
 
-    private void moveOldFileToVersionsDir(Path outDatedFile) throws IOException {
+    private File getTargetFile(FileInputArgs fileArgs, boolean createNotExisting) throws IOException {
+        Path backupSetPath = directoryService.getBackupSetPath(fileArgs.getHostName(), fileArgs.getBackupedPath());
+        Path targetDir = Paths.get(backupSetPath.toString(), fileArgs.getRelativePath());
+        if (createNotExisting && !targetDir.toFile().exists()) {
+            Files.createDirectories(targetDir);
+        }
+        return new File(targetDir.toFile(), fileArgs.getFileName());
+    }
+
+    private void moveOldFileToVersionsDir(Path outDatedFile, boolean markAsDeleted) throws IOException {
         if (outDatedFile.toFile().exists()) {
-            String fileNameInVersionsDir = DATE_TIME_FORMATTER.format(LocalDateTime.now());
-            Files.move(outDatedFile, directoryService.getFileVersionsDirectory(outDatedFile).resolve(fileNameInVersionsDir));
+            Path targetFile = getVersionTarget(outDatedFile, markAsDeleted);
+            Files.move(outDatedFile, targetFile);
         }
     }
 
-    public boolean isFileUpToDate(String hostName, String backupedPath, String[] relativePath, String fileName, String md5Checksum) {
-        File backupedFile = getTargetFile(fileName, hostName, backupedPath, relativePath);
-        return metaDataService.isMd5Equal(backupedFile, md5Checksum);
+    private Path getVersionTarget(Path outDatedFile, boolean markAsDeleted) {
+        StringBuilder fileNameInVersionsDir = new StringBuilder(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
+        if (markAsDeleted) {
+            fileNameInVersionsDir.append("-deleted");
+        }
+        Path versionsDirectory = directoryService.getFileVersionsDirectory(outDatedFile);
+        return versionsDirectory.resolve(fileNameInVersionsDir.toString());
+    }
+
+    public boolean isFileUpToDate(FileInputArgs fileArgs, String md5Checksum) {
+        return runHandlingException("error while verifying if file is up2date", () -> {
+            File backupedFile = getTargetFile(fileArgs);
+            return metaDataService.isMd5Equal(backupedFile, md5Checksum);
+        });
+    }
+
+    public void delete(FileInputArgs fileArgs) {
+        runHandlingException("error while deleting path", () -> {
+            File target = getTargetFile(fileArgs, false);
+            if (target.exists()) {
+                if (target.isDirectory()) {
+                    Path targetDir = directoryService.getDirectoryForDeletedDir(target.toPath());
+                    Files.move(target.toPath(), targetDir);
+                } else {
+                    moveOldFileToVersionsDir(target.toPath(), true);
+                }
+            }
+            return Void.TYPE;
+        });
+    }
+
+    private <T> T runHandlingException(String errorMessage, Callable<T> runnable) {
+        try {
+            return runnable.call();
+        } catch (Exception e) {
+            logger.error(errorMessage, e);
+            throw new ServerBackupException(errorMessage, e);
+        }
     }
 }

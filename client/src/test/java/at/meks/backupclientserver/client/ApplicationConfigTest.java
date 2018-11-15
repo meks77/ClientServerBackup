@@ -1,14 +1,10 @@
 package at.meks.backupclientserver.client;
 
 import org.apache.commons.io.FileUtils;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,14 +13,11 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ApplicationConfigTest {
 
     private File configFile;
-    private File configRoot;
-
-    @Rule
-    public ExpectedException  expectedException = ExpectedException.none();
 
     private ApplicationConfig config = new ApplicationConfig();
 
@@ -34,7 +27,7 @@ public class ApplicationConfigTest {
         System.setProperty("user.home", appConfigUT.toString());
         File userDirectory = FileUtils.getUserDirectory();
         assertThat(userDirectory.getAbsolutePath()).isEqualTo(appConfigUT.toString());
-        configRoot = new File(userDirectory, ".ClientServerBackup");
+        File configRoot = new File(userDirectory, ".ClientServerBackup");
         configFile = new File(configRoot, ".config");
 
         Files.deleteIfExists(configFile.toPath());
@@ -65,9 +58,7 @@ public class ApplicationConfigTest {
     @Test
     public void givenNoConfigFileWhenGetBackupedDirsReturnsEmptyArray() throws IOException {
         Files.deleteIfExists(configFile.toPath());
-        expectedException.expect(ClientBackupException.class);
-        expectedException.expectCause(IsInstanceOf.instanceOf(FileNotFoundException.class));
-        config.getBackupedDirs();
+        assertThrows(ClientBackupException.class, () -> config.getBackupedDirs());
     }
 
     @Test

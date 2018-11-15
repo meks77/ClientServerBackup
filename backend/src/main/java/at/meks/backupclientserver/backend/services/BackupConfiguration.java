@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Service
-public class BackupConfiguration {
+class BackupConfiguration {
 
     @Value("${application.root.dir}")
     private String applicationRoot;

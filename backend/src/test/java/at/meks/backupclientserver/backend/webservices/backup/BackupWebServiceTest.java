@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.backend.webservices.backup;
 
 import at.meks.backupclientserver.backend.services.BackupService;
+import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import org.junit.Test;
@@ -11,6 +12,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.web.multipart.MultipartFile;
 
+import static at.meks.backupclientserver.common.service.fileup2date.FileInputArgsBuilder.aFileInputArgs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,8 +39,9 @@ public class BackupWebServiceTest {
 
         webService.backupFile(expectedFile, relativePath, hostName, backupedPath, fileName);
 
-        verify(backupService).backup(same(expectedFile), eq(hostName), eq(backupedPath), eq(relativePath),
-                eq(fileName));
+        verify(backupService).backup(same(expectedFile),
+                eq(aFileInputArgs().withHostName(hostName).withBackupedPath(backupedPath).withRelativePath(relativePath)
+                        .withFileName(fileName).build()));
     }
 
     @Test
@@ -58,13 +61,15 @@ public class BackupWebServiceTest {
 
         webService.isFileUp2date(fileUp2dateInput);
 
-        verify(backupService).isFileUpToDate(expectedHostName, expectedBackupPath, expectedRelativePath,
-                expectedFileName, expectedMd5Checksum);
+        verify(backupService).isFileUpToDate(
+                aFileInputArgs().withHostName(expectedHostName).withBackupedPath(expectedBackupPath)
+                        .withRelativePath(expectedRelativePath).withFileName(expectedFileName).build(),
+                expectedMd5Checksum);
     }
 
     @Test
     public void givenFileIsUp2dateWhenIsFileUp2dateReturnTrue() {
-        when(backupService.isFileUpToDate(any(), any(), any(), any(), any())).thenReturn(true);
+        when(backupService.isFileUpToDate(any(), any())).thenReturn(true);
 
         FileUp2dateResult result = webService.isFileUp2date(new FileUp2dateInput());
         assertThat(result).isNotNull();
@@ -73,10 +78,17 @@ public class BackupWebServiceTest {
 
     @Test
     public void givenFileIsNotUp2dateWhenIsFileUp2dateReturnFalse() {
-        when(backupService.isFileUpToDate(any(), any(), any(), any(), any())).thenReturn(false);
+        when(backupService.isFileUpToDate(any(), any())).thenReturn(false);
 
         FileUp2dateResult result = webService.isFileUp2date(new FileUp2dateInput());
         assertThat(result).isNotNull();
         assertThat(result.isUp2date()).isFalse();
+    }
+
+    @Test
+    public void whenDeleteFileThenCallIsDelegatedToBackupService() {
+        FileInputArgs fileInputArgs = new FileInputArgs();
+        webService.deletePath(fileInputArgs);
+        verify(backupService).delete(same(fileInputArgs));
     }
 }

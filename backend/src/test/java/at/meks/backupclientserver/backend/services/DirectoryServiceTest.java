@@ -4,10 +4,10 @@ import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -24,14 +27,19 @@ import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class DirectoryServiceTest {
 
     @ClassRule
     public static final SpringClassRule springClassRule = new SpringClassRule();
 
+    private final DateTimeFormatter deletedDirNameFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss" +
+            ".SSS");
+
     @Rule
     public SpringMethodRule repeatRule = new SpringMethodRule();
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private BackupConfiguration configuration;
@@ -39,6 +47,7 @@ public class DirectoryServiceTest {
     @InjectMocks
     private DirectoryService service;
 
+//    @RepeatedTest(10) sadly junit 5 doesn't work with mockito :(
     @Test
     @Repeat(10)
     public void givenManyThreadsForSameHostAndBackupSetPathWhenGetBackupSetPathThenNoExceptionIsThrown() throws IOException, InterruptedException {
@@ -134,6 +143,48 @@ public class DirectoryServiceTest {
         assertThat(versionDir).isEqualTo(expectedVersionsDir);
         assertThat(versionDir).isDirectory();
     }
+
+    @Test
+    public void givenExistingDeletedDirsWhenGetDeletedVersionsDirReturnsExpected() throws IOException {
+        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+        Path dirToDelete = Files.createDirectories(backupSetPath.resolve("dirForDelete"));
+        Path expectedDeletedDirs = backupSetPath.resolve(".backupClientServer").resolve("deletedDirs");
+
+        LocalDateTime beforeExecution = LocalDateTime.now();
+        Path versionedDeleteDir = service.getDirectoryForDeletedDir(dirToDelete);
+
+        assertThat(versionedDeleteDir).doesNotExist();
+        assertThat(versionedDeleteDir.getParent()).exists().isDirectory();
+        assertThat(versionedDeleteDir.getParent().getParent()).isEqualTo(expectedDeletedDirs).exists().isDirectory();
+
+        TemporalAccessor dateOfDeletedDir = deletedDirNameFormatter.parse(versionedDeleteDir.getParent().toFile().getName());
+        assertThat(LocalDateTime.from(dateOfDeletedDir))
+                .isAfterOrEqualTo(beforeExecution)
+                .isBeforeOrEqualTo(LocalDateTime.now());
+    }
+
+    @Test
+    public void givenNotExistingDeletedDirsWhenGetDeletedVersionsDirThenCreatedDirIsReturned() {
+        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+        Path dirToDelete = backupSetPath.resolve("dirForDelete");
+        Path expectedDeletedDirs = backupSetPath.resolve(".backupClientServer").resolve("deletedDirs");
+
+        Path deletedDirsDirectory = service.getDirectoryForDeletedDir(dirToDelete);
+        assertThat(deletedDirsDirectory).doesNotExist().hasFileName("dirForDelete");
+        assertThat(deletedDirsDirectory.getParent()).exists().isDirectory().hasParent(expectedDeletedDirs);
+    }
+
+    @Test
+    public void givenSubdirWhenGetDeletedVersionsDirThenCreatedDirIsReturned() {
+        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+        Path dirToDelete = backupSetPath.resolve("subdir").resolve("dirForDelete");
+        Path expectedDeletedDirs = backupSetPath.resolve("subdir").resolve(".backupClientServer").resolve("deletedDirs");
+
+        Path deletedDirsDirectory = service.getDirectoryForDeletedDir(dirToDelete);
+        assertThat(deletedDirsDirectory).doesNotExist().hasFileName("dirForDelete");
+        assertThat(deletedDirsDirectory.getParent()).exists().isDirectory().hasParent(expectedDeletedDirs);
+    }
+
 
 
 }

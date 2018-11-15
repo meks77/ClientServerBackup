@@ -1,12 +1,15 @@
 package at.meks.backupclientserver.backend.webservices.backup;
 
 import at.meks.backupclientserver.backend.services.BackupService;
+import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
+import at.meks.backupclientserver.common.service.fileup2date.FileInputArgsBuilder;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +32,10 @@ public class BackupWebService {
             @RequestParam String fileName) {
         logger.info("received file for hostName {} and backedupPath {} and relative path {}. File: {}",
                 hostName, backupedPath, relativePath, file);
-        backupService.backup(file, hostName, backupedPath, relativePath, fileName);
+        FileInputArgs fileInputArgs =
+                FileInputArgsBuilder.aFileInputArgs().withHostName(hostName).withBackupedPath(backupedPath)
+                        .withRelativePath(relativePath).withFileName(fileName).build();
+        backupService.backup(file, fileInputArgs);
         logger.info("backup completed");
     }
 
@@ -37,10 +43,13 @@ public class BackupWebService {
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public FileUp2dateResult isFileUp2date(@RequestBody FileUp2dateInput fileUp2DateInput) {
         FileUp2dateResult result = new FileUp2dateResult();
-        result.setUp2date(backupService.isFileUpToDate(fileUp2DateInput.getHostName(),
-                fileUp2DateInput.getBackupedPath(), fileUp2DateInput.getRelativePath(), fileUp2DateInput.getFileName(),
-                fileUp2DateInput.getMd5Checksum()));
+        result.setUp2date(backupService.isFileUpToDate(fileUp2DateInput, fileUp2DateInput.getMd5Checksum()));
         return result;
+    }
+
+    @DeleteMapping(value = "/delete", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void deletePath(@RequestBody FileInputArgs deletePathArgs) {
+        backupService.delete(deletePathArgs);
     }
 
 }
