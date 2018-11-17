@@ -7,13 +7,16 @@ import at.meks.backupclientserver.client.backupmanager.TodoEntry;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.util.List;
 import java.util.Objects;
@@ -152,5 +156,13 @@ public class FileChangeHandlerImplTest {
                 o1.getType() == o2.getType() &&
                 Objects.equals(o1.getWatchedPath(), o2.getWatchedPath());
         return Boolean.compare(entriesAreEqual, true);
+    }
+
+    @Test
+    public void givenKindDeltedWhenFileChangedThenPathChangeTypeDeletedIsPutToBackupManager() {
+        handler.fileChanged(Paths.get("whatever"), StandardWatchEventKinds.ENTRY_DELETE, Paths.get("notExistingFile.txt"));
+        ArgumentCaptor<TodoEntry> captor = ArgumentCaptor.forClass(TodoEntry.class);
+        verify(backupManager, timeout(2000)).addForBackup(captor.capture());
+        assertThat(captor.getValue().getType()).isEqualTo(PathChangeType.DELETED);
     }
 }

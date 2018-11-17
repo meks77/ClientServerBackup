@@ -3,6 +3,7 @@ package at.meks.backupclientserver.client.backupmanager;
 import at.meks.backupclientserver.client.ApplicationConfig;
 import at.meks.backupclientserver.client.ClientBackupException;
 import at.meks.backupclientserver.common.Md5CheckSumGenerator;
+import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import com.google.inject.Inject;
@@ -16,6 +17,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.util.stream.StreamSupport;
 
@@ -64,16 +66,24 @@ class BackupRemoteService {
 
     private FileUp2dateInput getFileUp2DateRequestInput(Path backupSetPath, Path file)  {
         FileUp2dateInput input = new FileUp2dateInput();
-        input.setBackupedPath(backupSetPath.toString());
-        input.setRelativePath(getRelativePathAsStringArray(backupSetPath, file));
-        input.setFileName(file.toFile().getName());
+        setFileInputArgsProps(backupSetPath, file, input);
         try {
-            input.setHostName(InetAddress.getLocalHost().getHostName());
             input.setMd5Checksum(md5CheckSumGenerator.md5HexFor(file.toFile()));
         } catch (IOException e) {
             throw new ClientBackupException("error while preparing the json input hostname and md5 checksum", e);
         }
         return input;
+    }
+
+    private void setFileInputArgsProps(Path backupSetPath, Path file, FileInputArgs input) {
+        input.setBackupedPath(backupSetPath.toString());
+        input.setRelativePath(getRelativePathAsStringArray(backupSetPath, file));
+        input.setFileName(file.toFile().getName());
+        try {
+            input.setHostName(InetAddress.getLocalHost().getHostName());
+        } catch (UnknownHostException e) {
+            throw new ClientBackupException("error while preparing the json input hostname", e);
+        }
     }
 
     private String[] getRelativePathAsStringArray(Path backupSetPath, Path file) {
@@ -86,4 +96,9 @@ class BackupRemoteService {
         return "http://" + config.getServerHost() + ":" + config.getServerPort() + "/api/v1.0/backup/" + method;
     }
 
+    void delete(Path backupSetPath, Path file) {
+        FileInputArgs fileInputArgs = new FileInputArgs();
+        setFileInputArgsProps(backupSetPath, file, fileInputArgs);
+        jsonHttpClient.delete(getBackupMethodUrl("delete"), fileInputArgs);
+    }
 }

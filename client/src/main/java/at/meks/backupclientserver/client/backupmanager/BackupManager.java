@@ -49,6 +49,8 @@ public class BackupManager {
                     item.getType() != PathChangeType.DELETED &&
                     !isFileUpToDate(item)) {
                 backupFile(item);
+            } else if (item.getType() == PathChangeType.DELETED) {
+                deleteBackupedFile(item);
             }
         } catch (Exception e) {
             errorReporter.reportError("error while backing up file " + item.getChangedFile(), e);
@@ -64,6 +66,11 @@ public class BackupManager {
     private void backupFile(TodoEntry item) {
         logger.info("backup file {}", item.getChangedFile());
         backupRemoteService.backupFile(item.getWatchedPath(), item.getChangedFile());
+    }
+
+    private void deleteBackupedFile(TodoEntry item) {
+        logger.info("delete file {}", item.getChangedFile());
+        backupRemoteService.delete(item.getWatchedPath(), item.getChangedFile());
     }
 
     public void addForBackup(TodoEntry item) {

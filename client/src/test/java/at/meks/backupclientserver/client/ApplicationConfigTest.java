@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ApplicationConfigTest {
 
@@ -55,10 +54,10 @@ public class ApplicationConfigTest {
                 Paths.get("D:\\dir\\dir3"));
     }
 
-    @Test
+    @Test(expected = ClientBackupException.class)
     public void givenNoConfigFileWhenGetBackupedDirsReturnsEmptyArray() throws IOException {
         Files.deleteIfExists(configFile.toPath());
-        assertThrows(ClientBackupException.class, () -> config.getBackupedDirs());
+        config.getBackupedDirs();
     }
 
     @Test

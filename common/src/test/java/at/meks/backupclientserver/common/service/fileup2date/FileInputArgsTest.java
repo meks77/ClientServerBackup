@@ -1,6 +1,6 @@
 package at.meks.backupclientserver.common.service.fileup2date;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 

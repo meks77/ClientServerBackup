@@ -123,4 +123,13 @@ public class BackupManagerTest {
         verify(backupRemoteService, timeout(1000).times(1)).backupFile(backupSetPath, hugeFile);
     }
 
+    @Test
+    public void givenDeletedEntryWhenBackupThenBackupRemoteServiceDeleteIsInvoked() {
+        Path file = Paths.get("deletedFile.txt");
+        Path backupSet = Paths.get("backupSet");
+
+        manager.addForBackup(new TodoEntry(PathChangeType.DELETED, file, backupSet));
+
+        verify(backupRemoteService, timeout(1000)).delete(backupSet, file);
+    }
 }

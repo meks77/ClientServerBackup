@@ -49,7 +49,9 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
     public void fileChanged(Path watchedRootPath, WatchEvent.Kind kind, Path changedFile) {
         startQueueReaderIfNecessary();
         try {
-            if (changedFile.toFile().isFile()) {
+            if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                delyedQueue.put(createDelayedFileChange(watchedRootPath, changedFile, PathChangeType.DELETED));
+            } else if (changedFile.toFile().isFile()) {
                 addFileToQueue(watchedRootPath, kind, changedFile);
             } else if (changedFile.toFile().isDirectory()) {
                 addDirectoryToQueue(watchedRootPath, kind, changedFile);
@@ -141,6 +143,8 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
                     } else {
                         queueForLater(todoEntry);
                     }
+                } else {
+                    backupManager.addForBackup(todoEntry);
                 }
             } while (true);
         } catch (InterruptedException e) {

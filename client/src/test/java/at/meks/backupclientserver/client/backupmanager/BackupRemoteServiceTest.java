@@ -2,6 +2,7 @@ package at.meks.backupclientserver.client.backupmanager;
 
 
 import at.meks.backupclientserver.client.ApplicationConfig;
+import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,11 +25,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aMultipart;
 import static com.github.tomakehurst.wiremock.client.WireMock.binaryEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -95,7 +98,7 @@ public class BackupRemoteServiceTest {
     @Test
     public void whenIsFileUpToDateThenHttpRequestIsInvokedAsExpected() throws IOException, URISyntaxException {
         Path fileForBackup = Paths.get(getClass().getResource("up2date.txt").toURI());
-        String inputString = getExpectedJsonInputString(fileForBackup);
+        String inputString = getExpectedJsonInputString(getFileUp2DateInput(fileForBackup));
 
         backupRemoteService.isFileUpToDate(backupSetPath, fileForBackup);
 
@@ -122,22 +125,25 @@ public class BackupRemoteServiceTest {
         return new String[]{"at", "meks", "backupclientserver", "client", "backupmanager"};
     }
 
-    private String getExpectedJsonInputString(Path fileForBackup) throws IOException {
+    private String getExpectedJsonInputString(FileInputArgs input) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        FileUp2dateInput input = getRequestInput(fileForBackup);
         return mapper.writeValueAsString(input);
     }
 
-    private FileUp2dateInput getRequestInput(Path fileForBackup) throws IOException {
+    private FileUp2dateInput getFileUp2DateInput(Path fileForBackup) throws IOException {
         FileUp2dateInput input = new FileUp2dateInput();
-        input.setHostName(InetAddress.getLocalHost().getHostName());
-        input.setBackupedPath(backupSetPath.toString());
-        input.setRelativePath(getRelativePathOfPackage());
-        input.setFileName(fileForBackup.toFile().getName());
+        setFileInputArgProps(fileForBackup, input);
         try (FileInputStream fis = new FileInputStream(fileForBackup.toFile())) {
             input.setMd5Checksum(DigestUtils.md5Hex(fis));
         }
         return input;
+    }
+
+    private void setFileInputArgProps(Path fileForBackup, FileInputArgs input) throws UnknownHostException {
+        input.setHostName(InetAddress.getLocalHost().getHostName());
+        input.setBackupedPath(backupSetPath.toString());
+        input.setRelativePath(getRelativePathOfPackage());
+        input.setFileName(fileForBackup.toFile().getName());
     }
 
     @Test
@@ -152,5 +158,23 @@ public class BackupRemoteServiceTest {
         Path fileForBackup = Paths.get(getClass().getResource("outOfDate.txt").toURI());
         boolean result = backupRemoteService.isFileUpToDate(backupSetPath, fileForBackup);
         assertThat(result).isFalse();
+    }
+
+    @Test
+    public void whenDeleteThenJsonClientIsInvokedAsExpected() throws IOException {
+        backupRemoteService.delete(backupSetPath, fileForBackup);
+
+        ArgumentCaptor<FileInputArgs> captor = ArgumentCaptor.forClass(FileInputArgs.class);
+        verify(jsonHttpClient).delete(endsWith("/api/v1.0/backup/delete"), captor.capture());
+        assertThat(captor.getValue().getBackupedPath()).isEqualTo(backupSetPath.toString());
+        assertThat(captor.getValue().getFileName()).isEqualTo(fileForBackup.toFile().getName());
+        assertThat(captor.getValue().getRelativePath()).isEqualTo(getRelativePathOfPackage());
+
+        FileInputArgs inputArgs = new FileInputArgs();
+        setFileInputArgProps(fileForBackup, inputArgs);
+        String inputString = getExpectedJsonInputString(inputArgs);
+
+        WireMock.verify(deleteRequestedFor(urlEqualTo("/api/v1.0/backup/delete"))
+                .withRequestBody(equalTo(inputString)));
     }
 }

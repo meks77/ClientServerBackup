@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 public class DirectoryServiceTest {
@@ -186,9 +185,9 @@ public class DirectoryServiceTest {
         assertThat(deletedDirsDirectory.getParent()).exists().isDirectory().hasParent(expectedDeletedDirs);
     }
 
-    @Test
+    @Test(expected = ServerBackupException.class)
     public void givenNoDirWhenGetApplicationRootDirectoryThenExceptionIsThrown() {
-        assertThrows(ServerBackupException.class, () -> service.getBackupSetPath("host", "path"));
+        service.getBackupSetPath("host", "path");
     }
 
 }
