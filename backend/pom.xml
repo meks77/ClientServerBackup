@@ -8,7 +8,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>backend</name>
+	<name>ClientServerBackup-${project.artifactId}</name>
 	<description>Demo project for Spring Boot</description>
 
 
@@ -98,6 +98,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>${project.name}-${project.version}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -105,6 +106,5 @@
 			</plugin>
 		</plugins>
 	</build>
-
 
 </project>
