@@ -9,7 +9,7 @@ export class NavigationbarComponent implements OnInit {
 
   private mySidebar:HTMLElement;
   private overlayBg:HTMLElement;
-  private logo = require("./assets/logo-small.png");
+  private logo = "./assets/logo-small.png";
 
   constructor() { }
 
