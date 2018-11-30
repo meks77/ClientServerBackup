@@ -7,6 +7,7 @@ import { NavigationbarComponent } from './navigationbar/navigationbar.component'
 import { ImportantStatisticsComponent } from './important-statistics/important-statistics.component';
 import { DiskUsageComponent } from './disk-usage/disk-usage.component';
 import {ChartModule} from "primeng/chart";
+import { ErrorListComponent } from './error-list/error-list.component';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import {ChartModule} from "primeng/chart";
     ClientListComponent,
     NavigationbarComponent,
     ImportantStatisticsComponent,
-    DiskUsageComponent
+    DiskUsageComponent,
+    ErrorListComponent
   ],
   imports: [
     BrowserModule,
