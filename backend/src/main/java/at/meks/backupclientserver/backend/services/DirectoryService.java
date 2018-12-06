@@ -101,7 +101,7 @@ class DirectoryService {
         return createIfNotExists(deletedDirsDirectory);
     }
 
-    private Path getBackupRootDirectory() {
+    Path getBackupRootDirectory() {
         String applicationRoot = configuration.getApplicationRoot();
         if (applicationRoot == null) {
             throw new ServerBackupException("applicationRoot directory is not set");

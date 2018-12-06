@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
+import {FileStatistics} from "../file-statistics";
+import {FileStatisticsService} from "../file-statistics.service";
+import {formatNumber} from "@angular/common";
 
 @Component({
   selector: 'app-important-statistics',
@@ -7,9 +10,46 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ImportantStatisticsComponent implements OnInit {
 
-  constructor() { }
+  fileStatistics: FileStatistics;
+
+  constructor(private fileStatisticsService: FileStatisticsService) { }
 
   ngOnInit() {
+    this.fileStatistics = new FileStatistics();
+    this.getStatistics();
   }
 
+  getStatistics(): void {
+    this.fileStatisticsService.getFileStatistics().subscribe(stats => this.fileStatistics = stats);
+  }
+
+  getUsedSpaceHumanReadable(): string {
+    return this.formatToHumanReadable(this.fileStatistics.sizeInMb);
+  }
+
+  private formatToHumanReadable(sizeInMb:number) {
+    var unit = 'MB';
+    var size = sizeInMb;
+    if (sizeInMb > 1200) {
+      unit = 'GB';
+      size = sizeInMb / 1024;
+    }
+    if (size > 1200) {
+      unit = 'TB';
+      size = size / 1024;
+    }
+    if (size > 1200) {
+      unit = 'PB';
+      size = size / 1024;
+    }
+    if (size > 1200) {
+      unit = 'EB';
+      size = size / 1024;
+    }
+    return formatNumber(size, 'en', '0.3-3') + ' ' + unit;
+  }
+
+  getFreeSpaceHumanReadable() {
+    return this.formatToHumanReadable(this.fileStatistics.freeSpaceInMb);
+  }
 }

@@ -8,6 +8,8 @@ import { ImportantStatisticsComponent } from './important-statistics/important-s
 import { DiskUsageComponent } from './disk-usage/disk-usage.component';
 import {ChartModule} from "primeng/chart";
 import { ErrorListComponent } from './error-list/error-list.component';
+import { HttpClientModule }    from '@angular/common/http';
+
 
 @NgModule({
   declarations: [
@@ -20,7 +22,8 @@ import { ErrorListComponent } from './error-list/error-list.component';
   ],
   imports: [
     BrowserModule,
-    ChartModule
+    ChartModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]
