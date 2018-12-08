@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-class BackupConfiguration {
+public class BackupConfiguration {
 
     @Value("${application.root.dir}")
     private String applicationRoot;
 
-    String getApplicationRoot() {
+    public String getApplicationRoot() {
         return applicationRoot;
     }
 

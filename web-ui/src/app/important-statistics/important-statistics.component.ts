@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {FileStatistics} from "../file-statistics";
-import {FileStatisticsService} from "../file-statistics.service";
+import {StatisticsService} from "../statistics.service";
 import {formatNumber} from "@angular/common";
 
 @Component({
@@ -12,15 +12,22 @@ export class ImportantStatisticsComponent implements OnInit {
 
   fileStatistics: FileStatistics;
 
-  constructor(private fileStatisticsService: FileStatisticsService) { }
+  clientCount: number;
+
+  constructor(private statisticsService: StatisticsService) { }
 
   ngOnInit() {
     this.fileStatistics = new FileStatistics();
-    this.getStatistics();
+    this.getClientCount();
+    this.getFileStatistics();
   }
 
-  getStatistics(): void {
-    this.fileStatisticsService.getFileStatistics().subscribe(stats => this.fileStatistics = stats);
+  getClientCount(): void {
+    this.statisticsService.getClientCount().subscribe(count => this.clientCount = count);
+  }
+
+  getFileStatistics(): void {
+    this.statisticsService.getFileStatistics().subscribe(stats => this.fileStatistics = stats);
   }
 
   getUsedSpaceHumanReadable(): string {

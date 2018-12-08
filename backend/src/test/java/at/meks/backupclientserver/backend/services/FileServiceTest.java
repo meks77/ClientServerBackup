@@ -67,15 +67,4 @@ public class FileServiceTest {
         new RandomAccessFile(tempFile.toFile(), "rw").setLength(fileSize);
     }
 
-    @Test
-    public void x() {
-        Path rootDir = Paths.get("C:\\development\\clientServerBackupDirs\\server");
-        when(directoryService.getBackupRootDirectory()).thenReturn(rootDir);
-
-        FileStatistics statistics = service.getBackupFileStatistics();
-
-        System.out.println("File count: " + statistics.getFileCount());
-        System.out.println("File size MB: " + statistics.getSizeInMb());
-
-    }
 }

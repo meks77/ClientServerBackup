@@ -9,18 +9,27 @@ import {FileStatistics} from "./file-statistics";
 @Injectable({
   providedIn: 'root'
 })
-export class FileStatisticsService {
+export class StatisticsService {
 
-  private statisticsUrl = "http://localhost:8080/api/v1.0/statistics/fileStatistics";
+  private fileStatisticsUrl = "http://localhost:8080/api/v1.0/statistics/fileStatistics";
+  private clientCountUrl = "http://localhost:8080/api/v1.0/statistics/clients/count";
 
   constructor( private http: HttpClient) { }
 
   getFileStatistics(): Observable<FileStatistics> {
-    return this.http.get<FileStatistics>(this.statisticsUrl)
+    return this.http.get<FileStatistics>(this.fileStatisticsUrl)
       .pipe(
         tap(() => this.log(`fetched fileStats`)),
         catchError(this.handleError<FileStatistics>(`fetching file statistics failed`))
     )
+  }
+
+  getClientCount(): Observable<number> {
+    return this.http.get<number>(this.clientCountUrl)
+      .pipe(
+        catchError(this.handleError<number>(`fetching client count failed`))
+      )
+
   }
 
   private handleError<T>(operation = 'operation', result?: T) {

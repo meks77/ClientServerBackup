@@ -1,23 +1,23 @@
 package at.meks.backupclientserver.backend.services;
 
+import at.meks.backupclientserver.backend.domain.BackupSet;
+import at.meks.backupclientserver.backend.domain.Client;
+import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
 import at.meks.backupclientserver.common.Md5CheckSumGenerator;
-import org.glassfish.jersey.internal.guava.CacheBuilder;
-import org.glassfish.jersey.internal.guava.CacheLoader;
-import org.glassfish.jersey.internal.guava.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.ExecutionException;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
@@ -28,37 +28,52 @@ class DirectoryService {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private BackupConfiguration configuration;
-
     private Md5CheckSumGenerator md5CheckSumGenerator = new Md5CheckSumGenerator();
 
-    private LoadingCache<String, ReentrantLock> clientLocks = CacheBuilder.newBuilder().build(
-            new CacheLoader<String, ReentrantLock>() {
-                @Override
-                public ReentrantLock load(String hostName) {
-                    return new ReentrantLock();
-                }
-            });
+    private ReentrantLock createNewBackupSetLock = new ReentrantLock();
+
+    @Inject
+    private BackupConfiguration configuration;
+
+    @Inject
+    private ClientRepository clientRepository;
+
+    @Inject
+    private LockService lockService;
 
     Path getBackupSetPath(String hostName, String clientBackupSetPath) {
-        Path clientRootDir = getClientRootDirectory(hostName);
-        String backupSetRelativePath = md5CheckSumGenerator.md5HexFor(clientBackupSetPath);
-        Path backupSetPath = Paths.get(clientRootDir.toString(), backupSetRelativePath);
+        Client client = clientRepository.getClient(hostName)
+                .orElseGet(() -> clientRepository.createNewClient(hostName, md5CheckSumGenerator.md5HexFor(hostName)));
 
+        BackupSet backupSet = getBackupSet(clientBackupSetPath, client)
+                .orElseGet(() -> createNewBackupSet(client, clientBackupSetPath));
+        Path backupSetPath = getBackupRootDirectory().resolve(client.getDirectoryName()).resolve(backupSet.getDirectoryNameOnServer());
         return createIfNotExists(backupSetPath);
     }
 
-    private Path getClientRootDirectory(String hostName) {
-        Path path = Paths.get(getBackupRootDirectory().toString(),
-                md5CheckSumGenerator.md5HexFor(hostName));
-        return createIfNotExists(path);
+    private Optional<BackupSet> getBackupSet(String clientBackupSetPath, Client client) {
+        return client.getBackupSets().stream()
+                .filter(set -> set.getClientBackupSetPath().equals(clientBackupSetPath))
+                .findFirst();
+    }
+
+    private BackupSet createNewBackupSet(Client client, String clientBackupSetPath) {
+        return lockService.runWithLock(createNewBackupSetLock, () -> {
+            Optional<BackupSet> backupSet1 = getBackupSet(clientBackupSetPath, client);
+            return backupSet1.orElseGet(() -> {
+                BackupSet backupSet = new BackupSet();
+                backupSet.setDirectoryNameOnServer(md5CheckSumGenerator.md5HexFor(clientBackupSetPath));
+                backupSet.setClientBackupSetPath(clientBackupSetPath);
+                client.getBackupSets().add(backupSet);
+                clientRepository.update(client);
+                return backupSet;
+            });
+        });
     }
 
     private Path createIfNotExists(Path path) {
-        ReentrantLock lock = getLock(path);
-        lock.lock();
-        try {
+        return lockService.runWithLock(lockService.getLockForPath(path),
+                () -> {
             if (!path.toFile().exists()) {
                 try {
                     logger.info("create directory {}", path);
@@ -68,17 +83,7 @@ class DirectoryService {
                 }
             }
             return path;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private ReentrantLock getLock(Path path) {
-        try {
-            return clientLocks.get(path.toString());
-        } catch (ExecutionException e) {
-            throw new ServerBackupException("couldn't get lock from cache", e);
-        }
+        });
     }
 
     Path getMetadataDirectoryPath(Path targetDir) {

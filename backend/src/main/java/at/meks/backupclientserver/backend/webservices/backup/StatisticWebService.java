@@ -1,5 +1,6 @@
 package at.meks.backupclientserver.backend.webservices.backup;
 
+import at.meks.backupclientserver.backend.services.ClientService;
 import at.meks.backupclientserver.backend.services.FileService;
 import at.meks.backupclientserver.backend.services.FileStatistics;
 import org.springframework.http.MediaType;
@@ -18,9 +19,17 @@ public class StatisticWebService {
     @Inject
     private FileService fileService;
 
+    @Inject
+    private ClientService clientService;
+
     @GetMapping(value="fileStatistics", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public FileStatistics getFileStatistics() {
         return fileService.getBackupFileStatistics();
+    }
+
+    @GetMapping(value="clients/count", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public int getBackupedCients() {
+        return clientService.getClientCount();
     }
 
 }
