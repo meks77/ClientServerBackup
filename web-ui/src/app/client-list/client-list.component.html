@@ -3,28 +3,12 @@
   <table class="w3-table w3-striped w3-bordered w3-border w3-hoverable w3-white">
     <tr>
       <th>Device</th>
-      <th>last backuped time</th>
-      <th>disk usage</th>
+      <!--<th>last backuped time</th>-->
+      <!--<th>connected</th>-->
+      <!--<th>disk usage</th>-->
     </tr>
-    <tr>
-      <td>Device 1</td>
-      <td>29.11.2018 20:54</td>
-      <td>24 MB</td>
-    </tr>
-    <tr>
-      <td>Device 2</td>
-      <td>29.11.2018 20:54</td>
-      <td>85 GB</td>
-    </tr>
-    <tr>
-      <td>Device 3</td>
-      <td>29.11.2018 20:54</td>
-      <td>28 GB</td>
-    </tr>
-    <tr>
-      <td>Device 4</td>
-      <td>29.11.2018 20:54</td>
-      <td>405 GB</td>
+    <tr *ngFor="let client of clients">
+      <td>{{client}}</td>
     </tr>
   </table><br>
   <button class="w3-button w3-dark-grey">More Devices  <i class="fa fa-arrow-right"></i></button>

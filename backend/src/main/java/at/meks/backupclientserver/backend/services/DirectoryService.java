@@ -44,11 +44,16 @@ class DirectoryService {
     Path getBackupSetPath(String hostName, String clientBackupSetPath) {
         Client client = clientRepository.getClient(hostName)
                 .orElseGet(() -> clientRepository.createNewClient(hostName, md5CheckSumGenerator.md5HexFor(hostName)));
+        Path clientPath = getClientPath(client);
 
         BackupSet backupSet = getBackupSet(clientBackupSetPath, client)
                 .orElseGet(() -> createNewBackupSet(client, clientBackupSetPath));
-        Path backupSetPath = getBackupRootDirectory().resolve(client.getDirectoryName()).resolve(backupSet.getDirectoryNameOnServer());
+        Path backupSetPath = clientPath.resolve(backupSet.getDirectoryNameOnServer());
         return createIfNotExists(backupSetPath);
+    }
+
+    public Path getClientPath(Client client) {
+        return getBackupRootDirectory().resolve(client.getDirectoryName());
     }
 
     private Optional<BackupSet> getBackupSet(String clientBackupSetPath, Client client) {

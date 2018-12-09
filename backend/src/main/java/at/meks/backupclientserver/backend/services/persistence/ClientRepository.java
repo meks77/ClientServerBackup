@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -66,4 +67,7 @@ public class ClientRepository {
         return getJsonDBTemplate().getCollection(Client.class).size();
     }
 
+    public List<Client> getClients() {
+        return getJsonDBTemplate().getCollection(Client.class);
+    }
 }
