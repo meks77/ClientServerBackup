@@ -14,6 +14,7 @@ import org.mockito.junit.MockitoRule;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -24,6 +25,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class ClientRepositoryTest {
@@ -131,5 +133,17 @@ public class ClientRepositoryTest {
         int result = repository.getClientCount();
 
         assertThat(result).isEqualTo(expectedResult);
+    }
+
+    @Test
+    public void whenGetClientsThenListOfDbTemplateIsReturned() {
+        @SuppressWarnings("unchecked")
+        List<Client> expectedResult = mock(List.class);
+
+        when(dbTemplate.getCollection(Client.class)).thenReturn(expectedResult);
+
+        List<Client> clients = repository.getClients();
+        assertThat(clients).isSameAs(expectedResult);
+        verifyZeroInteractions(expectedResult);
     }
 }

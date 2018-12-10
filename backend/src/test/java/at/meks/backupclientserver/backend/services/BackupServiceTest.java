@@ -41,6 +41,9 @@ public class BackupServiceTest {
     @Mock
     private MultipartFile multipartFile;
 
+    @Mock
+    private ClientService clientService;
+
     @InjectMocks
     private BackupService service = new BackupService();
 
@@ -253,4 +256,15 @@ public class BackupServiceTest {
         assertThatDirectoryWasMOvedToDeletedDirs(dirForDelete, expectedChilds, expectedTargetDir);
     }
 
+    @Test
+    public void whenBackupThenClientsLastUpdateTimeIsPersisted() {
+        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+        String hostName = "theUtHostName";
+
+        when(directoryService.getBackupSetPath(any(), any())).thenReturn(backupSetPath);
+
+        service.backup(multipartFile, createFileInputArgs(hostName, backupSetPath.toString(), new String[0], "backupedFile.txt"));
+
+        verify(clientService).updateLastBackupTimestamp(hostName);
+    }
 }

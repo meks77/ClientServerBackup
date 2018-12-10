@@ -1,6 +1,5 @@
 package at.meks.backupclientserver.backend.webservices.backup;
 
-import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.backupclientserver.backend.services.ClientService;
 import at.meks.backupclientserver.backend.services.FileService;
 import at.meks.backupclientserver.backend.services.FileStatistics;
@@ -40,8 +39,8 @@ public class StatisticWebService {
     }
 
     @GetMapping(value="clients", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public List<String> getBackupedCients() {
-        return clientRepository.getClients().stream().map(Client::getName).collect(Collectors.toList());
+    public List<StatisticClient> getBackupedCients() {
+        return clientRepository.getClients().stream().map(StatisticClient::fromClient).collect(Collectors.toList());
     }
 
 }

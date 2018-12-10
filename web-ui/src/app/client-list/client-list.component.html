@@ -1,15 +1,15 @@
 <div class="w3-container">
   <h5>Devices</h5>
-  <table class="w3-table w3-striped w3-bordered w3-border w3-hoverable w3-white">
+  <table class="w3-table w3-striped w3-bordered w3-border w3-hoverable w3-white w3-margin-bottom">
     <tr>
       <th>Device</th>
-      <!--<th>last backuped time</th>-->
+      <th>last backuped time</th>
       <!--<th>connected</th>-->
       <!--<th>disk usage</th>-->
     </tr>
     <tr *ngFor="let client of clients">
-      <td>{{client}}</td>
+      <td>{{client.hostName}}</td>
+      <td>{{client.lastBackupTimestamp | date: 'short' }}</td>
     </tr>
-  </table><br>
-  <button class="w3-button w3-dark-grey">More Devices  <i class="fa fa-arrow-right"></i></button>
+  </table>
 </div>

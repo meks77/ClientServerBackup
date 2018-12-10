@@ -9,11 +9,8 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -44,22 +41,7 @@ public class FileService {
         logger.info("prepare stats of {}", path);
         try {
             FileStatistics statistics = new FileStatistics();
-            Files.walkFileTree(path, new SimpleFileVisitor<Path>(){
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    if(attrs.isRegularFile()){
-                        statistics.incrementSizeInBytes(attrs.size());
-                        statistics.incrementFileCount();
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult visitFileFailed(Path file, IOException exc) {
-                    logger.warn("Couldn't get file statistics of {}. Reason: ", file, exc);
-                    return FileVisitResult.SKIP_SUBTREE;
-                }
-            });
+            Files.walkFileTree(path, FileStatisticsFileVisitor.withStatistics(statistics));
             return statistics;
         } catch (IOException e) {
             logger.error("couldn't get file statistics", e);
