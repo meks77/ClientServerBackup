@@ -9,7 +9,7 @@ import static java.math.BigDecimal.valueOf;
 
 public class FileStatistics {
 
-    static final FileStatistics NOT_ANALZED = new FileStatistics(-1L, -1L);
+    public static final FileStatistics NOT_ANALYZED = new FileStatistics(-1L, -1L);
     private static final int FACTOR_BYTES_TO_MB = 1024 * 1024;
 
     @Getter

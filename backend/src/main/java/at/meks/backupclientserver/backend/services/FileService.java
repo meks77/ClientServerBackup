@@ -1,5 +1,6 @@
 package at.meks.backupclientserver.backend.services;
 
+import at.meks.backupclientserver.backend.domain.Client;
 import org.apache.commons.io.FileSystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +46,11 @@ public class FileService {
             return statistics;
         } catch (IOException e) {
             logger.error("couldn't get file statistics", e);
-            return FileStatistics.NOT_ANALZED;
+            return FileStatistics.NOT_ANALYZED;
         }
     }
 
+    public FileStatistics getDiskUsage(Client client) {
+        return getBackupFileStatistics(directoryService.getClientPath(client));
+    }
 }
