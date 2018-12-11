@@ -5,6 +5,7 @@ import {ErrorHandlingService} from "./error-handling.service";
 import {Observable} from "rxjs";
 import {catchError} from "rxjs/operators";
 import {Client} from "./client";
+import {FileStatistics} from "./file-statistics";
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,6 @@ import {Client} from "./client";
 export class ClientService {
 
   private clientsUrl = "http://localhost:8080/api/v1.0/statistics/clients";
-  private clientFileStatsUrl = `http://localhost:8080/api/v1.0/statistics/client/{{`;
 
   constructor( private http: HttpClient,
                private logger: LogService,
@@ -21,9 +21,15 @@ export class ClientService {
   getClients(): Observable<Client[]> {
     return this.http.get<Client[]>(this.clientsUrl)
       .pipe(
-        catchError(this.errorHandler.handleError<Client[]>(`fetching client count failed`))
+        catchError(this.errorHandler.whenErrorOnHttpRequest<Client[]>(`fetching client count failed`))
       )
   }
 
+  getClientFileStats(client: Client): Observable<FileStatistics> {
+    var clientFileStatsUrl = `http://localhost:8080/api/v1.0/statistics/client/${client.hostName}`;
+    return this.http.get<FileStatistics>(clientFileStatsUrl).pipe(
+      catchError(this.errorHandler.whenErrorOnHttpRequest<FileStatistics>(`fetching stats for client ${client.hostName} failed`))
+    );
+  }
 
 }

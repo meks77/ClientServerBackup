@@ -21,14 +21,14 @@ export class StatisticsService {
   getFileStatistics(): Observable<FileStatistics> {
     return this.http.get<FileStatistics>(this.fileStatisticsUrl)
       .pipe(
-        catchError(this.errorHandler.handleError<FileStatistics>(`fetching file statistics failed`))
+        catchError(this.errorHandler.whenErrorOnHttpRequest<FileStatistics>(`fetching file statistics failed`))
     )
   }
 
   getClientCount(): Observable<number> {
     return this.http.get<number>(this.clientCountUrl)
       .pipe(
-        catchError(this.errorHandler.handleError<number>(`fetching client count failed`))
+        catchError(this.errorHandler.whenErrorOnHttpRequest<number>(`fetching client count failed`))
       )
 
   }
