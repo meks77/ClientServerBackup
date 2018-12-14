@@ -17,15 +17,16 @@ export class ImportantStatisticsComponent implements OnInit {
   constructor(private statisticsService: StatisticsService) { }
 
   ngOnInit() {
-    this.fileStatistics = new FileStatistics();
     this.refresh();
   }
 
   getClientCount(): void {
+    this.clientCount = undefined;
     this.statisticsService.getClientCount().subscribe(count => this.clientCount = count);
   }
 
   getFileStatistics(): void {
+    this.fileStatistics = new FileStatistics();
     this.statisticsService.getFileStatistics().subscribe(stats => this.fileStatistics = stats);
   }
 
