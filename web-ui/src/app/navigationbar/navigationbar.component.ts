@@ -10,6 +10,7 @@ export class NavigationbarComponent implements OnInit {
   private mySidebar:HTMLElement;
   private overlayBg:HTMLElement;
   private logo = "./assets/logo-small.png";
+  private refreshFunction: Function;
 
   constructor() { }
 
@@ -36,5 +37,13 @@ export class NavigationbarComponent implements OnInit {
   showOverView() {
     console.log("overview clicked");
     this.hideNavigation();
+  }
+
+  setRefreshFuntion(refreshFunction: Function) {
+    this.refreshFunction = refreshFunction;
+  }
+
+  refresh() {
+    this.refreshFunction();
   }
 }

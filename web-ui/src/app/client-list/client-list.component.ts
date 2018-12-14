@@ -15,7 +15,7 @@ export class ClientListComponent implements OnInit {
   constructor(private clientService: ClientService) { }
 
   ngOnInit() {
-    this.clientService.getClients().subscribe(clients => this.setClientsAndUpdateStats(clients));
+    this.refresh();
   }
 
   private setClientsAndUpdateStats(clients: Client[]) {
@@ -27,5 +27,9 @@ export class ClientListComponent implements OnInit {
 
   private setFileStatistics(clients: Client[]) {
     clients.forEach(client => this.clientService.getClientFileStats(client).subscribe(stats => client.fileStatistics = stats));
+  }
+
+  refresh() {
+    this.clientService.getClients().subscribe(clients => this.setClientsAndUpdateStats(clients));
   }
 }

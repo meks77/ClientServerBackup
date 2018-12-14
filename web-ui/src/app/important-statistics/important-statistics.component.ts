@@ -18,8 +18,7 @@ export class ImportantStatisticsComponent implements OnInit {
 
   ngOnInit() {
     this.fileStatistics = new FileStatistics();
-    this.getClientCount();
-    this.getFileStatistics();
+    this.refresh();
   }
 
   getClientCount(): void {
@@ -58,5 +57,10 @@ export class ImportantStatisticsComponent implements OnInit {
 
   getFreeSpaceHumanReadable() {
     return this.formatToHumanReadable(this.fileStatistics.freeSpaceInMb);
+  }
+
+  refresh() {
+    this.getClientCount();
+    this.getFileStatistics();
   }
 }

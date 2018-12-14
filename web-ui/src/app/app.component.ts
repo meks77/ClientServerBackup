@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import {Component, ViewChild} from '@angular/core';
+import {ImportantStatisticsComponent} from "./important-statistics/important-statistics.component";
+import {ClientListComponent} from "./client-list/client-list.component";
+import {NavigationbarComponent} from "./navigationbar/navigationbar.component";
 
 @Component({
   selector: 'app-root',
@@ -8,8 +11,23 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'ClientServerBackup';
 
+  @ViewChild(ImportantStatisticsComponent)
+  importantStats: ImportantStatisticsComponent;
+
+  @ViewChild(ClientListComponent)
+  clientList: ClientListComponent;
+
+  @ViewChild(NavigationbarComponent)
+  navigationBar: NavigationbarComponent;
+
   constructor() { }
 
   ngOnInit() {
+    this.navigationBar.setRefreshFuntion(() => this.refresh());
+  }
+
+  refresh() {
+    this.importantStats.refresh();
+    this.clientList.refresh();
   }
 }
