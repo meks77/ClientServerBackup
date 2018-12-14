@@ -1,20 +1,34 @@
 <div class="w3-container">
   <h5>Devices</h5>
-  <table class="w3-table w3-striped w3-bordered w3-border w3-hoverable w3-white w3-margin-bottom">
-    <tr>
-      <th class="w3-half">Device</th>
-      <th class="w3-right-align">heartbeat</th>
-      <th class="w3-right-align">last backuped time</th>
-      <!--<th>connected</th>-->
-      <th class="w3-right-align">disk usage MB</th>
-      <th class="w3-right-align">file count</th>
-    </tr>
-    <tr *ngFor="let client of clients">
-      <td>{{client.hostName}}</td>
-      <td class="w3-right-align">{{client.heartbeatTimestamp | date: 'short'}}</td>
-      <td class="w3-right-align">{{client.lastBackupTimestamp | date: 'short' }}</td>
-      <td class="w3-right-align">{{client.fileStatistics.sizeInMb | number: '0.3-3'}}</td>
-      <td class="w3-right-align">{{client.fileStatistics.fileCount}}</td>
-    </tr>
-  </table>
+  <div class="w3-row w3-hide-small w3-hide-medium w3-border w3-hover-pale-yellow">
+    <div class="w3-col l4 w3-padding "><b>Device</b></div>
+    <div class="w3-col l2 w3-right-align w3-padding"><b>heartbeat</b></div>
+    <div class="w3-col l2 w3-right-align w3-padding"><b>last backuped time</b></div>
+    <div class="w3-col l2 w3-right-align w3-padding"><b>disk usage</b></div>
+    <div class="w3-col l2 w3-right-align w3-padding"><b>file count</b></div>
+  </div>
+  <div *ngFor="let client of clients; let i = index" [ngClass]="{'w3-light-grey': i % 2 == 0}" class="w3-row w3-border-bottom w3-border-left w3-border-right w3-hoverable w3-hover-pale-yellow">
+    <div class="w3-col l4 w3-padding "><span class="w3-hide-large w3-large">Device: </span>{{client.hostName}}</div>
+    <div class="w3-col l2 w3-right-align">
+      <span class="w3-hide-large"><b>Heartbeat: </b> </span>
+      <span class="w3-hide-large w3-hide-medium"><br></span>
+      {{client.heartbeatTimestamp | date: 'short'}}
+    </div>
+    <div class="w3-col l2 w3-right-align">
+      <span class="w3-hide-large"><b>Last Backuped Time: </b></span>
+      <span class="w3-hide-large w3-hide-medium"><br></span>
+      {{client.lastBackupTimestamp | date: 'short' }}
+    </div>
+    <div class="w3-col l2 w3-right-align">
+      <span class="w3-hide-large"><b>Disk Usage: </b></span>
+      <span class="w3-hide-large w3-hide-medium"><br></span>
+      {{client.fileStatistics.sizeInMb | number: '0.1-1'}}
+    </div>
+    <div class="w3-col l2 w3-right-align">
+      <span class="w3-hide-large"><b>Files Count: </b></span>
+      <span class="w3-hide-large w3-hide-medium"><br></span>
+      {{client.fileStatistics.fileCount}}
+    </div>
+  </div>
+
 </div>

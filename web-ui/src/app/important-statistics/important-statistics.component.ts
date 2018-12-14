@@ -53,7 +53,7 @@ export class ImportantStatisticsComponent implements OnInit {
       unit = 'EB';
       size = size / 1024;
     }
-    return formatNumber(size, 'en', '0.3-3') + ' ' + unit;
+    return formatNumber(size, 'en', '0.1-1') + ' ' + unit;
   }
 
   getFreeSpaceHumanReadable() {
