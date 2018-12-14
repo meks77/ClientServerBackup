@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import {ClientService} from "../client.service";
 import {Client} from "../client";
 import {FileStatistics} from "../file-statistics";
+import {isNullOrUndefined} from "util";
+import {formatDate} from "@angular/common";
 
 @Component({
   selector: 'app-client-list',
@@ -31,5 +33,12 @@ export class ClientListComponent implements OnInit {
 
   refresh() {
     this.clientService.getClients().subscribe(clients => this.setClientsAndUpdateStats(clients));
+  }
+
+  getFormatedDate(date: Date): string {
+    if (isNullOrUndefined(date)) {
+      return "N/A";
+    }
+    return formatDate(date, 'short', 'en');
   }
 }
