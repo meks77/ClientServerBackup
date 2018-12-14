@@ -28,4 +28,13 @@ public class ClientService {
             clientRepository.update(client1);
         });
     }
+
+    public void updateHeartbeat(String hostName) {
+        Optional<Client> clientOptional = clientRepository.getClient(hostName);
+        if (clientOptional.isPresent()) {
+            Client client = clientOptional.get();
+            client.setHeartbeatTimestamp(new Date());
+            clientRepository.update(client);
+        }
+    }
 }

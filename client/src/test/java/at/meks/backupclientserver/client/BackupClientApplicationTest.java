@@ -33,6 +33,9 @@ public class BackupClientApplicationTest {
     @Mock
     private StartupBackuper startupBackuper;
 
+    @Mock
+    private HeartBeatReporter heartBeatReporter;
+
     @InjectMocks
     private BackupClientApplication application;
 
@@ -86,4 +89,10 @@ public class BackupClientApplicationTest {
         verify(startupBackuper, timeout(1000)).backupIfNecessary(paths);
     }
 
+    @Test
+    public void whenRunThenHeartbeatReporterIsStarted() throws NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException {
+        invokePrivateRunMethod();
+        verify(heartBeatReporter).startHeartbeatReporting();
+    }
 }

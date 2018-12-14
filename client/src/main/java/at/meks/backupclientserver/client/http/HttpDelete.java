@@ -1,4 +1,4 @@
-package at.meks.backupclientserver.client.backupmanager;
+package at.meks.backupclientserver.client.http;
 
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 

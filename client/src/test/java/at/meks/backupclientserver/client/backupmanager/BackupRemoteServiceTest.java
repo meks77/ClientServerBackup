@@ -1,7 +1,9 @@
 package at.meks.backupclientserver.client.backupmanager;
 
 
-import at.meks.backupclientserver.client.ApplicationConfig;
+import at.meks.backupclientserver.client.SystemService;
+import at.meks.backupclientserver.client.http.HttpUrlResolver;
+import at.meks.backupclientserver.client.http.JsonHttpClient;
 import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
@@ -16,7 +18,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -30,16 +31,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aMultipart;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.binaryEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.lang.String.format;
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class BackupRemoteServiceTest {
 
@@ -50,7 +55,10 @@ public class BackupRemoteServiceTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
-    private ApplicationConfig config;
+    private SystemService systemService;
+
+    @Mock
+    private HttpUrlResolver httpUrlResolver;
 
     @Spy
     private JsonHttpClient jsonHttpClient = new JsonHttpClient();
@@ -63,8 +71,9 @@ public class BackupRemoteServiceTest {
 
     @Before
     public void prepareConfig() throws URISyntaxException {
-        Mockito.when(config.getServerHost()).thenReturn("localhost");
-        Mockito.when(config.getServerPort()).thenReturn(wireMockRule.port());
+        when(systemService.getHostname()).thenReturn("MEKS-ZENBOOK");
+        when(httpUrlResolver.getWebserviceUrl(anyString(), anyString())) .thenAnswer(invocation ->
+                format("http://localhost:" + wireMockRule.port() + "/api/v1.0/%s/%s", invocation.getArgument(0), invocation.getArgument(1)));
         backupSetPath = Paths.get(getClass().getResource("/").toURI());
         fileForBackup = Paths.get(getClass().getResource("fileToBackup.txt").toURI());
     }
@@ -77,7 +86,6 @@ public class BackupRemoteServiceTest {
 
         backupRemoteService.backupFile(backupSetPath, fileForBackup);
 
-        WireMock.findAll(postRequestedFor(urlEqualTo("/api/v1.0/backup/file")));
         WireMock.verify(postRequestedFor(urlEqualTo("/api/v1.0/backup/file"))
                 .withRequestBodyPart(aMultipart("relativePath")
                         .withHeader("Content-Type", equalTo("text/plain; charset=UTF-8"))

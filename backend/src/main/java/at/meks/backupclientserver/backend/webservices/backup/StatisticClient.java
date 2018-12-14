@@ -10,14 +10,17 @@ import java.util.Date;
 @Getter @Setter @EqualsAndHashCode
 class StatisticClient {
 
-    String hostName;
+    private String hostName;
 
-    Date lastBackupTimestamp;
+    private Date lastBackupTimestamp;
+
+    private Date heartbeatTimestamp;
 
     static StatisticClient fromClient(Client client) {
         StatisticClient statisticClient = new StatisticClient();
         statisticClient.hostName = client.getName();
         statisticClient.lastBackupTimestamp = client.getLastBackupedFileTimestamp();
+        statisticClient.heartbeatTimestamp = client.getHeartbeatTimestamp();
         return statisticClient;
     }
 

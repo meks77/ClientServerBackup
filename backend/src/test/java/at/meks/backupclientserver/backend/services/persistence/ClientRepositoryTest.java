@@ -108,7 +108,7 @@ public class ClientRepositoryTest {
         String hostName = "hostNameForUt";
         String directoryName = "dirNameForHostName";
 
-        when(dbTemplate.findById(hostName, Client.class)).thenReturn(new Client());
+        when(dbTemplate.findById(hostName, Client.class)).thenReturn(Client.builder().build());
         when(lockService.runWithLock(eq(createNewClientLock), any()))
                 .thenAnswer(invocationOnMock -> ((Supplier<?>)invocationOnMock.getArgument(1)).get());
 

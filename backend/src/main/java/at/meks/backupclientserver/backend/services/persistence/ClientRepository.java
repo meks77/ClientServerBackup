@@ -50,7 +50,7 @@ public class ClientRepository {
     private Client createNewClientWithinLock(String hostName, String directoryName) {
         Client newClient = getJsonDBTemplate().findById(hostName, Client.class);
         if (newClient == null) {
-            newClient = new Client();
+            newClient = Client.builder().build();
             newClient.setName(hostName);
             newClient.setDirectoryName(directoryName);
             newClient.setBackupSets(new LinkedList<>());

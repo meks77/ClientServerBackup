@@ -1,7 +1,9 @@
 package at.meks.backupclientserver.client.backupmanager;
 
-import at.meks.backupclientserver.client.ApplicationConfig;
 import at.meks.backupclientserver.client.ClientBackupException;
+import at.meks.backupclientserver.client.SystemService;
+import at.meks.backupclientserver.client.http.HttpUrlResolver;
+import at.meks.backupclientserver.client.http.JsonHttpClient;
 import at.meks.backupclientserver.common.Md5CheckSumGenerator;
 import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
@@ -16,18 +18,19 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.util.stream.StreamSupport;
 
 class BackupRemoteService {
 
     @Inject
-    private ApplicationConfig config;
+    private JsonHttpClient jsonHttpClient;
 
     @Inject
-    private JsonHttpClient jsonHttpClient;
+    private HttpUrlResolver urlResolver;
+
+    @Inject
+    private SystemService systemService;
 
     private CloseableHttpClient httpClient = HttpClientBuilder.create().build();
     private final Md5CheckSumGenerator md5CheckSumGenerator = new Md5CheckSumGenerator();
@@ -38,7 +41,7 @@ class BackupRemoteService {
             HttpEntity httpEntity =
                     MultipartEntityBuilder.create()
                             .addTextBody("relativePath", getRelativePath(backupSetPath, changedFile), textContentType)
-                            .addTextBody("hostName", InetAddress.getLocalHost().getHostName(), textContentType)
+                            .addTextBody("hostName", systemService.getHostname(), textContentType)
                             .addTextBody("backupedPath", backupSetPath.toString(), textContentType)
                             .addTextBody("fileName", changedFile.toFile().getName(), textContentType)
                             .addBinaryBody("file", changedFile.toFile(),
@@ -79,11 +82,7 @@ class BackupRemoteService {
         input.setBackupedPath(backupSetPath.toString());
         input.setRelativePath(getRelativePathAsStringArray(backupSetPath, file));
         input.setFileName(file.toFile().getName());
-        try {
-            input.setHostName(InetAddress.getLocalHost().getHostName());
-        } catch (UnknownHostException e) {
-            throw new ClientBackupException("error while preparing the json input hostname", e);
-        }
+        input.setHostName(systemService.getHostname());
     }
 
     private String[] getRelativePathAsStringArray(Path backupSetPath, Path file) {
@@ -93,7 +92,7 @@ class BackupRemoteService {
     }
 
     private String getBackupMethodUrl(String method) {
-        return "http://" + config.getServerHost() + ":" + config.getServerPort() + "/api/v1.0/backup/" + method;
+        return urlResolver.getWebserviceUrl("backup", method);
     }
 
     void delete(Path backupSetPath, Path file) {

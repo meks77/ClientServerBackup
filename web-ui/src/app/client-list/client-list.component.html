@@ -3,6 +3,7 @@
   <table class="w3-table w3-striped w3-bordered w3-border w3-hoverable w3-white w3-margin-bottom">
     <tr>
       <th class="w3-half">Device</th>
+      <th class="w3-right-align">heartbeat</th>
       <th class="w3-right-align">last backuped time</th>
       <!--<th>connected</th>-->
       <th class="w3-right-align">disk usage MB</th>
@@ -10,6 +11,7 @@
     </tr>
     <tr *ngFor="let client of clients">
       <td>{{client.hostName}}</td>
+      <td class="w3-right-align">{{client.heartbeatTimestamp | date: 'short'}}</td>
       <td class="w3-right-align">{{client.lastBackupTimestamp | date: 'short' }}</td>
       <td class="w3-right-align">{{client.fileStatistics.sizeInMb | number: '0.3-3'}}</td>
       <td class="w3-right-align">{{client.fileStatistics.fileCount}}</td>

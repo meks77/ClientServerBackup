@@ -79,7 +79,7 @@ public class DirectoryServiceTest {
     }
 
     private Client createClient(String hostName, String directoryName1) {
-        Client client = new Client();
+        Client client = Client.builder().build();
         client.setName(hostName);
         client.setDirectoryName(directoryName1);
         client.setBackupSets(new LinkedList<>());

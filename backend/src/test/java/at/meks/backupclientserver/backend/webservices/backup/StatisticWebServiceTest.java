@@ -1,6 +1,5 @@
 package at.meks.backupclientserver.backend.webservices.backup;
 
-import at.meks.backupclientserver.backend.ClientBuilder;
 import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.backupclientserver.backend.services.ClientService;
 import at.meks.backupclientserver.backend.services.FileService;
@@ -15,12 +14,14 @@ import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-import static at.meks.clientserverbackup.testutils.DateTestUtils.fromLocalDateTime;
 import static at.meks.backupclientserver.backend.webservices.backup.StatisticClient.fromClient;
+import static at.meks.clientserverbackup.testutils.DateTestUtils.fromLocalDateTime;
 import static java.time.LocalDateTime.now;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -61,12 +62,12 @@ public class StatisticWebServiceTest {
 
     @Test
     public void testGetBackupedClients() {
-        Client client1 = ClientBuilder.aClient().
-                withName("client1").withLastBackupedFileTimestamp(fromLocalDateTime(now().minusHours(1))).build();
-        Client client2 = ClientBuilder.aClient().
-                withName("client2").withLastBackupedFileTimestamp(fromLocalDateTime(now().minusHours(2))).build();
-        Client client3 = ClientBuilder.aClient().
-                withName("client3").withLastBackupedFileTimestamp(fromLocalDateTime(now().minusHours(3))).build();
+        Client client1 = Client.builder().
+                name("client1").lastBackupedFileTimestamp(fromLocalDateTime(now().minusHours(1))).build();
+        Client client2 = Client.builder().
+                name("client2").lastBackupedFileTimestamp(fromLocalDateTime(now().minusHours(2))).build();
+        Client client3 = Client.builder().
+                name("client3").lastBackupedFileTimestamp(fromLocalDateTime(now().minusHours(3))).build();
         List<StatisticClient> expectedResult = asList(fromClient(client1), fromClient(client2), fromClient(client3));
 
         when(clientRepository.getClients()).thenReturn(Arrays.asList(client1, client2, client3));
@@ -76,4 +77,22 @@ public class StatisticWebServiceTest {
         assertThat(result).isEqualTo(expectedResult);
     }
 
+    @Test
+    public void givenExistingHostnameWhenGetClientDiskUsageThenReturnsFileStatisticsOfClientDir() {
+        String hostName = "the Ut hostname";
+        Client client = mock(Client.class);
+        FileStatistics expectedFileStats = mock(FileStatistics.class);
+
+        when(clientRepository.getClient(hostName)).thenReturn(Optional.of(client));
+        when(fileService.getDiskUsage(same(client))).thenReturn(expectedFileStats);
+
+        FileStatistics result = service.getClientDiskUsage(hostName);
+
+        assertThat(result).isSameAs(expectedFileStats);
+    }
+
+    @Test
+    public void givenNotExistingHostnameWhenGetClientDiskUsageThenReturnsNotAnalyzedStats() {
+
+    }
 }

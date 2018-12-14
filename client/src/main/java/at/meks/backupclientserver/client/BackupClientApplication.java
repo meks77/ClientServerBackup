@@ -20,6 +20,10 @@ public class BackupClientApplication {
     private FileChangeHandlerImpl fileChangeHandler;
 
     @Inject
+    private HeartBeatReporter heartBeatReporter;
+
+
+    @Inject
     private StartupBackuper startupBackuper;
 
     public static void main(String[] args) {
@@ -30,6 +34,7 @@ public class BackupClientApplication {
     }
 
     private void run() {
+        heartBeatReporter.startHeartbeatReporting();
         Path[] pathesToWatch = config.getBackupedDirs();
         fileWatcher.setOnChangeConsumer(fileChangeHandler);
         fileWatcher.setPathsToWatch(pathesToWatch);
