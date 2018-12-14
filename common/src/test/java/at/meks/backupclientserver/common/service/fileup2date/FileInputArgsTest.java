@@ -4,10 +4,10 @@ import org.junit.Test;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-class FileInputArgsTest {
+public class FileInputArgsTest {
 
     @Test
-    void whenHashCodeNoExceptionIsThrown() {
+    public void whenHashCodeNoExceptionIsThrown() {
         int hash = new FileInputArgs().hashCode();
         assertThat(hash).isGreaterThan(1000);
     }
