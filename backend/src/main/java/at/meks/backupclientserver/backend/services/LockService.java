@@ -1,8 +1,8 @@
 package at.meks.backupclientserver.backend.services;
 
-import org.glassfish.jersey.internal.guava.CacheBuilder;
-import org.glassfish.jersey.internal.guava.CacheLoader;
-import org.glassfish.jersey.internal.guava.LoadingCache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;

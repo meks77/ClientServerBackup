@@ -3,10 +3,10 @@ package at.meks.backupclientserver.backend.services;
 import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,13 +23,13 @@ public class BackupService {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Inject
+    @Autowired
     private DirectoryService directoryService;
 
-    @Inject
+    @Autowired
     private MetaDataService metaDataService;
 
-    @Inject
+    @Autowired
     private ClientService clientService;
 
     public void backup(MultipartFile file, FileInputArgs fileArgs) {

@@ -29,6 +29,11 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class BackupServiceTest {
 
+    public static final String BACKUP_SET_PATH = "backupSetPath";
+    public static final String HOST_NAME = "hostName";
+    public static final String BACKUPED_FILE_TXT = "backupedFile.txt";
+    public static final String BACKUP_SET = "backupSet";
+    public static final String BACKUP_CLIENT_SERVER = ".backupClientServer";
     private final DateTimeFormatter versionedFileNameFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss" +
             ".SSS");
 
@@ -52,7 +57,7 @@ public class BackupServiceTest {
         String hostName = "utHostName";
         String clientBackupSetPath = "path\\to\\backup\\file";
         Path tempDir = Files.createTempDirectory("utBsT");
-        Path backupSetTargetPath = Paths.get(tempDir.toString(), "backupSetPath");
+        Path backupSetTargetPath = Paths.get(tempDir.toString(), BACKUP_SET_PATH);
         String fileNameOfBackedupFile = "backedUpFilename.xpktd";
         File expectedTarget = Paths.get(backupSetTargetPath.toString(), "expected", "target",
                 fileNameOfBackedupFile).toFile();
@@ -75,7 +80,7 @@ public class BackupServiceTest {
 
     @Test(expected = ServerBackupException.class)
     public void givenIoExceptionWhenBackupThenServerBackupExceptionIsThrown() throws IOException {
-        doThrow(new IOException("ut expktd exc")).when(multipartFile).transferTo(any());
+        doThrow(new IOException("ut expktd exc")).when(multipartFile).transferTo(any(File.class));
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(Files.createTempDirectory("utThrw"));
         FileInputArgs fileInputArgs = createFileInputArgs("myHostName", "C:\\f1\\f2", new String[]{"a", "b", "c"},
                 "whatever");
@@ -105,7 +110,7 @@ public class BackupServiceTest {
         when(metaDataService.isMd5Equal(any(), any())).thenReturn(true);
 
         boolean result = service.isFileUpToDate(
-                createFileInputArgs("hostName", "backedupPath", new String[]{"relativePath"}, "fileName"),
+                createFileInputArgs(HOST_NAME, "backedupPath", new String[]{"relativePath"}, "fileName"),
                 "md5Checksum");
         assertThat(result).isTrue();
     }
@@ -116,7 +121,7 @@ public class BackupServiceTest {
         when(metaDataService.isMd5Equal(any(), any())).thenReturn(false);
 
         boolean result = service.isFileUpToDate(
-                createFileInputArgs("hostName", "backedupPath", new String[]{"relativePath"}, "fileName"),
+                createFileInputArgs(HOST_NAME, "backedupPath", new String[]{"relativePath"}, "fileName"),
                 "md5Checksum");
         assertThat(result).isFalse();
     }
@@ -124,7 +129,7 @@ public class BackupServiceTest {
     @Test
     public void givenFirstVersionOfFileWhenBackupThenNoFileIsCreatedInVersionsDir() throws IOException {
         Path testRootDir = TestDirectoryProvider.createTempDirectory();
-        Path backupSetPath = testRootDir.resolve("backupSetPath");
+        Path backupSetPath = testRootDir.resolve(BACKUP_SET_PATH);
         Path versionsDir = backupSetPath.resolve(".versions");
         Path fileToBackup = testRootDir.resolve("fileForBackup.txt");
         Files.createFile(fileToBackup);
@@ -132,7 +137,7 @@ public class BackupServiceTest {
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(backupSetPath);
 
         service.backup(multipartFile,
-                createFileInputArgs("hostName", "backupSetPath", new String[0], fileToBackup.toFile().getName()));
+                createFileInputArgs(HOST_NAME, BACKUP_SET_PATH, new String[0], fileToBackup.toFile().getName()));
 
         assertThat(versionsDir).doesNotExist();
     }
@@ -140,7 +145,7 @@ public class BackupServiceTest {
     @Test
     public void givenSecondVersionOfFileWhenBackupThenTheOldFileIsMovedToVersionsDir() throws IOException {
         Path testRootDir = TestDirectoryProvider.createTempDirectory();
-        Path backupSetPath = testRootDir.resolve("backupSetPath");
+        Path backupSetPath = testRootDir.resolve(BACKUP_SET_PATH);
         Files.createDirectories(backupSetPath);
         Path versionsDir = backupSetPath.resolve(".versions");
         Files.createDirectories(versionsDir);
@@ -155,7 +160,7 @@ public class BackupServiceTest {
         LocalDateTime timeStampBeforeBackup = LocalDateTime.now();
 
         service.backup(multipartFile,
-                createFileInputArgs("hostName", "backupSetPath", new String[0], fileToBackup.toFile().getName()));
+                createFileInputArgs(HOST_NAME, BACKUP_SET_PATH, new String[0], fileToBackup.toFile().getName()));
 
         assertThat(versionsDir).exists().isDirectory();
         assertThat(versionsDir.toFile().list()).hasSize(1);
@@ -167,29 +172,29 @@ public class BackupServiceTest {
     @Test
     public void givenNotBackupedPathWhenDeleteThenNothingIsDone() {
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        Path backupedFile = backupSetPath.resolve("backupedFile.txt");
+        Path backupedFile = backupSetPath.resolve(BACKUPED_FILE_TXT);
 
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(backupSetPath);
 
-        service.delete(createFileInputArgs("hostName", "backupSet", new String[0], backupedFile.toFile().getName()));
+        service.delete(createFileInputArgs(HOST_NAME, BACKUP_SET, new String[0], backupedFile.toFile().getName()));
 
-        verify(directoryService).getBackupSetPath("hostName", "backupSet");
+        verify(directoryService).getBackupSetPath(HOST_NAME, BACKUP_SET);
         verifyNoMoreInteractions(directoryService, metaDataService);
     }
 
     @Test
     public void givenFileWhenDeleteThenFileIsMovedToVersionsDir() throws IOException {
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        Path backupedFile = Files.createFile(backupSetPath.resolve("backupedFile.txt"));
+        Path backupedFile = Files.createFile(backupSetPath.resolve(BACKUPED_FILE_TXT));
 
-        Path versionsDir = Files.createDirectories(backupSetPath.resolve(".backupClientServer").resolve("backupFile.txt"));
+        Path versionsDir = Files.createDirectories(backupSetPath.resolve(BACKUP_CLIENT_SERVER).resolve("backupFile.txt"));
 
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(backupSetPath);
         when(directoryService.getFileVersionsDirectory(backupedFile)).thenReturn(versionsDir);
 
         LocalDateTime timestampBeforeDelete = LocalDateTime.now();
 
-        service.delete(createFileInputArgs("hostName", "backupSet", new String[0], backupedFile.toFile().getName()));
+        service.delete(createFileInputArgs(HOST_NAME, BACKUP_SET, new String[0], backupedFile.toFile().getName()));
 
         assertThat(backupedFile).doesNotExist();
         assertThat(versionsDir.toFile().list()).hasSize(1);
@@ -203,7 +208,7 @@ public class BackupServiceTest {
     @Test
     public void givenDirectoryWhenDeleteThenDirectoryIsMovedToDeletedDirs() throws IOException {
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        Path expectedTargetDir = Files.createDirectories(backupSetPath.resolve(".backupClientServer")).resolve("expectedTargetDirOfDeletedDir");
+        Path expectedTargetDir = Files.createDirectories(backupSetPath.resolve(BACKUP_CLIENT_SERVER)).resolve("expectedTargetDirOfDeletedDir");
 
         Path dirForDelete = backupSetPath.resolve("dirForDelete");
         Path subdirOfDeletedFolder = Files.createDirectories(dirForDelete.resolve("deletedSubDir"));
@@ -236,7 +241,7 @@ public class BackupServiceTest {
         Path subdirOfDeletedFolder = Files.createDirectories(dirForDelete.resolve("deletedSubDir"));
 
         Path expectedTargetDir = Files.createDirectories(
-                backupSetPath.resolve(".backupClientServer")
+                backupSetPath.resolve(BACKUP_CLIENT_SERVER)
                         .resolve("currentDate"))
                 .resolve(dirForDelete.toFile().getName());
 
@@ -263,7 +268,8 @@ public class BackupServiceTest {
 
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(backupSetPath);
 
-        service.backup(multipartFile, createFileInputArgs(hostName, backupSetPath.toString(), new String[0], "backupedFile.txt"));
+        service.backup(multipartFile, createFileInputArgs(hostName, backupSetPath.toString(), new String[0],
+                BACKUPED_FILE_TXT));
 
         verify(clientService).updateLastBackupTimestamp(hostName);
     }

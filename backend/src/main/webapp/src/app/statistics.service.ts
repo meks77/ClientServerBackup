@@ -12,8 +12,8 @@ import {ErrorHandlingService} from "./error-handling.service";
 })
 export class StatisticsService {
 
-  private fileStatisticsUrl = "http://localhost:8080/api/v1.0/statistics/fileStatistics";
-  private clientCountUrl = "http://localhost:8080/api/v1.0/statistics/clients/count";
+  private fileStatisticsUrl = "/api/v1.0/statistics/fileStatistics";
+  private clientCountUrl = "/api/v1.0/statistics/clients/count";
 
   constructor( private http: HttpClient,
                private errorHandler: ErrorHandlingService) { }

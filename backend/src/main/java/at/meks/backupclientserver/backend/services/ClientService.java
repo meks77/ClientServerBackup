@@ -2,11 +2,11 @@ package at.meks.backupclientserver.backend.services;
 
 import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.Date;
 import java.util.Optional;
 
@@ -14,7 +14,7 @@ import java.util.Optional;
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class ClientService {
 
-    @Inject
+    @Autowired
     private ClientRepository clientRepository;
 
     public int getClientCount() {

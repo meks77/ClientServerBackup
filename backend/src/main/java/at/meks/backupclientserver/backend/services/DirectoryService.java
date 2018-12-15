@@ -6,11 +6,11 @@ import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
 import at.meks.backupclientserver.common.Md5CheckSumGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,13 +32,13 @@ class DirectoryService {
 
     private ReentrantLock createNewBackupSetLock = new ReentrantLock();
 
-    @Inject
+    @Autowired
     private BackupConfiguration configuration;
 
-    @Inject
+    @Autowired
     private ClientRepository clientRepository;
 
-    @Inject
+    @Autowired
     private LockService lockService;
 
     Path getBackupSetPath(String hostName, String clientBackupSetPath) {

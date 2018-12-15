@@ -11,8 +11,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -61,7 +61,7 @@ public class ClientRepositoryTest {
 
     @Test
     public void testThatInitDbIsAnnotatedWithInject() throws NoSuchMethodException {
-        assertThat(ClientRepository.class.getMethod("initDb").isAnnotationPresent(Inject.class)).isTrue();
+        assertThat(ClientRepository.class.getMethod("initDb").isAnnotationPresent(Autowired.class)).isTrue();
     }
 
     @Test

@@ -3,11 +3,11 @@ package at.meks.backupclientserver.backend.services.persistence;
 import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.backupclientserver.backend.services.LockService;
 import io.jsondb.JsonDBTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -21,13 +21,13 @@ public class ClientRepository {
 
     private ReentrantLock createNewClientLock = new ReentrantLock();
 
-    @Inject
+    @Autowired
     private PersistenceService persistenceService;
 
-    @Inject
+    @Autowired
     private LockService lockService;
 
-    @Inject
+    @Autowired
     public void initDb() {
         if (!persistenceService.getJsonDBTemplate().collectionExists(Client.class)) {
             persistenceService.getJsonDBTemplate().createCollection(Client.class);

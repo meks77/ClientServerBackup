@@ -1,14 +1,13 @@
 package at.meks.backupclientserver.backend.services;
 
 import at.meks.backupclientserver.backend.domain.Client;
-import org.apache.commons.io.FileSystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,7 +16,7 @@ import java.nio.file.Path;
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class FileService {
 
-    @Inject
+    @Autowired
     private DirectoryService directoryService;
 
     private Logger logger = LoggerFactory.getLogger(getClass());
@@ -31,7 +30,8 @@ public class FileService {
 
     private void setFreeSpace(FileStatistics statistics) {
         try {
-            statistics.setFreeSpaceInBytes(FileSystemUtils.freeSpaceKb() * 1024L);
+            statistics.setFreeSpaceInBytes(
+                    Files.getFileStore(directoryService.getBackupRootDirectory()).getUsableSpace());
         } catch (IOException e) {
             logger.error("couldn't get free space statistic", e);
             statistics.setFreeSpaceInBytes(-1L);

@@ -1,0 +1,15 @@
+allprojects {
+    repositories {
+        jcenter()
+    }
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    version = '1.0'
+}
+
+group = 'at.meks.clientserverbackup'
+version = '0.0.1-SNAPSHOT'

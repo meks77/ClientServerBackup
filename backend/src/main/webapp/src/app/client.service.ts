@@ -12,7 +12,7 @@ import {FileStatistics} from "./file-statistics";
 })
 export class ClientService {
 
-  private clientsUrl = "http://localhost:8080/api/v1.0/statistics/clients";
+  private clientsUrl = "/api/v1.0/statistics/clients";
 
   constructor( private http: HttpClient,
                private logger: LogService,
@@ -26,7 +26,7 @@ export class ClientService {
   }
 
   getClientFileStats(client: Client): Observable<FileStatistics> {
-    var clientFileStatsUrl = `http://localhost:8080/api/v1.0/statistics/client/${client.hostName}`;
+    var clientFileStatsUrl = `/api/v1.0/statistics/client/${client.hostName}`;
     return this.http.get<FileStatistics>(clientFileStatsUrl).pipe(
       catchError(this.errorHandler.whenErrorOnHttpRequest<FileStatistics>(`fetching stats for client ${client.hostName} failed`))
     );
