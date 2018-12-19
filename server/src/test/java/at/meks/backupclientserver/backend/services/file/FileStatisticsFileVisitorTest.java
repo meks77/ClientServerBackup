@@ -1,16 +1,12 @@
-package at.meks.backupclientserver.backend.services;
+package at.meks.backupclientserver.backend.services.file;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -116,12 +112,12 @@ public class FileStatisticsFileVisitorTest {
 
     @Test
     public void givenStatisticsWhenWithStatisticsThenInstanceWithGivenStatsIsReturned() {
-        FileStatisticsFileVisitor visitor = FileStatisticsFileVisitor.withStatistics(fileStatistics);
+        FileStatisticsFileVisitor visitorFromStatistic = FileStatisticsFileVisitor.withStatistics(fileStatistics);
         BasicFileAttributes attrs = mock(BasicFileAttributes.class);
 
         when(attrs.isRegularFile()).thenReturn(true);
 
-        visitor.visitFile(mock(Path.class), attrs);
+        visitorFromStatistic.visitFile(mock(Path.class), attrs);
 
         verify(fileStatistics).incrementFileCount();
         verify(fileStatistics).incrementSizeInBytes(anyLong());

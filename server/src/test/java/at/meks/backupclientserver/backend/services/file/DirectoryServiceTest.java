@@ -1,6 +1,9 @@
-package at.meks.backupclientserver.backend.services;
+package at.meks.backupclientserver.backend.services.file;
 
 import at.meks.backupclientserver.backend.domain.Client;
+import at.meks.backupclientserver.backend.services.BackupConfiguration;
+import at.meks.backupclientserver.backend.services.LockService;
+import at.meks.backupclientserver.backend.services.ServerBackupException;
 import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.junit.Before;
@@ -37,13 +40,18 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class DirectoryServiceTest {
 
     @ClassRule
     public static final SpringClassRule springClassRule = new SpringClassRule();
+
+    private static final String META_DATA_DIRECTORY_NAME = ".backupClientServer";
+    private static final String BACKUPED_FILE_NAME = "backupedFile.txt";
+    private static final String DIR_FOR_DELETE = "dirForDelete";
+    private static final String DELETED_DIRS = "deletedDirs";
+    private static final String CLIENT_BACKUP_SET_PATH = "/backup/set/path";
 
     private final DateTimeFormatter deletedDirNameFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss.SSS");
 
@@ -91,7 +99,7 @@ public class DirectoryServiceTest {
     @Repeat(10)
     public void givenManyThreadsForSameHostAndBackupSetPathWhenGetBackupSetPathThenNoExceptionIsThrown()
             throws InterruptedException {
-        String clientBackupSetPath = "C:\\backup\\set\\path";
+        String clientBackupSetPath = CLIENT_BACKUP_SET_PATH;
         ReentrantLock lock = new ReentrantLock();
         reset(lockService);
         when(lockService.getLockForPath(any())).thenReturn(lock);
@@ -116,7 +124,7 @@ public class DirectoryServiceTest {
 
     @Test
     public void givenHostNameAndBackupSetPathWhenGetBackupSetPathReturnsExpected() {
-        String clientBackupSetPath = "C:\\backup\\set\\path";
+        String clientBackupSetPath = CLIENT_BACKUP_SET_PATH;
         String clientHostName = "utHostName";
 
         when(configuration.getApplicationRoot()).thenReturn(backupRootPath.toString());
@@ -132,7 +140,7 @@ public class DirectoryServiceTest {
     @Test
     public void whenGetMetadataDirectoryPathReturnsExcpectedPath() {
         Path result = service.getMetadataDirectoryPath(backupRootPath);
-        assertThat(result).isEqualTo(Paths.get(backupRootPath.toString(), ".backupClientServer"));
+        assertThat(result).isEqualTo(Paths.get(backupRootPath.toString(), META_DATA_DIRECTORY_NAME));
     }
 
     @Test
@@ -143,15 +151,15 @@ public class DirectoryServiceTest {
 
     @Test
     public void givenMetadataDirExistsWhenGetMetadataDirectoryPathThenNoExceptionIsThrown() throws IOException {
-        Files.createDirectory(Paths.get(backupRootPath.toString(), ".backupClientServer"));
+        Files.createDirectory(Paths.get(backupRootPath.toString(), META_DATA_DIRECTORY_NAME));
         service.getMetadataDirectoryPath(backupRootPath);
     }
 
     @Test
     public void givenNotExistingVersionsDirWhenGetVersionDirectoryThenVersionDirIsCreatedAndReturned() {
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        Path backupedFile = backupSetPath.resolve("backupedFile.txt");
-        Path expectedVersionsDir = backupSetPath.resolve(".backupClientServer")
+        Path backupedFile = backupSetPath.resolve(BACKUPED_FILE_NAME);
+        Path expectedVersionsDir = backupSetPath.resolve(META_DATA_DIRECTORY_NAME)
                 .resolve(backupedFile.toFile().getName());
 
         Path versionDir = service.getFileVersionsDirectory(backupedFile);
@@ -163,8 +171,8 @@ public class DirectoryServiceTest {
     @Test
     public void givenExistingVersionsDirWhenGetVersionDirectoryThenVersionDirIsCreatedAndReturned() throws IOException {
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        Path backupedFile = backupSetPath.resolve("backupedFile.txt");
-        Path expectedVersionsDir = backupSetPath.resolve(".backupClientServer")
+        Path backupedFile = backupSetPath.resolve(BACKUPED_FILE_NAME);
+        Path expectedVersionsDir = backupSetPath.resolve(META_DATA_DIRECTORY_NAME)
                 .resolve(backupedFile.toFile().getName());
         Files.createDirectories(expectedVersionsDir);
 
@@ -177,9 +185,9 @@ public class DirectoryServiceTest {
     @Test
     public void givenFileInSubDirWhenGetVersionDirectoryThenExpectedDirectoryIsReturned() {
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        Path backupedFile = backupSetPath.resolve("subDir").resolve("backupedFile.txt");
+        Path backupedFile = backupSetPath.resolve("subDir").resolve(BACKUPED_FILE_NAME);
         Path expectedVersionsDir = backupedFile.getParent()
-                .resolve(".backupClientServer")
+                .resolve(META_DATA_DIRECTORY_NAME)
                 .resolve(backupedFile.toFile().getName());
 
         Path versionDir = service.getFileVersionsDirectory(backupedFile);
@@ -191,8 +199,8 @@ public class DirectoryServiceTest {
     @Test
     public void givenExistingDeletedDirsWhenGetDeletedVersionsDirReturnsExpected() throws IOException {
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        Path dirToDelete = Files.createDirectories(backupSetPath.resolve("dirForDelete"));
-        Path expectedDeletedDirs = backupSetPath.resolve(".backupClientServer").resolve("deletedDirs");
+        Path dirToDelete = Files.createDirectories(backupSetPath.resolve(DIR_FOR_DELETE));
+        Path expectedDeletedDirs = backupSetPath.resolve(META_DATA_DIRECTORY_NAME).resolve(DELETED_DIRS);
 
         LocalDateTime beforeExecution = LocalDateTime.now();
         Path versionedDeleteDir = service.getDirectoryForDeletedDir(dirToDelete);
@@ -210,22 +218,23 @@ public class DirectoryServiceTest {
     @Test
     public void givenNotExistingDeletedDirsWhenGetDeletedVersionsDirThenCreatedDirIsReturned() {
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        Path dirToDelete = backupSetPath.resolve("dirForDelete");
-        Path expectedDeletedDirs = backupSetPath.resolve(".backupClientServer").resolve("deletedDirs");
+        Path dirToDelete = backupSetPath.resolve(DIR_FOR_DELETE);
+        Path expectedDeletedDirs = backupSetPath.resolve(META_DATA_DIRECTORY_NAME).resolve(DELETED_DIRS);
 
         Path deletedDirsDirectory = service.getDirectoryForDeletedDir(dirToDelete);
-        assertThat(deletedDirsDirectory).doesNotExist().hasFileName("dirForDelete");
+        assertThat(deletedDirsDirectory).doesNotExist().hasFileName(DIR_FOR_DELETE);
         assertThat(deletedDirsDirectory.getParent()).exists().isDirectory().hasParent(expectedDeletedDirs);
     }
 
     @Test
     public void givenSubdirWhenGetDeletedVersionsDirThenCreatedDirIsReturned() {
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        Path dirToDelete = backupSetPath.resolve("subdir").resolve("dirForDelete");
-        Path expectedDeletedDirs = backupSetPath.resolve("subdir").resolve(".backupClientServer").resolve("deletedDirs");
+        Path dirToDelete = backupSetPath.resolve("subdir").resolve(DIR_FOR_DELETE);
+        Path expectedDeletedDirs = backupSetPath.resolve("subdir").resolve(META_DATA_DIRECTORY_NAME).resolve(
+                DELETED_DIRS);
 
         Path deletedDirsDirectory = service.getDirectoryForDeletedDir(dirToDelete);
-        assertThat(deletedDirsDirectory).doesNotExist().hasFileName("dirForDelete");
+        assertThat(deletedDirsDirectory).doesNotExist().hasFileName(DIR_FOR_DELETE);
         assertThat(deletedDirsDirectory.getParent()).exists().isDirectory().hasParent(expectedDeletedDirs);
     }
 

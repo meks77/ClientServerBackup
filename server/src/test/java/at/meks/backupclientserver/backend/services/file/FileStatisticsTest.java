@@ -1,10 +1,8 @@
-package at.meks.backupclientserver.backend.services;
+package at.meks.backupclientserver.backend.services.file;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Arrays;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -37,7 +35,7 @@ public class FileStatisticsTest {
         long[] byteSizeValues = new long[]{854L, 756L, 17472L};
         long expectedBytes = Arrays.stream(byteSizeValues).sum();
         BigDecimal expectedSizeInMb = valueOf(expectedBytes)
-                .divide(valueOf(1024 * 1024), 3, ROUND_HALF_UP);
+                .divide(valueOf(1024L * 1024L), 3, ROUND_HALF_UP);
 
         fileStatistics.incrementSizeInBytes(byteSizeValues[0]);
         fileStatistics.incrementSizeInBytes(byteSizeValues[1]);

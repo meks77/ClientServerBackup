@@ -1,5 +1,6 @@
-package at.meks.backupclientserver.backend.services;
+package at.meks.backupclientserver.backend.services.backup;
 
+import at.meks.backupclientserver.backend.services.file.DirectoryService;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Rule;
@@ -20,6 +21,10 @@ import static org.mockito.Mockito.when;
 
 public class MetaDataServiceTest {
 
+    private static final String FILE_CONTENT = "theFileContent";
+    private static final String TARGET_FILE_NAME = "targetFile.txt";
+    private static final String TARGET_FILE_MD_5_FILE_NAME = "targetFile.txt.md5";
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -33,15 +38,15 @@ public class MetaDataServiceTest {
     public void givenFileWhenWriteMd5ChecksumWritesMd5ToExpectedFile() throws IOException {
         Path rootDir = mockMd5Path();
 
-        String fileContent = "theFileContent";
+        String fileContent = FILE_CONTENT;
         String expectedMd5 = DigestUtils.md5Hex(fileContent);
-        Path target = Paths.get(rootDir.toString(), "targetFile.txt");
+        Path target = Paths.get(rootDir.toString(), TARGET_FILE_NAME);
         Files.write(target, fileContent.getBytes());
 
 
         service.writeMd5Checksum(target.toFile());
 
-        String md5OfFile = Files.readAllLines(Paths.get(rootDir.toString(), "targetFile.txt.md5")).get(0);
+        String md5OfFile = Files.readAllLines(Paths.get(rootDir.toString(), TARGET_FILE_MD_5_FILE_NAME)).get(0);
         assertThat(md5OfFile).isEqualTo(expectedMd5);
     }
 
@@ -55,10 +60,9 @@ public class MetaDataServiceTest {
     public void givenEqualMd5WhenIsMd5EqualReturnsTrue() throws IOException {
         Path rootDir = mockMd5Path();
 
-        String fileContent = "theFileContent";
-        String md5Cecksum = DigestUtils.md5Hex(fileContent);
-        Path target = Paths.get(rootDir.toString(), "targetFile.txt");
-        Path md5File = Paths.get(rootDir.toString(), "targetFile.txt.md5");
+        String md5Cecksum = DigestUtils.md5Hex(FILE_CONTENT);
+        Path target = Paths.get(rootDir.toString(), TARGET_FILE_NAME);
+        Path md5File = Paths.get(rootDir.toString(), TARGET_FILE_MD_5_FILE_NAME);
         Files.write(md5File, md5Cecksum.getBytes());
 
         boolean result = service.isMd5Equal(target.toFile(), md5Cecksum);
@@ -69,10 +73,9 @@ public class MetaDataServiceTest {
     public void givenNotEqualMd5WhenIsMd5EqualReturnsFalse() throws IOException {
         Path rootDir = mockMd5Path();
 
-        String fileContent = "theFileContent";
-        String md5Cecksum = DigestUtils.md5Hex(fileContent);
-        Path target = Paths.get(rootDir.toString(), "targetFile.txt");
-        Path md5File = Paths.get(rootDir.toString(), "targetFile.txt.md5");
+        String md5Cecksum = DigestUtils.md5Hex(FILE_CONTENT);
+        Path target = Paths.get(rootDir.toString(), TARGET_FILE_NAME);
+        Path md5File = Paths.get(rootDir.toString(), TARGET_FILE_MD_5_FILE_NAME);
         Files.write(md5File, md5Cecksum.getBytes());
 
         boolean result = service.isMd5Equal(target.toFile(), md5Cecksum+"x");

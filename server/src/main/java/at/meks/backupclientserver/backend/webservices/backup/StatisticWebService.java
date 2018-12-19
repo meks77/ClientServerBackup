@@ -2,8 +2,8 @@ package at.meks.backupclientserver.backend.webservices.backup;
 
 import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.backupclientserver.backend.services.ClientService;
-import at.meks.backupclientserver.backend.services.FileService;
-import at.meks.backupclientserver.backend.services.FileStatistics;
+import at.meks.backupclientserver.backend.services.file.FileService;
+import at.meks.backupclientserver.backend.services.file.FileStatistics;
 import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

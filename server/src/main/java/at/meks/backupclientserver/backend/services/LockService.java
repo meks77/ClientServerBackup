@@ -25,7 +25,7 @@ public class LockService {
                 }
             });
 
-    ReentrantLock getLockForPath(@NotNull Path path) {
+    public ReentrantLock getLockForPath(@NotNull Path path) {
         try {
             return clientLocks.get(path.toString());
         } catch (ExecutionException e) {

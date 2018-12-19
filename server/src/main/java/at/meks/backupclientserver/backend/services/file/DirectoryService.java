@@ -1,7 +1,10 @@
-package at.meks.backupclientserver.backend.services;
+package at.meks.backupclientserver.backend.services.file;
 
 import at.meks.backupclientserver.backend.domain.BackupSet;
 import at.meks.backupclientserver.backend.domain.Client;
+import at.meks.backupclientserver.backend.services.BackupConfiguration;
+import at.meks.backupclientserver.backend.services.LockService;
+import at.meks.backupclientserver.backend.services.ServerBackupException;
 import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
 import at.meks.backupclientserver.common.Md5CheckSumGenerator;
 import org.slf4j.Logger;
@@ -22,6 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+public
 class DirectoryService {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss.SSS");
@@ -41,7 +45,7 @@ class DirectoryService {
     @Autowired
     private LockService lockService;
 
-    Path getBackupSetPath(String hostName, String clientBackupSetPath) {
+    public Path getBackupSetPath(String hostName, String clientBackupSetPath) {
         Client client = clientRepository.getClient(hostName)
                 .orElseGet(() -> clientRepository.createNewClient(hostName, md5CheckSumGenerator.md5HexFor(hostName)));
         Path clientPath = getClientPath(client);
@@ -52,7 +56,7 @@ class DirectoryService {
         return createIfNotExists(backupSetPath);
     }
 
-    public Path getClientPath(Client client) {
+    Path getClientPath(Client client) {
         return getBackupRootDirectory().resolve(client.getDirectoryName());
     }
 
@@ -91,17 +95,17 @@ class DirectoryService {
         });
     }
 
-    Path getMetadataDirectoryPath(Path targetDir) {
+    public Path getMetadataDirectoryPath(Path targetDir) {
         Path metaDataDir = Paths.get(targetDir.toString(), ".backupClientServer");
         return createIfNotExists(metaDataDir);
     }
 
-    Path getFileVersionsDirectory(Path changedFile) {
+    public Path getFileVersionsDirectory(Path changedFile) {
         Path versionsDir = getMetadataDirectoryPath(changedFile.getParent()).resolve(changedFile.toFile().getName());
         return createIfNotExists(versionsDir);
     }
 
-    Path getDirectoryForDeletedDir(Path deletedDir) {
+    public Path getDirectoryForDeletedDir(Path deletedDir) {
         Path versionsDir = getDeletedDirsDirectory(deletedDir).resolve(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
         return createIfNotExists(versionsDir).resolve(deletedDir.toFile().getName());
     }

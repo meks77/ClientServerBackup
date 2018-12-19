@@ -1,4 +1,4 @@
-package at.meks.backupclientserver.backend.services;
+package at.meks.backupclientserver.backend.services.file;
 
 import lombok.Getter;
 import lombok.Setter;

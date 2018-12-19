@@ -21,7 +21,7 @@ public class ClientService {
         return clientRepository.getClientCount();
     }
 
-    void updateLastBackupTimestamp(String hostName) {
+    public void updateLastBackupTimestamp(String hostName) {
         Optional<Client> clientOptional = clientRepository.getClient(hostName);
         clientOptional.ifPresent(client1 -> {
             client1.setLastBackupedFileTimestamp(new Date());

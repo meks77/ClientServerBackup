@@ -1,5 +1,7 @@
-package at.meks.backupclientserver.backend.services;
+package at.meks.backupclientserver.backend.services.backup;
 
+import at.meks.backupclientserver.backend.services.ServerBackupException;
+import at.meks.backupclientserver.backend.services.file.DirectoryService;
 import at.meks.backupclientserver.common.Md5CheckSumGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

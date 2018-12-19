@@ -1,4 +1,4 @@
-package at.meks.backupclientserver.backend.services;
+package at.meks.backupclientserver.backend.services.file;
 
 import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
@@ -79,7 +79,9 @@ public class FileServiceTest {
 
     private void createFile(Path path, long fileSize) throws IOException {
         Path tempFile = Files.createTempFile(path, "ut-file", ".txt");
-        new RandomAccessFile(tempFile.toFile(), "rw").setLength(fileSize);
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile.toFile(), "rw")) {
+            randomAccessFile.setLength(fileSize);
+        }
     }
 
     @Test
