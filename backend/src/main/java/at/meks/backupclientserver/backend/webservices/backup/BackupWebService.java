@@ -2,7 +2,6 @@ package at.meks.backupclientserver.backend.webservices.backup;
 
 import at.meks.backupclientserver.backend.services.BackupService;
 import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
-import at.meks.backupclientserver.common.service.fileup2date.FileInputArgsBuilder;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import org.slf4j.Logger;
@@ -33,8 +32,8 @@ public class BackupWebService {
         logger.info("received file for hostName {} and backedupPath {} and relative path {}. File: {}",
                 hostName, backupedPath, relativePath, file);
         FileInputArgs fileInputArgs =
-                FileInputArgsBuilder.aFileInputArgs().withHostName(hostName).withBackupedPath(backupedPath)
-                        .withRelativePath(relativePath).withFileName(fileName).build();
+                FileInputArgs.aFileInputArgs().hostName(hostName).backupedPath(backupedPath)
+                        .relativePath(relativePath).fileName(fileName).build();
         backupService.backup(file, fileInputArgs);
         logger.info("backup completed");
     }
@@ -42,9 +41,8 @@ public class BackupWebService {
     @PostMapping(value = "/isFileUpToDate",
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public FileUp2dateResult isFileUp2date(@RequestBody FileUp2dateInput fileUp2DateInput) {
-        FileUp2dateResult result = new FileUp2dateResult();
-        result.setUp2date(backupService.isFileUpToDate(fileUp2DateInput, fileUp2DateInput.getMd5Checksum()));
-        return result;
+        boolean upToDate = backupService.isFileUpToDate(fileUp2DateInput, fileUp2DateInput.getMd5Checksum());
+        return new FileUp2dateResult(upToDate);
     }
 
     @DeleteMapping(value = "/delete", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)

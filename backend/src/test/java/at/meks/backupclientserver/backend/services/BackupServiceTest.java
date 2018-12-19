@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 
-import static at.meks.backupclientserver.common.service.fileup2date.FileInputArgsBuilder.aFileInputArgs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -29,11 +28,11 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class BackupServiceTest {
 
-    public static final String BACKUP_SET_PATH = "backupSetPath";
-    public static final String HOST_NAME = "hostName";
-    public static final String BACKUPED_FILE_TXT = "backupedFile.txt";
-    public static final String BACKUP_SET = "backupSet";
-    public static final String BACKUP_CLIENT_SERVER = ".backupClientServer";
+    private static final String BACKUP_SET_PATH = "backupSetPath";
+    private static final String HOST_NAME = "hostName";
+    private static final String BACKUPED_FILE_TXT = "backupedFile.txt";
+    private static final String BACKUP_SET = "backupSet";
+    private static final String BACKUP_CLIENT_SERVER = ".backupClientServer";
     private final DateTimeFormatter versionedFileNameFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss" +
             ".SSS");
 
@@ -72,10 +71,10 @@ public class BackupServiceTest {
 
     private FileInputArgs createFileInputArgs(String hostName, String clientBackupSetPath, String[] relativePath,
             String fileNameOfBackedupFile) {
-        return aFileInputArgs().withHostName(hostName)
-                .withBackupedPath(clientBackupSetPath)
-                .withRelativePath(relativePath)
-                .withFileName(fileNameOfBackedupFile).build();
+        return FileInputArgs.aFileInputArgs().hostName(hostName)
+                .backupedPath(clientBackupSetPath)
+                .relativePath(relativePath)
+                .fileName(fileNameOfBackedupFile).build();
     }
 
     @Test(expected = ServerBackupException.class)

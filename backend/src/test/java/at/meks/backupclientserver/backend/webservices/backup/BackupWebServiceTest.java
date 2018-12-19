@@ -6,13 +6,13 @@ import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.web.multipart.MultipartFile;
 
-import static at.meks.backupclientserver.common.service.fileup2date.FileInputArgsBuilder.aFileInputArgs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -40,8 +40,8 @@ public class BackupWebServiceTest {
         webService.backupFile(expectedFile, relativePath, hostName, backupedPath, fileName);
 
         verify(backupService).backup(same(expectedFile),
-                eq(aFileInputArgs().withHostName(hostName).withBackupedPath(backupedPath).withRelativePath(relativePath)
-                        .withFileName(fileName).build()));
+                eq(FileInputArgs.aFileInputArgs().hostName(hostName).backupedPath(backupedPath)
+                        .relativePath(relativePath).fileName(fileName).build()));
     }
 
     @Test
@@ -51,6 +51,7 @@ public class BackupWebServiceTest {
         String expectedHostName = "theExpectedHostName";
         String[] expectedRelativePath = new String[] {"theExpectedRelativePath"};
         String expectedMd5Checksum = "theExpectedMd5Checksum";
+
 
         FileUp2dateInput fileUp2dateInput = new FileUp2dateInput();
         fileUp2dateInput.setBackupedPath(expectedBackupPath);
@@ -62,9 +63,8 @@ public class BackupWebServiceTest {
         webService.isFileUp2date(fileUp2dateInput);
 
         verify(backupService).isFileUpToDate(
-                aFileInputArgs().withHostName(expectedHostName).withBackupedPath(expectedBackupPath)
-                        .withRelativePath(expectedRelativePath).withFileName(expectedFileName).build(),
-                expectedMd5Checksum);
+                same(fileUp2dateInput),
+                eq(expectedMd5Checksum));
     }
 
     @Test

@@ -50,7 +50,7 @@ public class BackupManagerTest {
 
     @Test
     public void givenModifiedFileWhenAddForBackupThenHttpServerRequestIsExecutedAsExpected() throws URISyntaxException, InterruptedException {
-        Path uplodedFilePath = Paths.get(getClass().getResource("/mappings/backup-successfull.json").toURI());
+        Path uplodedFilePath = Paths.get(getClass().getResource("fileToBackup.txt").toURI());
         Path backupSetPath = Paths.get(getClass().getResource("/").toURI());
         manager.addForBackup(new TodoEntry(PathChangeType.MODIFIED,
                 uplodedFilePath,
@@ -66,7 +66,7 @@ public class BackupManagerTest {
     @Test
     public void givenFileMd5EqualsWhenAddForBackupThenFileIsntBackuped() throws InterruptedException,
             URISyntaxException {
-        Path uplodedFilePath = Paths.get(getClass().getResource("/mappings/backup-successfull.json").toURI());
+        Path uplodedFilePath = Paths.get(getClass().getResource("fileToBackup.txt").toURI());
         Path backupSetPath = Paths.get(getClass().getResource("/").toURI());
         when(backupRemoteService.isFileUpToDate(any(), any())).thenReturn(true);
 
@@ -82,7 +82,7 @@ public class BackupManagerTest {
     @Test
     public void givenFileMd5DiffersWhennAddForBackupThenFileIsBackuped() throws InterruptedException,
             URISyntaxException {
-        Path uplodedFilePath = Paths.get(getClass().getResource("/mappings/backup-successfull.json").toURI());
+        Path uplodedFilePath = Paths.get(getClass().getResource("fileToBackup.txt").toURI());
         Path backupSetPath = Paths.get(getClass().getResource("/").toURI());
         when(backupRemoteService.isFileUpToDate(any(), any())).thenReturn(false);
 
