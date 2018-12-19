@@ -9,7 +9,7 @@
 
 rootProject.name = 'ClientServerBackup'
 
-include 'backend'
+include 'server'
 include 'common'
 include 'testUtils'
 include 'client'
