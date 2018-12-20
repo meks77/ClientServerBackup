@@ -54,7 +54,7 @@ class FileWatcher {
             initializeWatching(watchService);
             listenThread = new Thread(() ->  listenToChanges(watchService));
             listenThread.start();
-        } catch (IOException e) {
+        } catch (Exception e) {
             errorReporter.reportError("couldn't create watchService", e);
             throw new ClientBackupException("couldn't create watchService", e);
         }

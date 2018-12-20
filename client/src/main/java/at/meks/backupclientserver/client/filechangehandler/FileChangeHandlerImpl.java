@@ -6,7 +6,6 @@ import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.PathChangeType;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
 import com.google.inject.Inject;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +84,8 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
     private void forKind(WatchEvent.Kind kind, Consumer<PathChangeType> consumer) {
         PathChangeType pathChangeType = PathChangeType.from(kind);
         if (pathChangeType == null) {
-            errorReporter.reportError("unknown WatchEvent.Kind " + kind);
+            errorReporter.reportError("unknown WatchEvent.Kind " + kind,
+                    new ClientBackupException("unknown WatchEvent.Kind " + kind));
             return;
         }
         consumer.accept(pathChangeType);
@@ -128,16 +128,13 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
                     FileTime lastModifiedTime = Files.getLastModifiedTime(todoEntry.getChangedFile());
                     long now = System.currentTimeMillis();
                     if (lastModifiedTime.toMillis() <= (now - delayedFileChange.getDelayInMilliseconds())) {
-                        FileChannel fileLock = tryLock(todoEntry.getChangedFile());
-                        if (fileLock == null) {
-                            queueForLater(todoEntry);
-                        } else {
-                            try {
+                        try(FileChannel fileLock = tryLock(todoEntry.getChangedFile())) {
+                            if (fileLock == null) {
+                                queueForLater(todoEntry);
+                            } else {
                                 logger.info("addForBackup {}", todoEntry.getChangedFile());
                                 removeFromChangedPathSet(todoEntry);
                                 backupManager.addForBackup(new TodoEntry(todoEntry.getType(), todoEntry.getChangedFile(), todoEntry.getWatchedPath()));
-                            } finally {
-                                IOUtils.closeQuietly(fileLock);
                             }
                         }
                     } else {

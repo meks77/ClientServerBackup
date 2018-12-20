@@ -28,10 +28,4 @@ public class ErrorReporterTest {
         Mockito.verify(logger).error(message, expectedException);
     }
 
-    @Test
-    public void whenReportErrorWithMessageThenLoggerIsUsedAsExpected() {
-        String message = "the expected message";
-        errorReporter.reportError(message);
-        Mockito.verify(logger).error(message);
-    }
 }

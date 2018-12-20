@@ -5,7 +5,6 @@ import at.meks.backupclientserver.client.backupmanager.PathChangeType;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
 import com.google.inject.Inject;
 
-import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +35,7 @@ class StartupBackuper {
                     backupManager.addForBackup(new TodoEntry(PathChangeType.MODIFIED, child, backupSetPath));
                 }
             });
-        } catch (IOException e) {
+        } catch (Exception e) {
             errorReporter.reportError("error while doing initial backup", e);
         }
     }

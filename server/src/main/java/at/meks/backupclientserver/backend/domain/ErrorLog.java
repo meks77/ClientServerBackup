@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 @Document(collection = "errorLogs", schemaVersion = "1.0")
@@ -18,7 +17,7 @@ import java.time.LocalDateTime;
 public class ErrorLog {
 
     @Id
-    private Path errorFile;
+    private String errorFilePath;
 
     private Client client;
 

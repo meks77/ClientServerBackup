@@ -23,7 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
+import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,13 +53,21 @@ public class ErrorReportServiceTest {
     @Before
     public void mockDefaults() throws IOException {
         errorFile = Files.createTempFile(errorsDirectory, "ut-error-file", ".txt");
+        Files.deleteIfExists(errorFile);
         Mockito.when(directoryService.getErrorDirectory()).thenReturn(errorsDirectory);
-        Mockito.when(fileService.createFileWithRandomName(errorsDirectory)).thenReturn(Optional.of(errorFile));
+        Mockito.when(fileService.createFileWithRandomName(errorsDirectory)).thenReturn(errorFile);
     }
 
     @After
     public void deleteDir() throws IOException {
         FileUtils.deleteDirectory(errorsDirectory.toFile());
+    }
+
+    @Test
+    public void givenNullExceptionWhenAddErrorThenNoFileIsWritten() {
+        service.addError(client, message, null);
+
+        assertThat(errorFile).doesNotExist();
     }
 
     @Test
@@ -89,7 +97,8 @@ public class ErrorReportServiceTest {
     @Test
     public void givenExceptionWhenAddErrorThenExceptionFileIsPersistedInErrorLog() {
         ErrorLog errorLog = invokeAndVerifyInsert();
-        assertThat(errorLog.getErrorFile()).isNotNull().exists();
+        assertThat(errorLog.getErrorFilePath()).isNotNull();
+        assertThat(Paths.get(errorLog.getErrorFilePath())).exists();
     }
 
     private ErrorLog invokeAndVerifyInsert() {
