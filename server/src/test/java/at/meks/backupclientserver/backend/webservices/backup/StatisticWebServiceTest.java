@@ -62,15 +62,15 @@ public class StatisticWebServiceTest {
 
     @Test
     public void testGetBackupedClients() {
-        Client client1 = Client.builder().
+        Client client1 = Client.aClient().
                 name("client1").lastBackupedFileTimestamp(fromLocalDateTime(now().minusHours(1))).build();
-        Client client2 = Client.builder().
+        Client client2 = Client.aClient().
                 name("client2").lastBackupedFileTimestamp(fromLocalDateTime(now().minusHours(2))).build();
-        Client client3 = Client.builder().
+        Client client3 = Client.aClient().
                 name("client3").lastBackupedFileTimestamp(fromLocalDateTime(now().minusHours(3))).build();
         List<StatisticClient> expectedResult = asList(fromClient(client1), fromClient(client2), fromClient(client3));
 
-        when(clientRepository.getClients()).thenReturn(Arrays.asList(client1, client2, client3));
+        when(clientRepository.getAll()).thenReturn(Arrays.asList(client1, client2, client3));
 
         List<StatisticClient> result = service.getBackupedCients();
 
@@ -83,7 +83,7 @@ public class StatisticWebServiceTest {
         Client client = mock(Client.class);
         FileStatistics expectedFileStats = mock(FileStatistics.class);
 
-        when(clientRepository.getClient(hostName)).thenReturn(Optional.of(client));
+        when(clientRepository.getById(hostName)).thenReturn(Optional.of(client));
         when(fileService.getDiskUsage(same(client))).thenReturn(expectedFileStats);
 
         FileStatistics result = service.getClientDiskUsage(hostName);
@@ -93,6 +93,11 @@ public class StatisticWebServiceTest {
 
     @Test
     public void givenNotExistingHostnameWhenGetClientDiskUsageThenReturnsNotAnalyzedStats() {
+        String hostName = "the Ut hostname";
+        when(clientRepository.getById(hostName)).thenReturn(Optional.empty());
 
+        FileStatistics result = service.getClientDiskUsage(hostName);
+
+        assertThat(result).isSameAs(FileStatistics.NOT_ANALYZED);
     }
 }

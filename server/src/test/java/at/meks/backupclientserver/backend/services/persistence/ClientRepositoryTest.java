@@ -70,7 +70,7 @@ public class ClientRepositoryTest {
         Client expectedClient = mock(Client.class);
         when(dbTemplate.findById(hostName, Client.class)).thenReturn(expectedClient);
 
-        Optional<Client> result = repository.getClient(hostName);
+        Optional<Client> result = repository.getById(hostName);
 
         assertThat(result).hasValue(expectedClient);
     }
@@ -81,7 +81,7 @@ public class ClientRepositoryTest {
         when(persistenceService.getJsonDBTemplate()).thenReturn(dbTemplate);
         when(dbTemplate.findById(hostName, Client.class)).thenReturn(null);
 
-        Optional<Client> result = repository.getClient(hostName);
+        Optional<Client> result = repository.getById(hostName);
 
         assertThat(result).isEmpty();
     }
@@ -108,7 +108,7 @@ public class ClientRepositoryTest {
         String hostName = "hostNameForUt";
         String directoryName = "dirNameForHostName";
 
-        when(dbTemplate.findById(hostName, Client.class)).thenReturn(Client.builder().build());
+        when(dbTemplate.findById(hostName, Client.class)).thenReturn(Client.aClient().build());
         when(lockService.runWithLock(eq(createNewClientLock), any()))
                 .thenAnswer(invocationOnMock -> ((Supplier<?>)invocationOnMock.getArgument(1)).get());
 
@@ -130,7 +130,7 @@ public class ClientRepositoryTest {
         int expectedResult = 74;
         when(dbTemplate.getCollection(Client.class)).thenReturn(Collections.nCopies(expectedResult, null));
 
-        int result = repository.getClientCount();
+        int result = repository.getSize();
 
         assertThat(result).isEqualTo(expectedResult);
     }
@@ -142,7 +142,7 @@ public class ClientRepositoryTest {
 
         when(dbTemplate.getCollection(Client.class)).thenReturn(expectedResult);
 
-        List<Client> clients = repository.getClients();
+        List<Client> clients = repository.getAll();
         assertThat(clients).isSameAs(expectedResult);
         verifyZeroInteractions(expectedResult);
     }

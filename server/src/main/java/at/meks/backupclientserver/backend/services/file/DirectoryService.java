@@ -46,7 +46,7 @@ class DirectoryService {
     private LockService lockService;
 
     public Path getBackupSetPath(String hostName, String clientBackupSetPath) {
-        Client client = clientRepository.getClient(hostName)
+        Client client = clientRepository.getById(hostName)
                 .orElseGet(() -> clientRepository.createNewClient(hostName, md5CheckSumGenerator.md5HexFor(hostName)));
         Path clientPath = getClientPath(client);
 
@@ -116,11 +116,19 @@ class DirectoryService {
     }
 
     Path getBackupRootDirectory() {
+        Path backupDir = getApplicationRoot().resolve("backups");
+        return createIfNotExists(backupDir);
+    }
+
+    private Path getApplicationRoot() {
         String applicationRoot = configuration.getApplicationRoot();
         if (applicationRoot == null) {
             throw new ServerBackupException("applicationRoot directory is not set");
         }
-        Path backupDir = Paths.get(applicationRoot, "backups");
-        return createIfNotExists(backupDir);
+        return createIfNotExists(Paths.get(applicationRoot));
+    }
+
+    public Path getErrorDirectory() {
+        return createIfNotExists(getApplicationRoot().resolve("errors"));
     }
 }

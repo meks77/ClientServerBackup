@@ -12,7 +12,9 @@ import java.util.Collection;
 import java.util.Date;
 
 @Document(collection = "clients", schemaVersion = "1.0")
-@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter
+@Builder(builderMethodName = "aClient")
+@NoArgsConstructor @AllArgsConstructor
 public class Client {
 
     @Id

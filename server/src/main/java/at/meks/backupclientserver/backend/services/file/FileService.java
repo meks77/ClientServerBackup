@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -52,5 +53,14 @@ public class FileService {
 
     public FileStatistics getDiskUsage(Client client) {
         return getBackupFileStatistics(directoryService.getClientPath(client));
+    }
+
+    public Optional<Path> createFileWithRandomName(Path parentDir) {
+        try {
+            return Optional.of(Files.createTempFile(parentDir, "errorStack", ".txt"));
+        } catch (IOException e) {
+            logger.error("Couldn create file for writing the stacktrace of the error", e);
+            return Optional.empty();
+        }
     }
 }

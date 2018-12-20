@@ -18,11 +18,11 @@ public class ClientService {
     private ClientRepository clientRepository;
 
     public int getClientCount() {
-        return clientRepository.getClientCount();
+        return clientRepository.getSize();
     }
 
     public void updateLastBackupTimestamp(String hostName) {
-        Optional<Client> clientOptional = clientRepository.getClient(hostName);
+        Optional<Client> clientOptional = clientRepository.getById(hostName);
         clientOptional.ifPresent(client1 -> {
             client1.setLastBackupedFileTimestamp(new Date());
             clientRepository.update(client1);
@@ -30,7 +30,7 @@ public class ClientService {
     }
 
     public void updateHeartbeat(String hostName) {
-        Optional<Client> clientOptional = clientRepository.getClient(hostName);
+        Optional<Client> clientOptional = clientRepository.getById(hostName);
         if (clientOptional.isPresent()) {
             Client client = clientOptional.get();
             client.setHeartbeatTimestamp(new Date());

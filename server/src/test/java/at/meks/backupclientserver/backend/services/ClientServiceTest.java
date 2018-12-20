@@ -36,7 +36,7 @@ public class ClientServiceTest {
     @Test
     public void whenGetClientCountThenResultOfClientRepositoryIsReturned() {
         int expectedResult = 87;
-        when(repository.getClientCount()).thenReturn(expectedResult);
+        when(repository.getSize()).thenReturn(expectedResult);
 
         assertThat(service.getClientCount()).isEqualTo(expectedResult);
     }
@@ -44,10 +44,10 @@ public class ClientServiceTest {
     @Test
     public void givenClientWithNullUpdateTimeWhenUpdateLastBackupTimestampThenClientIsUpdatedWithCurrentTime() {
         String expectedHostName = "expectedHostName";
-        Client client = Client.builder().build();
+        Client client = Client.aClient().build();
         Date timeBeforeCall = new Date();
 
-        when(repository.getClient(expectedHostName)).thenReturn(Optional.of(client));
+        when(repository.getById(expectedHostName)).thenReturn(Optional.of(client));
         service.updateLastBackupTimestamp(expectedHostName);
 
         verify(repository).update(same(client));
@@ -57,12 +57,12 @@ public class ClientServiceTest {
     @Test
     public void givenClientWithOldUpdateTimeWhenUpdateLastBackupTimestampThenClientIsUpdatedWithCurrentTime() {
         String expectedHostName = "expectedHostName";
-        Client client = Client.builder().build();
+        Client client = Client.aClient().build();
         Date olderDate = fromLocalDateTime(LocalDateTime.now().minusHours(1));
         client.setLastBackupedFileTimestamp(olderDate);
         Date timeBeforeCall = new Date();
 
-        when(repository.getClient(expectedHostName)).thenReturn(Optional.of(client));
+        when(repository.getById(expectedHostName)).thenReturn(Optional.of(client));
         service.updateLastBackupTimestamp(expectedHostName);
 
         verify(repository).update(same(client));
@@ -71,13 +71,13 @@ public class ClientServiceTest {
 
     @Test
     public void givenClientFoundWithoutHeartbeatTimestampWhenUpdateHeartbeatThenClientsHeartbeatIsUpdated() {
-        givenClientFoundWhenUpdateHeartbeatThenClientsHeartbeatIsUpdated(Client.builder().build());
+        givenClientFoundWhenUpdateHeartbeatThenClientsHeartbeatIsUpdated(Client.aClient().build());
     }
 
     private void givenClientFoundWhenUpdateHeartbeatThenClientsHeartbeatIsUpdated(Client client) {
         Optional<Client> clientOptional = Optional.of(client);
         String hostName = "theUtHostName";
-        when(repository.getClient(hostName)).thenReturn(clientOptional);
+        when(repository.getById(hostName)).thenReturn(clientOptional);
         Date minimumTimestamp = new Date();
 
         service.updateHeartbeat(hostName);
@@ -89,7 +89,7 @@ public class ClientServiceTest {
     @Test
     public void givenClientFoundWithHeartbeatTimestampWhenUpdateHeartbeatThenClientsHeartbeatIsUpdated() {
         givenClientFoundWhenUpdateHeartbeatThenClientsHeartbeatIsUpdated(
-                Client.builder().heartbeatTimestamp(DateTestUtils
+                Client.aClient().heartbeatTimestamp(DateTestUtils
                         .fromLocalDateTime(LocalDateTime.of(2006, 8, 7, 1, 2, 3))).build());
     }
 

@@ -23,7 +23,7 @@ public class StatisticClientTest {
     @Test
     public void givenClientWhenFromThenHostNameIsSet() {
         String expectedHostName = "utTestHostName";
-        Client client = Client.builder().name(expectedHostName).build();
+        Client client = Client.aClient().name(expectedHostName).build();
 
         StatisticClient statisticClient = StatisticClient.fromClient(client);
 
@@ -33,7 +33,7 @@ public class StatisticClientTest {
     @Test
     public void givenClientWhenFromThenLastBackupTimestampIsSet() {
         Date expectedBackupTimestamp = fromLocalDateTime(of(2009, 9, 14, 1, 4, 2));
-        Client client = Client.builder().lastBackupedFileTimestamp(expectedBackupTimestamp).build();
+        Client client = Client.aClient().lastBackupedFileTimestamp(expectedBackupTimestamp).build();
 
         StatisticClient statisticClient = StatisticClient.fromClient(client);
 
@@ -43,7 +43,7 @@ public class StatisticClientTest {
     @Test
     public void givenClientWhenFromThenHeartbeatTimestampIsSet() {
         Date expectedBackupTimestamp = fromLocalDateTime(of(2009, 9, 14, 1, 4, 2));
-        Client client = Client.builder().heartbeatTimestamp(expectedBackupTimestamp).build();
+        Client client = Client.aClient().heartbeatTimestamp(expectedBackupTimestamp).build();
 
         StatisticClient statisticClient = StatisticClient.fromClient(client);
 

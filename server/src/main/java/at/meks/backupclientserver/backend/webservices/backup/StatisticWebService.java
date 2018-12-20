@@ -43,12 +43,12 @@ public class StatisticWebService {
 
     @GetMapping(value="clients", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<StatisticClient> getBackupedCients() {
-        return clientRepository.getClients().stream().map(StatisticClient::fromClient).collect(Collectors.toList());
+        return clientRepository.getAll().stream().map(StatisticClient::fromClient).collect(Collectors.toList());
     }
 
     @GetMapping(value="client/{hostName}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public FileStatistics getClientDiskUsage(@PathVariable String hostName) {
-        Optional<Client> client = clientRepository.getClient(hostName);
+        Optional<Client> client = clientRepository.getById(hostName);
         return client.map(client1 -> fileService.getDiskUsage(client1))
                 .orElse(FileStatistics.NOT_ANALYZED);
     }

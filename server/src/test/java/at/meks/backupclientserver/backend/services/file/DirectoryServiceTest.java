@@ -81,13 +81,13 @@ public class DirectoryServiceTest {
         when(configuration.getApplicationRoot()).thenReturn(backupRootPath.toString());
         when(lockService.runWithLock(any(), any()))
                 .thenAnswer(invocationOnMock -> ((Supplier<?>)invocationOnMock.getArgument(1)).get());
-        when(clientRepository.getClient(any())).thenReturn(Optional.empty());
+        when(clientRepository.getById(any())).thenReturn(Optional.empty());
         when(clientRepository.createNewClient(any(), any()))
                 .thenAnswer(invocation -> createClient(invocation.getArgument(0), invocation.getArgument(1)));
     }
 
     private Client createClient(String hostName, String directoryName1) {
-        Client client = Client.builder().build();
+        Client client = Client.aClient().build();
         client.setName(hostName);
         client.setDirectoryName(directoryName1);
         client.setBackupSets(new LinkedList<>());
@@ -247,7 +247,7 @@ public class DirectoryServiceTest {
     @Test
     public void givenNewClientWhenGetBackupSetPathThenNewClientIsCreated() {
         String hostName = "theNewHostname";
-        when(clientRepository.getClient(hostName)).thenReturn(Optional.empty());
+        when(clientRepository.getById(hostName)).thenReturn(Optional.empty());
         when(clientRepository.createNewClient(eq(hostName), any()))
                 .thenAnswer(invocation -> createClient(hostName, invocation.getArgument(1)));
 
@@ -262,11 +262,17 @@ public class DirectoryServiceTest {
         String expectedDirName ="dirForNewHost";
         Client client = createClient(hostName, expectedDirName);
         Files.createDirectories(this.backupRootPath.resolve(client.getDirectoryName()));
-        when(clientRepository.getClient(hostName)).thenReturn(Optional.of(client));
+        when(clientRepository.getById(hostName)).thenReturn(Optional.of(client));
 
         Path backupSetPath = service.getBackupSetPath(hostName, "whatever");
 
         assertThat(backupSetPath).hasParent(this.backupRootPath.resolve("backups").resolve(expectedDirName));
         verify(clientRepository, never()).createNewClient(any(), any());
+    }
+
+    @Test
+    public void whenGetErrorDirectoryThenReturnsExpectedDirectory() {
+        Path errorDirectory = service.getErrorDirectory();
+        assertThat(errorDirectory).exists().isEqualByComparingTo(backupRootPath.resolve("errors"));
     }
 }
