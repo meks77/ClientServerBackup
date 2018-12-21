@@ -19,7 +19,7 @@ public class ErrorLog {
     @Id
     private String errorFilePath;
 
-    private Client client;
+    private String hostName;
 
     private String errorMessage;
 

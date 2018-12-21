@@ -1,6 +1,5 @@
 package at.meks.backupclientserver.backend.services;
 
-import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.backupclientserver.backend.domain.ErrorLog;
 import at.meks.backupclientserver.backend.services.file.DirectoryService;
 import at.meks.backupclientserver.backend.services.file.FileService;
@@ -31,12 +30,12 @@ public class ErrorReportService {
     @Autowired
     private ErrorLogRepository errorLogRepository;
 
-    public void addError(Client client, String message, Exception occuredException) {
+    public void addError(String hostName, String message, Exception occuredException) {
         try {
             Path errorFile = fileService.createFileWithRandomName(directoryService.getErrorDirectory());
             writeExceptionReportToFile(errorFile, occuredException);
             errorLogRepository.insert(
-                    ErrorLog.anErrorLog().client(client).errorFilePath(errorFile.toString())
+                    ErrorLog.anErrorLog().hostName(hostName).errorFilePath(errorFile.toString())
                             .errorMessage(message).build());
         } catch (Exception e) {
             logger.error("couldn't write error to file and database", e);

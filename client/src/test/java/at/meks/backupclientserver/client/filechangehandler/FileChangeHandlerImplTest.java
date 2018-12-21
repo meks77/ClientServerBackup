@@ -1,5 +1,6 @@
 package at.meks.backupclientserver.client.filechangehandler;
 
+import at.meks.backupclientserver.client.ClientBackupException;
 import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.PathChangeType;
@@ -34,6 +35,7 @@ import java.util.concurrent.Future;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -102,7 +104,9 @@ public class FileChangeHandlerImplTest {
 
         verifyZeroInteractions(backupManager);
         String message = "unknown WatchEvent.Kind " + StandardWatchEventKinds.OVERFLOW ;
-        verify(errorReporter).reportError(message);
+        ArgumentCaptor<ClientBackupException> captor = ArgumentCaptor.forClass(ClientBackupException.class);
+        verify(errorReporter).reportError(eq(message), captor.capture());
+        assertThat(captor.getValue().getMessage()).isEqualTo(message);
     }
 
     @Test

@@ -7,16 +7,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -38,6 +33,9 @@ public class HeartBeatReporterTest {
 
     @Mock
     private SystemService systemService;
+
+    @Mock
+    private ErrorReporter errorReporter;
 
     @InjectMocks
     private HeartBeatReporter heartBeatReporter = new HeartBeatReporter();
@@ -76,6 +74,6 @@ public class HeartBeatReporterTest {
 
         heartBeatReporter.startHeartbeatReporting();
 
-        verify(logger, timeout(1000).times(1)).error(any(), same(expectedException));
+        verify(errorReporter, timeout(1500).times(1)).reportError(any(), same(expectedException));
     }
 }

@@ -1,6 +1,5 @@
 package at.meks.backupclientserver.backend.services;
 
-import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.backupclientserver.backend.domain.ErrorLog;
 import at.meks.backupclientserver.backend.services.file.DirectoryService;
 import at.meks.backupclientserver.backend.services.file.FileService;
@@ -45,7 +44,7 @@ public class ErrorReportServiceTest {
     private ErrorReportService service = new ErrorReportService();
 
     private Path errorsDirectory = TestDirectoryProvider.createTempDirectory();
-    private Client client = Client.aClient().name("the host of the client which was processed").build();
+    private String hostName = "the host of the client which was processed";
     private String message = "a message with detail information";
     private Exception occuredException = new IllegalStateException("just a exception", new IOException("the cause"));
     private Path errorFile;
@@ -65,14 +64,14 @@ public class ErrorReportServiceTest {
 
     @Test
     public void givenNullExceptionWhenAddErrorThenNoFileIsWritten() {
-        service.addError(client, message, null);
+        service.addError(hostName, message, null);
 
         assertThat(errorFile).doesNotExist();
     }
 
     @Test
     public void givenExceptionWithCauseWhenAddErrorThenExceptionIsWrittenToFile() {
-        service.addError(client, message, occuredException);
+        service.addError(hostName, message, occuredException);
 
         Throwable rootCause = ExceptionUtils.getRootCause(occuredException);
 
@@ -87,7 +86,7 @@ public class ErrorReportServiceTest {
     @Test
     public void givenExceptionWithoutCauseWhenAddErrorThenExceptionIsWrittenToFile() {
         occuredException = new FileNotFoundException("this file wasn't found");
-        service.addError(client, message, occuredException);
+        service.addError(hostName, message, occuredException);
 
         String expectedFileContent = ExceptionUtils.getMessage(occuredException) + System.lineSeparator() +
                 ExceptionUtils.getStackTrace(occuredException) + System.lineSeparator();
@@ -102,7 +101,7 @@ public class ErrorReportServiceTest {
     }
 
     private ErrorLog invokeAndVerifyInsert() {
-        service.addError(client, message, occuredException);
+        service.addError(hostName, message, occuredException);
 
         ArgumentCaptor<ErrorLog> captor = ArgumentCaptor.forClass(ErrorLog.class);
         Mockito.verify(errorLogRepository).insert(captor.capture());
@@ -110,9 +109,9 @@ public class ErrorReportServiceTest {
     }
 
     @Test
-    public void givenClientWhenAddErrorThenErrorLogContainsClient() {
+    public void givenHostNametWhenAddErrorThenErrorLogContainsExpectedHostName() {
         ErrorLog errorLog = invokeAndVerifyInsert();
-        assertThat(errorLog.getClient()).isSameAs(client);
+        assertThat(errorLog.getHostName()).isSameAs(hostName);
     }
 
     @Test
