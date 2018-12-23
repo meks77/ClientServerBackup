@@ -9,4 +9,8 @@ public class ServerBackupException extends RuntimeException {
     public ServerBackupException(String message) {
         super(message);
     }
+
+    public ServerBackupException(Exception e) {
+        super(e);
+    }
 }

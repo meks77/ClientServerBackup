@@ -9,7 +9,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-public class HealthWebServiceTest {
+public class HealthWebServiceTest extends AbstractWebServiceTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -31,5 +31,10 @@ public class HealthWebServiceTest {
     public void givenNullHostNameWhenHeartbeatThenClientServiceIsInvoked() {
         service.heartbeat(null);
         Mockito.verify(clientService).updateHeartbeat(null);
+    }
+
+    @Test
+    public void whenHeartbeatThenExceptionHandlerIsInoked() {
+        verifyExceptionHandlerIsInvokedAndNothingElse(() -> service.heartbeat(null), clientService);
     }
 }

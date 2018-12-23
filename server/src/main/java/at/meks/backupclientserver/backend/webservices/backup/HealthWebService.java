@@ -22,9 +22,12 @@ public class HealthWebService {
     @Autowired
     private ErrorReportService errorReportService;
 
+    @Autowired
+    private ExceptionHandler exceptionHandler;
+
     @PutMapping(value = "heartbeat/{hostName}")
     public void heartbeat(@PathVariable String hostName) {
-        clientService.updateHeartbeat(hostName);
+        exceptionHandler.runReportingException(() -> "heartbeat", () -> clientService.updateHeartbeat(hostName));
     }
 
     @PutMapping(value = "error/{hostName}",

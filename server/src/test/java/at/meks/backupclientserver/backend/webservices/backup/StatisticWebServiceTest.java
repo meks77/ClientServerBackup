@@ -15,6 +15,7 @@ import org.mockito.junit.MockitoRule;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 import static at.meks.backupclientserver.backend.webservices.backup.StatisticClient.fromClient;
 import static at.meks.clientserverbackup.testutils.DateTestUtils.fromLocalDateTime;
@@ -25,7 +26,7 @@ import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class StatisticWebServiceTest {
+public class StatisticWebServiceTest extends AbstractWebServiceTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -100,4 +101,30 @@ public class StatisticWebServiceTest {
 
         assertThat(result).isSameAs(FileStatistics.NOT_ANALYZED);
     }
+
+    @Test
+    public void whenGetFileStatisticsThenExceptionHandlerIsInvoked() {
+        verifyExceptionHandlerIsInvoked(service::getFileStatistics);
+    }
+
+    private void verifyExceptionHandlerIsInvoked(Callable<?> serviceMethod) {
+        verifyExceptionHandlerIsInvokedAndNothingElse(serviceMethod, fileService, clientService, clientRepository);
+    }
+
+    @Test
+    public void whenGetBackupedClientsCountThenExceptionHandlerIsInvoked() {
+        verifyExceptionHandlerIsInvokedAndNothingElse(0, service::getBackupedCientsCount,
+                fileService, clientService, clientRepository);
+    }
+
+    @Test
+    public void whenGetBackupedClientsThenExceptionHandlerIsInvoked() {
+        verifyExceptionHandlerIsInvoked(service::getBackupedCients);
+    }
+
+    @Test
+    public void whenGetClientDiskUsageThenExceptionHandlerIsInvoked() {
+        verifyExceptionHandlerIsInvoked(() -> service.getClientDiskUsage(null));
+    }
+
 }

@@ -31,26 +31,33 @@ public class StatisticWebService {
     @Autowired
     private ClientRepository clientRepository;
 
+    @Autowired
+    private ExceptionHandler exceptionHandler;
+
     @GetMapping(value="fileStatistics", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public FileStatistics getFileStatistics() {
-        return fileService.getBackupFileStatistics();
+        return exceptionHandler.runReportingException(() -> "getFileStatistics",
+                fileService::getBackupFileStatistics);
     }
 
     @GetMapping(value="clients/count", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public int getBackupedCientsCount() {
-        return clientService.getClientCount();
+        return exceptionHandler.runReportingException(() -> "getBackupedCientsCount", () -> clientService.getClientCount());
     }
 
     @GetMapping(value="clients", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<StatisticClient> getBackupedCients() {
-        return clientRepository.getAll().stream().map(StatisticClient::fromClient).collect(Collectors.toList());
+        return exceptionHandler.runReportingException(() -> "backupFile",
+                () -> clientRepository.getAll().stream().map(StatisticClient::fromClient).collect(Collectors.toList()));
     }
 
     @GetMapping(value="client/{hostName}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public FileStatistics getClientDiskUsage(@PathVariable String hostName) {
-        Optional<Client> client = clientRepository.getById(hostName);
-        return client.map(client1 -> fileService.getDiskUsage(client1))
-                .orElse(FileStatistics.NOT_ANALYZED);
+        return exceptionHandler.runReportingException(() -> "backupFile", () -> {
+            Optional<Client> client = clientRepository.getById(hostName);
+            return client.map(client1 -> fileService.getDiskUsage(client1))
+                    .orElse(FileStatistics.NOT_ANALYZED);
+        });
     }
 
 }

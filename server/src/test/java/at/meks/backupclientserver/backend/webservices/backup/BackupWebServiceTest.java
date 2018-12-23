@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BackupWebServiceTest {
+public class BackupWebServiceTest extends AbstractWebServiceTest {
 
     @Mock
     private BackupService backupService;
@@ -90,4 +90,21 @@ public class BackupWebServiceTest {
         webService.deletePath(fileInputArgs);
         verify(backupService).delete(same(fileInputArgs));
     }
+
+    @Test
+    public void whenBackupFileThenExceptionHandlerIsInvoked() {
+        verifyExceptionHandlerIsInvokedAndNothingElse(() -> webService.backupFile(null, null, null, null, null),
+                backupService);
+    }
+
+    @Test
+    public void whenIsFileUp2dateThenExceptionHandlerIsInvoked() {
+        verifyExceptionHandlerIsInvokedAndNothingElse(() -> webService.isFileUp2date(null), backupService);
+    }
+
+    @Test
+    public void whenDeletePathThenExceptionHandlerIsInvoked() {
+        verifyExceptionHandlerIsInvokedAndNothingElse(() -> webService.deletePath(null), backupService);
+    }
+
 }
