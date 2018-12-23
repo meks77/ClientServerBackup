@@ -1,5 +1,5 @@
 <div class="w3-red w3-margin w3-padding">
-  <span class="w3-xlarge">ErrorList (most current 20)</span>
+  <span class="w3-xlarge">ErrorList (20 most recent errors)</span>
   <ul>
     <li *ngFor="let error of errors">{{error.hostName}}[{{error.errorTimestamp}}]: {{error.errorMessage}}</li>
   </ul>
