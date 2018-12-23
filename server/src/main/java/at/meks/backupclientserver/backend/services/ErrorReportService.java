@@ -14,6 +14,10 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -36,7 +40,7 @@ public class ErrorReportService {
             writeExceptionReportToFile(errorFile, occuredException);
             errorLogRepository.insert(
                     ErrorLog.anErrorLog().hostName(hostName).errorFilePath(errorFile.toString())
-                            .errorMessage(message).build());
+                            .errorMessage(message).errorTimestamp(new Date()).build());
         } catch (Exception e) {
             logger.error("couldn't write error to file and database", e);
         }
@@ -67,4 +71,10 @@ public class ErrorReportService {
         return outputBuilder;
     }
 
+    public List<ErrorLog> getErrors(int maxListSize) {
+        return errorLogRepository.getAll().stream()
+                .sorted(Comparator.comparing(ErrorLog::getErrorTimestamp).reversed())
+                .limit(maxListSize)
+                .collect(Collectors.toList());
+    }
 }

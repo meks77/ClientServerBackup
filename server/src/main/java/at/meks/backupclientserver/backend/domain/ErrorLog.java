@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Document(collection = "errorLogs", schemaVersion = "1.0")
 @Builder(builderMethodName = "anErrorLog")
@@ -23,6 +23,6 @@ public class ErrorLog {
 
     private String errorMessage;
 
-    private LocalDateTime errorTimestamp;
+    private Date errorTimestamp;
 
 }

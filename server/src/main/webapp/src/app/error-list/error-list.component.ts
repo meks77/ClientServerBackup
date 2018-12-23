@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import {HealthService} from "../health.service";
+import {ErrorLog} from "../error-log";
 
 @Component({
   selector: 'app-error-list',
@@ -7,9 +9,15 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ErrorListComponent implements OnInit {
 
-  constructor() { }
+  errors: ErrorLog[];
+
+  constructor(private healthService:HealthService) { }
 
   ngOnInit() {
+    this.refresh();
   }
 
+  refresh() {
+    this.healthService.getErrors().subscribe(errors => this.errors = errors);
+  }
 }

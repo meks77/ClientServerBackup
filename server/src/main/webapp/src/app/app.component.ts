@@ -2,6 +2,7 @@ import {Component, ViewChild} from '@angular/core';
 import {ImportantStatisticsComponent} from "./important-statistics/important-statistics.component";
 import {ClientListComponent} from "./client-list/client-list.component";
 import {NavigationbarComponent} from "./navigationbar/navigationbar.component";
+import {ErrorListComponent} from "./error-list/error-list.component";
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,9 @@ export class AppComponent {
   @ViewChild(NavigationbarComponent)
   navigationBar: NavigationbarComponent;
 
+  @ViewChild(ErrorListComponent)
+  errorList: ErrorListComponent;
+
   constructor() { }
 
   ngOnInit() {
@@ -29,5 +33,6 @@ export class AppComponent {
   refresh() {
     this.importantStats.refresh();
     this.clientList.refresh();
+    this.errorList.refresh();
   }
 }

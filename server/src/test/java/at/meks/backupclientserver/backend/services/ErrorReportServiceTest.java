@@ -23,8 +23,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 
+import static at.meks.clientserverbackup.testutils.DateTestUtils.fromLocalDateTime;
+import static java.time.LocalDate.of;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.extractProperty;
+import static org.mockito.Mockito.when;
 
 public class ErrorReportServiceTest {
 
@@ -53,8 +60,8 @@ public class ErrorReportServiceTest {
     public void mockDefaults() throws IOException {
         errorFile = Files.createTempFile(errorsDirectory, "ut-error-file", ".txt");
         Files.deleteIfExists(errorFile);
-        Mockito.when(directoryService.getErrorDirectory()).thenReturn(errorsDirectory);
-        Mockito.when(fileService.createFileWithRandomName(errorsDirectory)).thenReturn(errorFile);
+        when(directoryService.getErrorDirectory()).thenReturn(errorsDirectory);
+        when(fileService.createFileWithRandomName(errorsDirectory)).thenReturn(errorFile);
     }
 
     @After
@@ -118,5 +125,25 @@ public class ErrorReportServiceTest {
     public void givenMessageWhenAddErrorThenErrorLogContainsMessage() {
         ErrorLog errorLog = invokeAndVerifyInsert();
         assertThat(errorLog.getErrorMessage()).isEqualTo(message);
+    }
+
+    @Test
+    public void givenMaxListSize15WhenGetErrorThenReturns5NewestEntries() {
+        List<ErrorLog> unsortedList = Arrays.asList(
+                createErrorLog("file1", of(2018, 1, 2)),
+                createErrorLog("file2", of(2018, 1, 7)),
+                createErrorLog("file3", of(2018, 1, 3)),
+                createErrorLog("file4", of(2018, 1, 4)),
+                createErrorLog("file5", of(2018, 1, 6)),
+                createErrorLog("file6", of(2018, 1, 5))
+        );
+        when(errorLogRepository.getAll()).thenReturn(unsortedList);
+
+        List<ErrorLog> errors = service.getErrors(5);
+        assertThat(extractProperty("errorFilePath").from(errors)).containsExactly("file2", "file5", "file6", "file4", "file3");
+    }
+
+    private ErrorLog createErrorLog(String filePath, LocalDate dateOfError) {
+        return ErrorLog.anErrorLog().errorFilePath(filePath).errorTimestamp(fromLocalDateTime(dateOfError.atStartOfDay())).build();
     }
 }
