@@ -22,7 +22,7 @@
     <div class="w3-col l2 w3-padding w3-right-align">
       <span class="w3-hide-large"><b>Disk Usage: </b></span>
       <span class="w3-hide-large w3-hide-medium"><br></span>
-      {{client.fileStatistics.sizeInMb | number: '0.1-1'}}
+      {{byteFormatter.formatToHumanReadable(client.fileStatistics.sizeInMb)}}
     </div>
     <div class="w3-col l2 w3-padding w3-right-align">
       <span class="w3-hide-large"><b>Files Count: </b></span>

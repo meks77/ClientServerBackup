@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import {HealthService} from "../health.service";
-import {ErrorLog} from "../error-log";
+import {HealthService} from "../services/health.service";
+import {ErrorLog} from "../services/error-log";
 
 @Component({
   selector: 'app-error-list',

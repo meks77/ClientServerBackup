@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
-import {FileStatistics} from "../file-statistics";
-import {StatisticsService} from "../statistics.service";
-import {formatNumber} from "@angular/common";
+import {FileStatistics} from "../services/file-statistics";
+import {StatisticsService} from "../services/statistics.service";
+import {ByteFormatterService} from "../commons/byte-formatter.service";
 
 @Component({
   selector: 'app-important-statistics',
@@ -14,7 +14,7 @@ export class ImportantStatisticsComponent implements OnInit {
 
   clientCount: number;
 
-  constructor(private statisticsService: StatisticsService) { }
+  constructor(private statisticsService: StatisticsService, private byteFormatter: ByteFormatterService) { }
 
   ngOnInit() {
     this.refresh();
@@ -31,33 +31,11 @@ export class ImportantStatisticsComponent implements OnInit {
   }
 
   getUsedSpaceHumanReadable(): string {
-    return this.formatToHumanReadable(this.fileStatistics.sizeInMb);
-  }
-
-  private formatToHumanReadable(sizeInMb:number) {
-    var unit = 'MB';
-    var size = sizeInMb;
-    if (sizeInMb > 1200) {
-      unit = 'GB';
-      size = sizeInMb / 1024;
-    }
-    if (size > 1200) {
-      unit = 'TB';
-      size = size / 1024;
-    }
-    if (size > 1200) {
-      unit = 'PB';
-      size = size / 1024;
-    }
-    if (size > 1200) {
-      unit = 'EB';
-      size = size / 1024;
-    }
-    return formatNumber(size, 'en', '0.1-1') + ' ' + unit;
+    return this.byteFormatter.formatToHumanReadable(this.fileStatistics.sizeInMb);
   }
 
   getFreeSpaceHumanReadable() {
-    return this.formatToHumanReadable(this.fileStatistics.freeSpaceInMb);
+    return this.byteFormatter.formatToHumanReadable(this.fileStatistics.freeSpaceInMb);
   }
 
   refresh() {

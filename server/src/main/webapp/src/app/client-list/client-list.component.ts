@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import {ClientService} from "../client.service";
-import {Client} from "../client";
-import {FileStatistics} from "../file-statistics";
+import {ClientService} from "../services/client.service";
+import {Client} from "../services/client";
+import {FileStatistics} from "../services/file-statistics";
 import {isNullOrUndefined} from "util";
 import {formatDate} from "@angular/common";
+import {ByteFormatterService} from "../commons/byte-formatter.service";
 
 @Component({
   selector: 'app-client-list',
@@ -14,7 +15,7 @@ export class ClientListComponent implements OnInit {
 
   clients: Client[];
 
-  constructor(private clientService: ClientService) { }
+  constructor(private clientService: ClientService, public byteFormatter: ByteFormatterService) { }
 
   ngOnInit() {
     this.refresh();
@@ -41,4 +42,5 @@ export class ClientListComponent implements OnInit {
     }
     return formatDate(date, 'short', 'en');
   }
+
 }
