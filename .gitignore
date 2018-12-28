@@ -5,5 +5,7 @@
 **/build
 **/out
 
+client.log
+
 .idea
 *.iml

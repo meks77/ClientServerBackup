@@ -4,12 +4,12 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d %-5level %logger{36} [%t] - %msg%n"/>
         </Console>
-        <File name="File" fileName="client.log">
+        <File name="File" fileName="target/log/client.log">
             <PatternLayout pattern="%d %-5level %logger{36} [%t] - %msg%n"/>
         </File>
     </Appenders>
     <Loggers>
-        <Logger name="at.meks" level="info"/>
+        <Logger name="at.meks" level="info" additivity="false" />
         <Root level="warn">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
