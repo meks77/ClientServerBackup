@@ -18,4 +18,5 @@ dependencies {
     testImplementation('junit:junit:4.12')
     testImplementation('com.github.tomakehurst:wiremock:2.19.0')
     testCompile project (':testUtils')
+    testCompile 'org.awaitility:awaitility:3.1.5'
 }

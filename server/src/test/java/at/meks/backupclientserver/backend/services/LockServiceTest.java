@@ -1,16 +1,12 @@
 package at.meks.backupclientserver.backend.services;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.InOrder;
-import org.mockito.Mockito;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;

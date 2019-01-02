@@ -26,6 +26,7 @@ public class BackupManager {
     private void start() {
         if (queueReaderThread == null || !queueReaderThread.isAlive()) {
             queueReaderThread = new Thread(this::backupQueueItems);
+            queueReaderThread.setName("backupQueueReader");
             queueReaderThread.setDaemon(true);
             queueReaderThread.start();
         }
@@ -33,12 +34,13 @@ public class BackupManager {
 
     private void backupQueueItems() {
         try {
-            //noinspection InfiniteLoopStatement
             do {
                 backup(backupQueue.take());
             } while (true);
         } catch (InterruptedException e) {
             errorReporter.reportError("listening for Backup items was interrupted", e);
+            Thread.currentThread().interrupt();
+
         }
     }
 

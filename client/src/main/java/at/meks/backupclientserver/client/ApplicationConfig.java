@@ -12,8 +12,6 @@ import static at.meks.validation.validations.common.CommonValidations.isTrue;
 import static at.meks.validation.validations.list.ListValidations.hasMinSize;
 import static at.meks.validation.validations.string.StringValidations.isNotBlank;
 import static java.lang.String.format;
-import static java.nio.file.Files.exists;
-import static java.nio.file.Files.isDirectory;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 
