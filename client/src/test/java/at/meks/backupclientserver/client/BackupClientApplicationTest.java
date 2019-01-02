@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.client;
 
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandlerImpl;
+import at.meks.backupclientserver.client.startupbackuper.StartupBackuper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;

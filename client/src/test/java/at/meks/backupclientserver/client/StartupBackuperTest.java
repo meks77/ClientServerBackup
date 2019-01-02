@@ -2,6 +2,7 @@ package at.meks.backupclientserver.client;
 
 import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
+import at.meks.backupclientserver.client.startupbackuper.StartupBackuper;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.junit.Rule;
 import org.junit.Test;

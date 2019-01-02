@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.client;
 
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandlerImpl;
+import at.meks.backupclientserver.client.startupbackuper.StartupBackuper;
 import at.meks.validation.result.ValidationException;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
