@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.client;
 
 import at.meks.validation.result.ValidationException;
+import com.google.inject.Singleton;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 
+@Singleton
 public class ApplicationConfig {
 
     private Properties properties;

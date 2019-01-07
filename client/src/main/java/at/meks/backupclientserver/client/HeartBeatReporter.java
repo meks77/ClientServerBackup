@@ -3,6 +3,7 @@ package at.meks.backupclientserver.client;
 import at.meks.backupclientserver.client.http.HttpUrlResolver;
 import at.meks.backupclientserver.client.http.JsonHttpClient;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@Singleton
 class HeartBeatReporter {
 
     @Inject

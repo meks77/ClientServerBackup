@@ -9,6 +9,7 @@ import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.stream.StreamSupport;
 
+@Singleton
 class BackupRemoteService {
 
     @Inject

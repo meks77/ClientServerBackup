@@ -2,17 +2,19 @@ package at.meks.backupclientserver.client.backupmanager;
 
 import at.meks.backupclientserver.client.ErrorReporter;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
+@Singleton
 public class BackupManager {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    private BlockingDeque<TodoEntry> backupQueue = new LinkedBlockingDeque<>();
+    private BlockingDeque<TodoEntry> backupQueue = new LinkedBlockingDeque<>(100);
 
     private Thread queueReaderThread;
 
@@ -76,6 +78,11 @@ public class BackupManager {
     }
 
     public void addForBackup(TodoEntry item) {
-        backupQueue.add(item);
+        try {
+            backupQueue.put(item);
+        } catch (InterruptedException e) {
+            errorReporter.reportError("adding backup item " + item + " to queue was interrupted", e);
+            Thread.currentThread().interrupt();
+        }
     }
 }

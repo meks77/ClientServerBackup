@@ -2,6 +2,7 @@ package at.meks.backupclientserver.client.http;
 
 import at.meks.backupclientserver.client.ClientBackupException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Singleton;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.StatusLine;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+@Singleton
 public class JsonHttpClient {
 
     private Logger logger = LoggerFactory.getLogger(getClass());

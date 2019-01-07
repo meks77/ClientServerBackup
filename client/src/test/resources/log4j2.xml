@@ -9,10 +9,9 @@
         </File>
     </Appenders>
     <Loggers>
-        <Logger name="at.meks" level="info" additivity="false" />
+        <!--<Logger name="at.meks" level="info" additivity="false" />-->
         <Root level="warn">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="File"/>
         </Root>
     </Loggers>
 </Configuration>

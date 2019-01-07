@@ -1,10 +1,11 @@
 package at.meks.backupclientserver.client;
 
-import javax.inject.Named;
+import com.google.inject.Singleton;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-@Named
+@Singleton
 public class SystemService {
 
     public String getHostname() {

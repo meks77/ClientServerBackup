@@ -1,9 +1,11 @@
 package at.meks.backupclientserver.client.http;
 
 import at.meks.backupclientserver.client.ApplicationConfig;
+import com.google.inject.Singleton;
 
 import javax.inject.Inject;
 
+@Singleton
 public class HttpUrlResolver {
 
     @Inject

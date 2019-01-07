@@ -6,6 +6,7 @@ import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.PathChangeType;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +25,7 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
+@Singleton
 public class FileChangeHandlerImpl implements FileChangeHandler {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
@@ -97,6 +99,7 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
             if (queueReadThread == null) {
                 queueReadThread = new Thread(this::readQueue);
                 queueReadThread.setDaemon(true);
+                queueReadThread.setName("delayedFileChangeQueueReader");
                 queueReadThread.start();
             }
         } finally {
@@ -120,34 +123,40 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
 
     private void readQueue() {
         try {
-            //noinspection InfiniteLoopStatement
             do {
                 DelayedFileChange delayedFileChange = delyedQueue.take();
                 TodoEntry todoEntry = delayedFileChange.getTodoEntry();
                 if (todoEntry.getType() != PathChangeType.DELETED) {
-                    FileTime lastModifiedTime = Files.getLastModifiedTime(todoEntry.getChangedFile());
-                    long now = System.currentTimeMillis();
-                    if (lastModifiedTime.toMillis() <= (now - delayedFileChange.getDelayInMilliseconds())) {
-                        try(FileChannel fileLock = tryLock(todoEntry.getChangedFile())) {
-                            if (fileLock == null) {
-                                queueForLater(todoEntry);
-                            } else {
-                                logger.info("addForBackup {}", todoEntry.getChangedFile());
-                                removeFromChangedPathSet(todoEntry);
-                                backupManager.addForBackup(new TodoEntry(todoEntry.getType(), todoEntry.getChangedFile(), todoEntry.getWatchedPath()));
-                            }
-                        }
-                    } else {
-                        queueForLater(todoEntry);
-                    }
+                    processFileChange(delayedFileChange, todoEntry);
                 } else {
                     backupManager.addForBackup(todoEntry);
                 }
             } while (true);
         } catch (InterruptedException e) {
             logger.info("delayedQueueReader has been interrupted", e);
-        } catch (IOException e) {
-            throw new ClientBackupException("error while trying to backup file", e);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void processFileChange(DelayedFileChange delayedFileChange, TodoEntry todoEntry) {
+        try {
+            FileTime lastModifiedTime = Files.getLastModifiedTime(todoEntry.getChangedFile());
+            long now = System.currentTimeMillis();
+            if (lastModifiedTime.toMillis() <= (now - delayedFileChange.getDelayInMilliseconds())) {
+                try (FileChannel fileLock = tryLock(todoEntry.getChangedFile())) {
+                    if (fileLock == null) {
+                        queueForLater(todoEntry);
+                    } else {
+                        logger.info("addForBackup {}", todoEntry.getChangedFile());
+                        removeFromChangedPathSet(todoEntry);
+                        backupManager.addForBackup(new TodoEntry(todoEntry.getType(), todoEntry.getChangedFile(), todoEntry.getWatchedPath()));
+                    }
+                }
+            } else {
+                queueForLater(todoEntry);
+            }
+        } catch (Exception e) {
+            errorReporter.reportError("error while reading file changes from file change queue", e);
         }
     }
 

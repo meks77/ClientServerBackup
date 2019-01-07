@@ -3,6 +3,7 @@ package at.meks.backupclientserver.client.startupbackuper;
 import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
+@Singleton
 public class StartupBackuper {
 
     private Logger logger = LoggerFactory.getLogger(getClass());

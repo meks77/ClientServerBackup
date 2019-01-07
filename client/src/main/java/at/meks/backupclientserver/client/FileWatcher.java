@@ -2,19 +2,23 @@ package at.meks.backupclientserver.client;
 
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandler;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +30,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
+@Singleton
 class FileWatcher {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
@@ -51,9 +56,10 @@ class FileWatcher {
     void startWatching() {
         try {
             watchService = FileSystems.getDefault().newWatchService();
-            initializeWatching(watchService);
             listenThread = new Thread(() ->  listenToChanges(watchService));
+            listenThread.setName("fileChangeListener");
             listenThread.start();
+            initializeWatching(watchService);
         } catch (Exception e) {
             errorReporter.reportError("couldn't create watchService", e);
             throw new ClientBackupException("couldn't create watchService", e);
@@ -77,16 +83,31 @@ class FileWatcher {
     }
 
     private void registerDirectory(WatchService watchService, Path path) {
-        pathMap.put(registerForWatching(watchService, path), path);
-        File file = path.toFile();
-        if (file.isDirectory()) {
-            File[] subDirs = file.listFiles(File::isDirectory);
-            if (subDirs != null) {
-                Stream.of(subDirs)
-                        .filter(File::exists)
-                        .filter(file1 -> Files.isReadable(file1.toPath()))
-                        .forEach(file1 -> registerDirectory(watchService, file1.toPath()));
+        FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                if (dir.toFile().canRead()) {
+                    pathMap.put(registerForWatching(watchService, dir), dir);
+                }
+                return FileVisitResult.CONTINUE;
             }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException exc) {
+                errorReporter.reportError("error start listening to file changes of " + file, exc);
+                return FileVisitResult.CONTINUE;
+            }
+
+        };
+        try {
+            Files.walkFileTree(path, visitor);
+        } catch (Exception e) {
+            errorReporter.reportError("Couldn't start listening to changes of " + path, e);
         }
     }
 
@@ -121,6 +142,7 @@ class FileWatcher {
             }
         } catch (InterruptedException e) {
             logger.info("listening to file changes was interrupted", e);
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             errorReporter.reportError("error while listening to changes", e);
         }
