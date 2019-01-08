@@ -9,9 +9,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,30 +32,35 @@ import static java.util.Collections.singletonList;
 import static org.apache.commons.io.FileUtils.writeLines;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.startsWith;
+import static org.mockito.Mockito.when;
 
 public class ApplicationConfigTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private FileService fileService;
+
     private File configFile;
 
+    @InjectMocks
     private ApplicationConfig config = new ApplicationConfig();
 
-    private Path userHome;
 
     @Before
     public void createConfigDirAndFile() throws IOException {
-        userHome = TestDirectoryProvider.createTempDirectory();
-        System.setProperty("user.home", userHome.toString());
+        Path applicationRoot = TestDirectoryProvider.createTempDirectory();
+        configFile = Files.createFile(applicationRoot.resolve(".config")).toFile();
+        when(fileService.getConfigFile()).thenReturn(configFile.toPath());
+    }
 
-        File userDirectory = FileUtils.getUserDirectory();
-        assertThat(userDirectory.getAbsolutePath()).isEqualTo(userHome.toString());
-
-        File configRoot = new File(userDirectory, ".ClientServerBackup");
-        configFile = new File(configRoot, ".config");
-        Files.createDirectory(configRoot.toPath());
-        Files.createFile(configFile.toPath());
+    @After
+    public void deleteConfigDirAndFiles() throws IOException {
+        FileUtils.forceDeleteOnExit(configFile.getParentFile());
     }
 
     @Test
@@ -124,13 +136,21 @@ public class ApplicationConfigTest {
 
     @Test
     public void givenBackupsetIsAFileWhenValidateThenExceptionIsThrown() throws IOException, ValidationException {
-        Path backupSetFile = userHome.resolve("testFile.txt");
+        Path backupSetFile = TestDirectoryProvider.createTempDirectory().resolve("testFile.txt");
         Files.createFile(backupSetFile);
         writeLines(configFile, asList("server.host=theServerHostName",
                 getBackupsetConfigEntryFor(backupSetFile.toString().replace("\\", "\\\\"), 0)));
 
         expectedException.expect(ValidationException.class);
         expectedException.expectMessage(startsWith(format("Path %s must be a directory", backupSetFile)));
+
+        config.validate();
+    }
+
+    @Test
+    public void givenValidConfigWhenValidateThenNoExceptionIsThrown() throws IOException, ValidationException {
+        writeLines(configFile, asList("server.host=theServerHostName",
+                getBackupsetConfigEntryFor(FileUtils.getUserDirectoryPath().replace("\\", "\\\\"), 0)));
 
         config.validate();
     }

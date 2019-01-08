@@ -20,8 +20,6 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -40,10 +38,10 @@ class FileWatcher {
 
     private Path[] pathsToWatch;
     private FileChangeHandler onChangeConsumer;
-    private Map<WatchKey, Path> pathMap = new HashMap<>();
+    private MemoryOptimizedMap pathMap;
     private Thread listenThread;
     private WatchService watchService;
-
+    private FileService fileService;
 
     void setPathsToWatch(Path[] pathsToWatch) {
         this.pathsToWatch = pathsToWatch;
@@ -55,6 +53,8 @@ class FileWatcher {
 
     void startWatching() {
         try {
+            fileService.cleanupDirectoriesMapFiles();
+            pathMap = new MemoryOptimizedMap(fileService.getDirectoriesMapFile().toFile());
             watchService = FileSystems.getDefault().newWatchService();
             listenThread = new Thread(() ->  listenToChanges(watchService));
             listenThread.setName("fileChangeListener");
@@ -89,11 +89,6 @@ class FileWatcher {
                 if (dir.toFile().canRead()) {
                     pathMap.put(registerForWatching(watchService, dir), dir);
                 }
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 return FileVisitResult.CONTINUE;
             }
 

@@ -1,22 +1,26 @@
 package at.meks.backupclientserver.client;
 
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandler;
+import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertTrue;
@@ -25,31 +29,39 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 public class FileWatcherTest {
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private Logger logger = LoggerFactory.getLogger(getClass());
     private File testDir;
     private boolean mockInvoked;
-    private FileWatcher fileWatcher;
+
+    @Mock
+    private ErrorReporter errorReporter;
+
+    @Mock
+    private FileService fileService;
+
+    @InjectMocks
+    private FileWatcher fileWatcher = new FileWatcher();
 
     @Before
-    public void reinit() throws URISyntaxException, IOException {
+    public void reinit() throws IOException {
         mockInvoked = false;
-        testDir = new File(new File(getClass().getResource(".").toURI()), "testDir");
-        //noinspection ResultOfMethodCallIgnored
-        testDir.mkdirs();
-        File[] files = testDir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                FileUtils.forceDelete(file);
-            }
-        }
+        testDir = TestDirectoryProvider.createTempDirectory().toFile();
+        when(fileService.getDirectoriesMapFile()).thenReturn(
+                Files.createFile(testDir.toPath().resolve("dirMapFile.dir")));
     }
 
     @After
-    public void stopWatcher() {
+    public void stopWatcher() throws IOException {
         fileWatcher.stopWatching();
+        FileUtils.forceDeleteOnExit(testDir);
     }
 
     @Test(timeout = 5000)
@@ -68,7 +80,6 @@ public class FileWatcherTest {
     }
 
     private void startWatcher(FileChangeHandler consumer) {
-        fileWatcher = new FileWatcher();
         fileWatcher.setPathsToWatch(new Path[]{testDir.toPath()});
         fileWatcher.setOnChangeConsumer(consumer);
         fileWatcher.startWatching();
@@ -198,6 +209,7 @@ public class FileWatcherTest {
         waitForConsumerInvocation();
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_DELETE, originDir.toPath());
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, renamedDir.toPath());
+        verifyZeroInteractions(errorReporter);
     }
 
     private FileChangeHandler mockConsumerAndStartWatcher() {

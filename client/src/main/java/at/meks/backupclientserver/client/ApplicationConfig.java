@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.client;
 
 import at.meks.validation.result.ValidationException;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import java.io.FileInputStream;
@@ -20,6 +21,9 @@ import static java.util.Optional.ofNullable;
 public class ApplicationConfig {
 
     private Properties properties;
+
+    @Inject
+    private FileService fileService;
 
     Path[] getBackupedDirs() {
         return getProperties().stringPropertyNames().stream()
@@ -50,8 +54,7 @@ public class ApplicationConfig {
     private void initializeProperties() {
         try {
             Properties configProps = new Properties();
-            configProps.load(new FileInputStream(Paths.get(System.getProperty("user.home"),
-                    ".ClientServerBackup",".config").toFile()));
+            configProps.load(new FileInputStream(fileService.getConfigFile().toFile()));
             properties = configProps;
         } catch (IOException e) {
             throw new ClientBackupException("couldn't read config file", e);

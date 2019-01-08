@@ -9,4 +9,8 @@ public class ClientBackupException extends RuntimeException {
     public ClientBackupException(String message, Exception cause) {
         super(message, cause);
     }
+
+    public ClientBackupException(Throwable cause) {
+        super(cause);
+    }
 }
