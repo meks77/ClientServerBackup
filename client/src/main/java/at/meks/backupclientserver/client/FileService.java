@@ -21,7 +21,7 @@ class FileService {
     Path getConfigFile() {
         return rethrowException(() -> {
             Path configFile = getApplicationDirectory().resolve(".config");
-            if (configFile.toFile().exists()) {
+            if (!configFile.toFile().exists()) {
                 createFile(configFile);
             }
             return configFile;
