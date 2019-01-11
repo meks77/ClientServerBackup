@@ -36,12 +36,14 @@ class FileWatcher {
     @Inject
     private ErrorReporter errorReporter;
 
+    @Inject
+    private FileService fileService;
+
     private Path[] pathsToWatch;
     private FileChangeHandler onChangeConsumer;
     private MemoryOptimizedMap pathMap;
     private Thread listenThread;
     private WatchService watchService;
-    private FileService fileService;
 
     void setPathsToWatch(Path[] pathsToWatch) {
         this.pathsToWatch = pathsToWatch;

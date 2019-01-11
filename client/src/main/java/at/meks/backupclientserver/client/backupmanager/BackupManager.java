@@ -25,6 +25,9 @@ public class BackupManager {
     private ErrorReporter errorReporter;
 
     @Inject
+    private FileExcludeService fileExcludeService;
+
+    @Inject
     private void start() {
         if (queueReaderThread == null || !queueReaderThread.isAlive()) {
             queueReaderThread = new Thread(this::backupQueueItems);
@@ -78,11 +81,13 @@ public class BackupManager {
     }
 
     public void addForBackup(TodoEntry item) {
-        try {
-            backupQueue.put(item);
-        } catch (InterruptedException e) {
-            errorReporter.reportError("adding backup item " + item + " to queue was interrupted", e);
-            Thread.currentThread().interrupt();
+        if (!fileExcludeService.isFileExcludedFromBackup(item.getChangedFile())) {
+            try {
+                backupQueue.put(item);
+            } catch (InterruptedException e) {
+                errorReporter.reportError("adding backup item " + item + " to queue was interrupted", e);
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }

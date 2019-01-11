@@ -3,7 +3,6 @@ package at.meks.backupclientserver.client;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import at.meks.validation.result.ValidationException;
 import org.apache.commons.io.FileUtils;
-import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -11,19 +10,16 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -35,6 +31,8 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.mockito.Mockito.when;
 
 public class ApplicationConfigTest {
+
+    private static final String DEFAULT_HOST_ENTRY = "server.host=theServerHostName";
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -95,7 +93,7 @@ public class ApplicationConfigTest {
 
     @Test
     public void givenFileWithServernameWhenGetServerHostThenReturnsExpectedHostName() throws IOException {
-        writeLines(configFile, singleton("server.host=theServerHostName"));
+        writeLines(configFile, singleton(DEFAULT_HOST_ENTRY));
         assertThat(config.getServerHost()).isEqualTo("theServerHostName");
     }
 
@@ -116,7 +114,7 @@ public class ApplicationConfigTest {
 
     @Test
     public void givenFileWithoutBackupsetWhenValidateThenExceptionIsThrown() throws IOException, ValidationException {
-        writeLines(configFile, singleton("server.host=theServerHostName"));
+        writeLines(configFile, singleton(DEFAULT_HOST_ENTRY));
 
         expectedException.expect(ValidationException.class);
         expectedException.expectMessage(startsWith("Configured directories for backup"));
@@ -126,7 +124,7 @@ public class ApplicationConfigTest {
 
     @Test
     public void givenFileWithNotExistingBackupsetWhenValidateThenExceptionIsThrown() throws IOException, ValidationException {
-        writeLines(configFile, asList("server.host=theServerHostName", getBackupsetConfigEntryFor("C:/whatever", 0)));
+        writeLines(configFile, asList(DEFAULT_HOST_ENTRY, getBackupsetConfigEntryFor("C:/whatever", 0)));
 
         expectedException.expect(ValidationException.class);
         expectedException.expectMessage(startsWith("Configured directory C:\\whatever must exist"));
@@ -138,7 +136,7 @@ public class ApplicationConfigTest {
     public void givenBackupsetIsAFileWhenValidateThenExceptionIsThrown() throws IOException, ValidationException {
         Path backupSetFile = TestDirectoryProvider.createTempDirectory().resolve("testFile.txt");
         Files.createFile(backupSetFile);
-        writeLines(configFile, asList("server.host=theServerHostName",
+        writeLines(configFile, asList(DEFAULT_HOST_ENTRY,
                 getBackupsetConfigEntryFor(backupSetFile.toString().replace("\\", "\\\\"), 0)));
 
         expectedException.expect(ValidationException.class);
@@ -149,10 +147,64 @@ public class ApplicationConfigTest {
 
     @Test
     public void givenValidConfigWhenValidateThenNoExceptionIsThrown() throws IOException, ValidationException {
-        writeLines(configFile, asList("server.host=theServerHostName",
+        writeLines(configFile, asList(DEFAULT_HOST_ENTRY,
                 getBackupsetConfigEntryFor(FileUtils.getUserDirectoryPath().replace("\\", "\\\\"), 0)));
 
         config.validate();
+    }
+
+    @Test
+    public void givenNoExcludesWhenGetPathExcludesForBackupThenEmptyListIsReturned() {
+        List<String> result = config.getPathExcludesForBackup();
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void given2ExcludesWhenGetPathExcludesForBackupThen3ExcludesOfPropsAreReturned() throws IOException {
+        writeLines(configFile, asList("excludes.exclude1 = exclude1", "excludes.exclude2 = exclude2"));
+        List<String> result = config.getPathExcludesForBackup();
+        assertThat(result).containsOnly("exclude1", "exclude2");
+    }
+
+    @Test
+    public void givenNoFileExtensionEcludesWhenGetExcludedFileExtensionsThenEmptyArrayIsReturned() {
+        Set<String> result = config.getExcludedFileExtensions();
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void givenOneFileExtensionEcludeWhenGetExcludedFileExtensionsThenArrayWithExpectedExtensionIsReturned() throws IOException {
+        writeLines(configFile, singletonList("excludes.fileextensions = tmp"));
+        Set<String> result = config.getExcludedFileExtensions();
+        assertThat(result).containsOnly("tmp");
+    }
+
+    @Test
+    public void givenMoreFileExtensionEcludesWhenGetExcludedFileExtensionsThenExpectedExtensionsAreReturned() throws IOException {
+        writeLines(configFile, singletonList("excludes.fileextensions = tmp,lock,dmp"));
+        Set<String> result = config.getExcludedFileExtensions();
+        assertThat(result).containsOnly("tmp", "lock", "dmp");
+    }
+
+    @Test
+    public void givenFileExtensionWithSpaceNearbyKommaWhenGetExcludedFileExtensionsThenExpectedExtensionsAreReturned() throws IOException {
+        writeLines(configFile, singletonList("excludes.fileextensions = tmp , lock , dmp"));
+        Set<String> result = config.getExcludedFileExtensions();
+        assertThat(result).containsOnly("tmp", "lock", "dmp");
+    }
+
+    @Test
+    public void givenExtensionsWhereOneEntryIsJustASpaceWhenGetExcludedFileExtensionsThenOtherExtensionsAreReturned() throws IOException {
+        writeLines(configFile, singletonList("excludes.fileextensions = tmp, ,dmp"));
+        Set<String> result = config.getExcludedFileExtensions();
+        assertThat(result).containsOnly("tmp", "dmp");
+    }
+
+    @Test
+    public void givenExtensionsWhereOneEntryIsEmptyWhenGetExcludedFileExtensionsThenOtherExtensionsAreReturned() throws IOException {
+        writeLines(configFile, singletonList("excludes.fileextensions = tmp,,dmp"));
+        Set<String> result = config.getExcludedFileExtensions();
+        assertThat(result).containsOnly("tmp", "dmp");
     }
 
 }
