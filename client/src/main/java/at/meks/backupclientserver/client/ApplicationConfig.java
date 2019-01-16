@@ -97,4 +97,12 @@ public class ApplicationConfig {
                 .collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
     }
+
+    public Set<String> getExcludes() {
+        return getProperties().stringPropertyNames().stream()
+                .filter(s -> s.startsWith("excludes.exclude"))
+                .map(properties::get)
+                .map(o -> (String) o)
+                .collect(Collectors.toSet());
+    }
 }

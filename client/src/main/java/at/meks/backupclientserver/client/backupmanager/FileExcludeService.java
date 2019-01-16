@@ -12,16 +12,30 @@ class FileExcludeService {
     @Inject
     private ApplicationConfig applicationConfig;
 
+    @Inject
+    private SearchStringPathMatcher searchStringPathMatcher;
+
     private Set<String> excludedExtensions;
+    private Set<String> excludes;
 
     @Inject
     void initExcludedExtensions() {
         Set<String> newExtensionsSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         newExtensionsSet.addAll(applicationConfig.getExcludedFileExtensions());
         excludedExtensions = newExtensionsSet;
+        excludes = new TreeSet<>();
+        excludes.addAll(applicationConfig.getExcludes());
     }
 
     boolean isFileExcludedFromBackup(Path path) {
+        return isFileExtensionExcluded(path) || isExcludeMatching(path);
+    }
+
+    private boolean isExcludeMatching(Path path) {
+        return excludes.stream().anyMatch(exclude -> searchStringPathMatcher.matches(exclude, path));
+    }
+
+    private boolean isFileExtensionExcluded(Path path) {
         if (path.toFile().isFile()) {
             String fileExtension = getFileExtension(path);
             if (fileExtension != null) {

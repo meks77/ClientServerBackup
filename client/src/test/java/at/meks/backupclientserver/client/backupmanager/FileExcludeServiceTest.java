@@ -4,22 +4,23 @@ import at.meks.backupclientserver.client.ApplicationConfig;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.HashSet;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 public class FileExcludeServiceTest {
 
@@ -29,12 +30,15 @@ public class FileExcludeServiceTest {
     @Mock
     private ApplicationConfig applicationConfig;
 
+    @Mock
+    private SearchStringPathMatcher searchStringPathMatcher;
+
     @InjectMocks
     private FileExcludeService service = new FileExcludeService();
 
     @Before
     public void init() {
-        Mockito.when(applicationConfig.getExcludedFileExtensions()).thenReturn(Sets.newHashSet("tmp", "dmp", "lock"));
+        when(applicationConfig.getExcludedFileExtensions()).thenReturn(Sets.newHashSet("tmp", "dmp", "lock"));
         service.initExcludedExtensions();
     }
 
@@ -68,42 +72,40 @@ public class FileExcludeServiceTest {
     }
 
     @Test
-    public void givenDirectoryWhenIsFileExcludedFromBackupThenReturnsFalse() {
-        Path folder = TestDirectoryProvider.createTempDirectory();
-        assertThat(service.isFileExcludedFromBackup(folder)).isFalse();
-    }
-
-    @Test
-    public void givenEmptyExcludesWhenIsFileExcludedFromBackupThenReturnsFalse() throws IOException {
-        Mockito.when(applicationConfig.getExcludedFileExtensions()).thenReturn(Collections.emptySet());
-        Path file = createTestFile("somefile.dmp");
-
-        service.initExcludedExtensions();
+    public void givenFileWithouFileExtensionWhenThenReturnsFalse() throws IOException {
+        Path file = createTestFile("fileWithoutExtension");
         assertThat(service.isFileExcludedFromBackup(file)).isFalse();
     }
 
     @Test
-    public void givenAbsolutePathExcludeWhenFileMatchesThenItemIsNotScheduleForBackup() {
+    public void givenEmptyExcludesThenPathMatcherIsNeverInvoked() throws IOException {
+        Path file = createTestFile("testfile.txt");
 
-        Assert.fail();
+        service.initExcludedExtensions();
+        assertThat(service.isFileExcludedFromBackup(file)).isFalse();
+        verifyZeroInteractions(searchStringPathMatcher);
     }
 
     @Test
-    public void givenAbsolutePathExcludeWhenFileNotMatchesThenItemIsScheduleForBackup() {
-        Assert.fail();
+    public void givenPathWhenMatchesToExcludedPathThenReturnsTrue() throws IOException {
+        Path file = createTestFile("testfile.txt");
+        when(applicationConfig.getExcludes()).thenReturn(Sets.newHashSet("whatever"));
+        when(searchStringPathMatcher.matches("whatever", file)).thenReturn(true);
 
+        service.initExcludedExtensions();
+        assertThat(service.isFileExcludedFromBackup(file)).isTrue();
     }
 
     @Test
-    public void givenFileNameExcludeWhenFileNameMatchesThenItemIsNotScheduledForBackup() {
-        Assert.fail();
+    public void givenMoreExcludesWhenMatchesThenPathMatcherIsInvokedOncePerExclude() throws IOException {
+        Path file = createTestFile("testfile.dat");
+        HashSet<String> excludes = Sets.newHashSet("whatever", "whenever", "wherever");
+        when(applicationConfig.getExcludes()).thenReturn(excludes);
 
-    }
+        service.initExcludedExtensions();
+        service.isFileExcludedFromBackup(file);
 
-    @Test
-    public void givenFileNameExcludeWhenFileNotMatchesThenItemIsScheduledForBackup() {
-        Assert.fail();
-
+        excludes.forEach(exclude -> verify(searchStringPathMatcher).matches(exclude, file));
     }
 
 }

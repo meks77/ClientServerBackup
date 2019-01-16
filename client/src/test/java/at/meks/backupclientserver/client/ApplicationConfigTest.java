@@ -207,4 +207,31 @@ public class ApplicationConfigTest {
         assertThat(result).containsOnly("tmp", "dmp");
     }
 
+    @Test
+    public void givenNoExcludeWhenGetExcludesReturnsEmptySet() {
+        Set<String> excludes = config.getExcludes();
+        assertThat(excludes).isNotNull().isEmpty();
+    }
+
+    @Test
+    public void givenOneExcludeWhenGetExclucesReturnsThisExclude() throws IOException {
+        writeLines(configFile, singletonList("excludes.exclude000=whatever"));
+        Set<String> excludes = config.getExcludes();
+        assertThat(excludes).containsOnly("whatever");
+    }
+
+    @Test
+    public void givenMoreExcludesWhenGetExcludesReturnsAllExcludes() throws IOException {
+        writeLines(configFile, asList("excludes.exclude000=whatever", "excludes.exclude1=whenever", "excludes.exclude02=wherever"));
+        Set<String> excludes = config.getExcludes();
+        assertThat(excludes).containsOnly("whatever", "whenever", "wherever");
+    }
+
+    @Test
+    public void givenWrongExcludesWhenGetExcludesThenReturnsEmptySet() throws IOException {
+        writeLines(configFile, asList("excludes=whatever", "exclude1=whenever", "excludesexclude02=wherever"));
+        Set<String> excludes = config.getExcludes();
+        assertThat(excludes).isNotNull().isEmpty();
+    }
+
 }
