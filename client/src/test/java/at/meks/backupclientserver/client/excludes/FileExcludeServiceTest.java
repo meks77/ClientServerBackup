@@ -1,4 +1,4 @@
-package at.meks.backupclientserver.client.backupmanager;
+package at.meks.backupclientserver.client.excludes;
 
 import at.meks.backupclientserver.client.ApplicationConfig;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;

@@ -1,5 +1,9 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.filewatcher;
 
+import at.meks.backupclientserver.client.ClientBackupException;
+import at.meks.backupclientserver.client.ErrorReporter;
+import at.meks.backupclientserver.client.FileService;
+import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandler;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -8,17 +12,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -29,7 +29,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 @Singleton
-class FileWatcher {
+public class FileWatcher {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -39,21 +39,24 @@ class FileWatcher {
     @Inject
     private FileService fileService;
 
+    @Inject
+    private FileExcludeService fileExcludeService;
+
     private Path[] pathsToWatch;
     private FileChangeHandler onChangeConsumer;
     private MemoryOptimizedMap pathMap;
     private Thread listenThread;
     private WatchService watchService;
 
-    void setPathsToWatch(Path[] pathsToWatch) {
+    public void setPathsToWatch(Path[] pathsToWatch) {
         this.pathsToWatch = pathsToWatch;
     }
 
-    void setOnChangeConsumer(FileChangeHandler onChangeConsumer) {
+    public void setOnChangeConsumer(FileChangeHandler onChangeConsumer) {
         this.onChangeConsumer = onChangeConsumer;
     }
 
-    void startWatching() {
+    public void startWatching() {
         try {
             fileService.cleanupDirectoriesMapFiles();
             pathMap = new MemoryOptimizedMap(fileService.getDirectoriesMapFile().toFile());
@@ -85,22 +88,8 @@ class FileWatcher {
     }
 
     private void registerDirectory(WatchService watchService, Path path) {
-        FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                if (dir.toFile().canRead()) {
-                    pathMap.put(registerForWatching(watchService, dir), dir);
-                }
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) {
-                errorReporter.reportError("error start listening to file changes of " + file, exc);
-                return FileVisitResult.CONTINUE;
-            }
-
-        };
+        FileVisitor visitor = new FileVisitor(dir -> pathMap.put(registerForWatching(watchService, dir), dir),
+                errorReporter, fileExcludeService);
         try {
             Files.walkFileTree(path, visitor);
         } catch (Exception e) {

@@ -13,7 +13,7 @@ import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.isWritable;
 
 @Singleton
-class FileService {
+public class FileService {
 
     private static final String DIRECTORIES_WATCHKEY_FILE_SUFFIX = ".dir";
     private static final String DIRECTORIES_WATCHKEY_FILE_PREFIX = "directoriesWatchKey";
@@ -40,7 +40,7 @@ class FileService {
         return Files.createDirectories(Paths.get(System.getProperty("user.home"),".ClientServerBackup"));
     }
 
-    void cleanupDirectoriesMapFiles() {
+    public void cleanupDirectoriesMapFiles() {
         rethrowException(() -> {
             Path applicationDirectory = getApplicationDirectory();
             Files.newDirectoryStream(applicationDirectory,
@@ -60,7 +60,7 @@ class FileService {
         rethrowException(() -> Files.deleteIfExists(path));
     }
 
-    Path getDirectoriesMapFile() {
+    public Path getDirectoriesMapFile() {
         return rethrowException(() -> createTempFile(getApplicationDirectory(), DIRECTORIES_WATCHKEY_FILE_PREFIX,
                 DIRECTORIES_WATCHKEY_FILE_SUFFIX));
     }

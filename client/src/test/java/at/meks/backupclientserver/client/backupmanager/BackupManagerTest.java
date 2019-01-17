@@ -1,5 +1,6 @@
 package at.meks.backupclientserver.client.backupmanager;
 
+import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

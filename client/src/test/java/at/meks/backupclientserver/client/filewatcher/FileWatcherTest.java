@@ -1,5 +1,7 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.filewatcher;
 
+import at.meks.backupclientserver.client.ErrorReporter;
+import at.meks.backupclientserver.client.FileService;
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandler;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;

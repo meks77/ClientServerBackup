@@ -1,4 +1,4 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.filewatcher;
 
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.lang3.tuple.Pair;
@@ -12,7 +12,6 @@ import java.nio.file.Paths;
 import java.nio.file.WatchKey;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 

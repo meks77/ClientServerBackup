@@ -1,4 +1,4 @@
-package at.meks.backupclientserver.client.backupmanager;
+package at.meks.backupclientserver.client.excludes;
 
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;

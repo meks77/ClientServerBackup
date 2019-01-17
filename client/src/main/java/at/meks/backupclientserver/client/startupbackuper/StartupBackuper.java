@@ -2,6 +2,7 @@ package at.meks.backupclientserver.client.startupbackuper;
 
 import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.backupmanager.BackupManager;
+import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
@@ -22,6 +23,9 @@ public class StartupBackuper {
     @Inject
     private ErrorReporter errorReporter;
 
+    @Inject
+    private FileExcludeService excludeService;
+
     public void backupIfNecessary(Path[] paths) {
         Thread initialBackupThread = new Thread(() ->
                 Stream.of(paths).forEach(path -> walkThroughDirectoryAndBackupFiles(path, path)));
@@ -33,8 +37,9 @@ public class StartupBackuper {
 
     private void walkThroughDirectoryAndBackupFiles(Path directory, Path backupSetPath) {
         logger.debug("check directory {} for backup", directory);
+        StartupFileVisitor visitor = new StartupFileVisitor(backupManager, backupSetPath, errorReporter, excludeService);
         try {
-            Files.walkFileTree(backupSetPath, new StartupFileVisitor(backupManager, backupSetPath, errorReporter));
+            Files.walkFileTree(backupSetPath, visitor);
         } catch (Exception e) {
             errorReporter.reportError("error while doing initial backup", e);
         }

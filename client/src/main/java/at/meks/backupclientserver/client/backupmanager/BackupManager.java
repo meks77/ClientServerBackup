@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.client.backupmanager;
 
 import at.meks.backupclientserver.client.ErrorReporter;
+import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;

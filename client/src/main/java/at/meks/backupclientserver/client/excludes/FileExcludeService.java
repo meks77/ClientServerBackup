@@ -1,4 +1,4 @@
-package at.meks.backupclientserver.client.backupmanager;
+package at.meks.backupclientserver.client.excludes;
 
 import at.meks.backupclientserver.client.ApplicationConfig;
 import com.google.inject.Inject;
@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.util.Set;
 import java.util.TreeSet;
 
-class FileExcludeService {
+public class FileExcludeService {
 
     @Inject
     private ApplicationConfig applicationConfig;
@@ -27,7 +27,7 @@ class FileExcludeService {
         excludes.addAll(applicationConfig.getExcludes());
     }
 
-    boolean isFileExcludedFromBackup(Path path) {
+    public boolean isFileExcludedFromBackup(Path path) {
         return isFileExtensionExcluded(path) || isExcludeMatching(path);
     }
 

@@ -5,6 +5,7 @@ import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.PathChangeType;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
+import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
@@ -45,6 +46,9 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
 
     @Inject
     private ErrorReporter errorReporter;
+
+    @Inject
+    private FileExcludeService excludeService;
 
     @Override
     public void fileChanged(Path watchedRootPath, WatchEvent.Kind kind, Path changedFile) {
@@ -140,20 +144,22 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
 
     private void processFileChange(DelayedFileChange delayedFileChange, TodoEntry todoEntry) {
         try {
-            FileTime lastModifiedTime = Files.getLastModifiedTime(todoEntry.getChangedFile());
-            long now = System.currentTimeMillis();
-            if (lastModifiedTime.toMillis() <= (now - delayedFileChange.getDelayInMilliseconds())) {
-                try (FileChannel fileLock = tryLock(todoEntry.getChangedFile())) {
-                    if (fileLock == null) {
-                        queueForLater(todoEntry);
-                    } else {
-                        logger.info("addForBackup {}", todoEntry.getChangedFile());
-                        removeFromChangedPathSet(todoEntry);
-                        backupManager.addForBackup(new TodoEntry(todoEntry.getType(), todoEntry.getChangedFile(), todoEntry.getWatchedPath()));
+            if (!excludeService.isFileExcludedFromBackup(todoEntry.getChangedFile())) {
+                FileTime lastModifiedTime = Files.getLastModifiedTime(todoEntry.getChangedFile());
+                long now = System.currentTimeMillis();
+                if (lastModifiedTime.toMillis() <= (now - delayedFileChange.getDelayInMilliseconds())) {
+                    try (FileChannel fileLock = tryLock(todoEntry.getChangedFile())) {
+                        if (fileLock == null) {
+                            queueForLater(todoEntry);
+                        } else {
+                            logger.info("addForBackup {}", todoEntry.getChangedFile());
+                            removeFromChangedPathSet(todoEntry);
+                            backupManager.addForBackup(new TodoEntry(todoEntry.getType(), todoEntry.getChangedFile(), todoEntry.getWatchedPath()));
+                        }
                     }
+                } else {
+                    queueForLater(todoEntry);
                 }
-            } else {
-                queueForLater(todoEntry);
             }
         } catch (Exception e) {
             errorReporter.reportError("error while reading file changes from file change queue", e);

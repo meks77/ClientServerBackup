@@ -4,6 +4,7 @@ import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.PathChangeType;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
+import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -21,6 +22,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class StartupFileVisitorTest {
 
@@ -35,6 +37,9 @@ public class StartupFileVisitorTest {
 
     @Mock
     private Path backupSet;
+
+    @Mock
+    private FileExcludeService fileExcludeService;
 
     @InjectMocks
     private StartupFileVisitor visitor;
@@ -60,5 +65,24 @@ public class StartupFileVisitorTest {
         assertThat(result).isEqualTo(FileVisitResult.SKIP_SUBTREE);
         verify(errorReporter).reportError("error while doing initial backup", ioException);
 
+    }
+
+    @Test
+    public void givenExcludedDirWhenPreVisitDirectoryThenReturnsSkipSubtree() throws IOException {
+        Path visitedDir = mock(Path.class);
+        when(fileExcludeService.isFileExcludedFromBackup(visitedDir)).thenReturn(true);
+
+        FileVisitResult result = visitor.preVisitDirectory(visitedDir, mock(BasicFileAttributes.class));
+
+        assertThat(result).isEqualTo(FileVisitResult.SKIP_SUBTREE);
+    }
+
+    @Test
+    public void givenIncludedDirWhenPreVisitDirectoryThenReturnsContinue() throws IOException {
+        Path visitedDir = mock(Path.class);
+
+        FileVisitResult result = visitor.preVisitDirectory(visitedDir, mock(BasicFileAttributes.class));
+
+        assertThat(result).isEqualTo(FileVisitResult.CONTINUE);
     }
 }

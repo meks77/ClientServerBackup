@@ -1,4 +1,6 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.filewatcher;
+
+import at.meks.backupclientserver.client.ClientBackupException;
 
 import java.io.File;
 import java.io.IOException;
