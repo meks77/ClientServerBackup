@@ -55,6 +55,8 @@ class ConfigFileInitializer {
         String additionalFilter = null;
         if (systemService.isOsWindows()) {
             additionalFilter = "excludes.windows.exclude";
+        } else if (systemService.isOsLinux()) {
+            additionalFilter = "excludes.linux.exclude";
         }
         return (key.startsWith("excludes.all.exclude")) ||
                 ofNullable(additionalFilter)

@@ -21,4 +21,8 @@ public class SystemService {
     boolean isOsWindows() {
         return SystemUtils.IS_OS_WINDOWS;
     }
+
+    boolean isOsLinux() {
+        return SystemUtils.IS_OS_LINUX;
+    }
 }

@@ -1,5 +1,7 @@
 package at.meks.backupclientserver.client.backupmanager;
 
+import at.meks.backupclientserver.client.MockUtils;
+import at.meks.backupclientserver.client.ServerStatusService;
 import at.meks.backupclientserver.client.SystemService;
 import at.meks.backupclientserver.client.http.HttpUrlResolver;
 import at.meks.backupclientserver.client.http.JsonHttpClient;
@@ -14,6 +16,7 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,6 +69,9 @@ public class BackupRemoteServiceTest {
     @Mock
     private HttpUrlResolver httpUrlResolver;
 
+    @Mock
+    private ServerStatusService serverStatusService;
+
     @Spy
     private JsonHttpClient jsonHttpClient = new JsonHttpClient();
 
@@ -76,13 +82,15 @@ public class BackupRemoteServiceTest {
     private Path fileForBackup;
 
     @Before
-    public void prepareConfig() throws IOException {
+    public void prepareConfig() throws IOException, IllegalAccessException {
         when(systemService.getHostname()).thenReturn("MEKS-ZENBOOK");
         when(httpUrlResolver.getWebserviceUrl(anyString(), anyString())) .thenAnswer(invocation ->
                 format("http://localhost:" + wireMockRule.port() + "/api/v1.0/%s/%s", invocation.getArgument(0), invocation.getArgument(1)));
         backupSetPath = TestDirectoryProvider.createTempDirectory();
         Path pathToBackupFile = Files.createDirectories(backupSetPath.resolve("the").resolve("expected").resolve("path"));
         fileForBackup = prepareFileForTest(pathToBackupFile, "fileToBackup.txt");
+        MockUtils.mockDelegate(serverStatusService);
+        FieldUtils.writeField(jsonHttpClient, "serverStatusService", serverStatusService, true);
     }
 
     private Path prepareFileForTest(Path pathToBackupFile, String fileName) throws IOException {

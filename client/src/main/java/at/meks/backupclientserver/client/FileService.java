@@ -1,5 +1,6 @@
 package at.meks.backupclientserver.client;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.createTempFile;
@@ -18,13 +20,24 @@ public class FileService {
     private static final String DIRECTORIES_WATCHKEY_FILE_SUFFIX = ".dir";
     private static final String DIRECTORIES_WATCHKEY_FILE_PREFIX = "directoriesWatchKey";
 
+    private ReentrantLock configInitLock = new ReentrantLock();
+
+    @Inject
+    private ConfigFileInitializer configFileInitializer;
+
     Path getConfigFile() {
         return rethrowException(() -> {
             Path configFile = getApplicationDirectory().resolve(".config");
-            if (!configFile.toFile().exists()) {
-                createFile(configFile);
+            configInitLock.lock();
+            try {
+                if (!configFile.toFile().exists()) {
+                    createFile(configFile);
+                    configFileInitializer.initializeConfigFile(configFile);
+                }
+                return configFile;
+            } finally {
+              configInitLock.unlock();
             }
-            return configFile;
         });
     }
 

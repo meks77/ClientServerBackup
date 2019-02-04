@@ -57,9 +57,9 @@ public class ConfigFileInitializerTest {
         initializer.initializeConfigFile(configFile);
         assertThat(configFile.toFile()).usingCharset("iso-8859-1").hasContent(
                 getExpectedFileContent("excludes.exclude0 = **/.idea/*tmp__",
-                        "excludes.exclude1 = *.lock",
-                        "excludes.exclude2 = C:/Users/**/AppData/Local",
-                        "excludes.exclude3 = C:/Users/**/AppData/LocalLow"));
+                        "excludes.exclude1 = **/*.lock",
+                        "excludes.exclude2 = C:/Users/*/AppData",
+                        "excludes.exclude3 = C:/Users/*/.ClientServerBackup/directoriesWatchKey*.dir"));
     }
 
     private String getExpectedFileContent(String...lines) {
@@ -67,11 +67,21 @@ public class ConfigFileInitializerTest {
     }
 
     @Test
-    public void givenNotWindowsWhenInitializeConfigFileThenOnlyAllOsExcludesAreAdded() {
+    public void givenOsLinuxWhenInitializeConfigFileThenLinuxAndAllOsExcludesAreAdded() {
+        when(systemService.isOsLinux()).thenReturn(true);
         initializer.initializeConfigFile(configFile);
         assertThat(configFile.toFile()).usingCharset("iso-8859-1").hasContent(
                 getExpectedFileContent("excludes.exclude0 = **/.idea/*tmp__",
-                        "excludes.exclude1 = *.lock"));
+                        "excludes.exclude1 = **/*.lock",
+                        "excludes.exclude2 = /home/*/.ClientServerBackup/directoriesWatchKey*.dir"));
+    }
+
+    @Test
+    public void givenNotWindowsAndNotLinuxWhenInitializeConfigFileThenOnlyAllOsExcludesAreAdded() {
+        initializer.initializeConfigFile(configFile);
+        assertThat(configFile.toFile()).usingCharset("iso-8859-1").hasContent(
+                getExpectedFileContent("excludes.exclude0 = **/.idea/*tmp__",
+                        "excludes.exclude1 = **/*.lock"));
     }
 
     @Test

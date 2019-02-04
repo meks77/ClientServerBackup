@@ -1,10 +1,14 @@
 package at.meks.backupclientserver.client.http;
 
 import at.meks.backupclientserver.client.ClientBackupException;
+import at.meks.backupclientserver.client.ServerStatusService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -18,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 
 @Singleton
 public class JsonHttpClient {
@@ -27,11 +32,34 @@ public class JsonHttpClient {
     private ObjectMapper mapper = new ObjectMapper();
     private CloseableHttpClient httpClient = HttpClientBuilder.create().build();
 
+    @Inject
+    private ServerStatusService serverStatusService;
+
     public <I, R> R post(String url, I input, Class<R> resultClass) {
         return invokeHttpRequestAndCatchError(input, resultClass, new HttpPost(url));
     }
 
     private <I, R> R invokeHttpRequestAndCatchError(I input, Class<R> resultClass, HttpEntityEnclosingRequestBase request) {
+        return invokeHttpRequestAndCatchError(input, resultClass, request, true);
+    }
+
+    private <I, R> R invokeHttpRequestAndCatchError(I input, Class<R> resultClass,
+            HttpEntityEnclosingRequestBase request, boolean waitForServerAvailable) {
+        try {
+            if (waitForServerAvailable) {
+                return serverStatusService.runWhenServerIsAvailable(() -> invokHttpRequest(input, resultClass, request));
+            } else {
+                return invokHttpRequest(input, resultClass, request);
+            }
+        } catch (Exception e) {
+            if (ExceptionUtils.getRootCause(e) instanceof ConnectException) {
+                serverStatusService.setServerAvailable(false);
+            }
+            throw new ClientBackupException("error while invoking restservice " + request.getURI(), e);
+        }
+    }
+
+    private <I, R> R invokHttpRequest(I input, Class<R> resultClass, HttpEntityEnclosingRequestBase request) throws IOException {
         CloseableHttpResponse response = null;
         try {
             response = getResponse(input, request);
@@ -40,8 +68,6 @@ public class JsonHttpClient {
                 return (R) Void.TYPE;
             }
             return mapper.readValue(response.getEntity().getContent(), resultClass);
-        } catch (IOException e) {
-            throw new ClientBackupException("error while invoking restservice " + request.getURI(), e);
         } finally {
             closeResponse(response);
         }
@@ -67,7 +93,7 @@ public class JsonHttpClient {
         request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         CloseableHttpResponse response = httpClient.execute(request);
         StatusLine statusLine = response.getStatusLine();
-        if (statusLine.getStatusCode() != 200) {
+        if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
             String errorMessage = "Received error from rest service. Code: {}, Message: {}";
             logger.error(errorMessage, statusLine.getStatusCode(), statusLine.getReasonPhrase());
             throw new ClientBackupException(errorMessage);
@@ -80,6 +106,10 @@ public class JsonHttpClient {
     }
 
     public <I, R> R put(String url, I input, Class<R> resultClass) {
-        return invokeHttpRequestAndCatchError(input, resultClass, new HttpPut(url));
+        return put(url, input, resultClass, true);
+    }
+
+    public <I, R> R put(String url, I input, Class<R> resultClass, boolean waitForServerAvailable) {
+        return invokeHttpRequestAndCatchError(input, resultClass, new HttpPut(url), waitForServerAvailable);
     }
 }

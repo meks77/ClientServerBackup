@@ -26,6 +26,9 @@ class HeartBeatReporter {
     @Inject
     private ErrorReporter errorReporter;
 
+    @Inject
+    private ServerStatusService serverStatusService;
+
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     /* for faster testing purpose this field is defined to be able to set it from the test. */
@@ -41,7 +44,8 @@ class HeartBeatReporter {
         try {
             logger.debug("start sending heartbeat");
             String heartbeatUrl = urlResolver.getWebserviceUrl("health", "heartbeat/" + systemService.getHostname());
-            jsonHttpClient.put(heartbeatUrl, null, Void.TYPE);
+            jsonHttpClient.put(heartbeatUrl, null, Void.TYPE, false);
+            serverStatusService.setServerAvailable(true);
         } catch (Exception e) {
             errorReporter.reportError("couldn't send heartbeat", e);
         }

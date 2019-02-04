@@ -4,8 +4,11 @@ import at.meks.backupclientserver.client.http.HttpUrlResolver;
 import at.meks.backupclientserver.client.http.JsonHttpClient;
 import at.meks.backupclientserver.common.service.health.ErrorReport;
 import com.google.inject.Inject;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.ConnectException;
 
 public class ErrorReporter {
 
@@ -23,7 +26,10 @@ public class ErrorReporter {
 
     public void reportError(String message, Exception exc) {
         logger.error(message, exc);
-        reportToServer(message, exc);
+        // if the error is that the server isn't available it doesn't make sense to report it to the server
+        if (!(ExceptionUtils.getRootCause(exc) instanceof ConnectException)) {
+            reportToServer(message, exc);
+        }
     }
 
     private void reportToServer(String message, Exception exc) {

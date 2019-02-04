@@ -5,6 +5,7 @@ import at.meks.backupclientserver.client.http.JsonHttpClient;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
@@ -12,6 +13,7 @@ import org.mockito.junit.MockitoRule;
 import org.slf4j.Logger;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -37,6 +39,9 @@ public class HeartBeatReporterTest {
     @Mock
     private ErrorReporter errorReporter;
 
+    @Mock
+    private ServerStatusService serverStatusService;
+
     @InjectMocks
     private HeartBeatReporter heartBeatReporter = new HeartBeatReporter();
 
@@ -54,7 +59,7 @@ public class HeartBeatReporterTest {
 
         heartBeatReporter.startHeartbeatReporting();
 
-        verify(jsonHttpClient, timeout(5000).times(3)).put(any(), any(), any());
+        verify(jsonHttpClient, timeout(5000).times(3)).put(any(), any(), any(), eq(false));
     }
 
     @Test
@@ -64,16 +69,24 @@ public class HeartBeatReporterTest {
 
         heartBeatReporter.startHeartbeatReporting();
 
-        verify(jsonHttpClient, timeout(1000)).put(expectedUrl, null, Void.TYPE);
+        verify(jsonHttpClient, timeout(1000)).put(expectedUrl, null, Void.TYPE, false);
     }
 
     @Test
     public void whenExceptionIsThrownThenExceptionIsLogged() {
         IllegalArgumentException expectedException = new IllegalArgumentException();
-        when(jsonHttpClient.put(any(), any(), any())).thenThrow(expectedException);
+        when(jsonHttpClient.put(any(), any(), any(), eq(false))).thenThrow(expectedException);
 
         heartBeatReporter.startHeartbeatReporting();
 
         verify(errorReporter, timeout(1500).times(1)).reportError(any(), same(expectedException));
     }
+
+    @Test
+    public void whenHearbeatIsReportedSuccessfullyThenServerStatusIsSetToAvailable() {
+        heartBeatReporter.startHeartbeatReporting();
+        verify(serverStatusService, timeout(1000)).setServerAvailable(true);
+    }
+
+
 }

@@ -2,23 +2,35 @@ package at.meks.backupclientserver.client;
 
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;
-import org.fest.assertions.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class FileServiceTest {
 
     private static final String APPLICATION_DIR_NAME = ".ClientServerBackup";
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private ConfigFileInitializer configFileInitializer;
+
+    @InjectMocks
     private FileService fileService = new FileService();
 
     private Path userHomePath;
@@ -47,6 +59,12 @@ public class FileServiceTest {
     }
 
     @Test
+    public void givenNoConfigFileWhenGetConfigFileThenFileIsInitialized() {
+        Path configFile = fileService.getConfigFile();
+        verify(configFileInitializer).initializeConfigFile(configFile);
+    }
+
+    @Test
     public void givenExistingFileWhenGetConfigFileThenExistingFileIsReturned() throws IOException {
         Path configFile = Files.createFile(Files.createDirectory(getApplicationRoot()).resolve(".config"));
         String expectedFileContent = "this is the config file";
@@ -55,7 +73,13 @@ public class FileServiceTest {
         Path result = fileService.getConfigFile();
         assertThat(result).isEqualTo(configFile);
         assertThat(configFile.toFile()).hasContent(expectedFileContent);
+    }
 
+    @Test
+    public void givenExistingFileWhenGetConfigFileThenFileContentIsNotInitialized() throws IOException {
+        Files.createFile(Files.createDirectory(getApplicationRoot()).resolve(".config"));
+        fileService.getConfigFile();
+        verifyZeroInteractions(configFileInitializer);
     }
 
     @Test

@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.client.backupmanager;
 
 import at.meks.backupclientserver.client.ClientBackupException;
+import at.meks.backupclientserver.client.ServerStatusService;
 import at.meks.backupclientserver.client.SystemService;
 import at.meks.backupclientserver.client.http.HttpUrlResolver;
 import at.meks.backupclientserver.client.http.JsonHttpClient;
@@ -10,6 +11,7 @@ import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -19,6 +21,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.nio.file.Path;
 import java.util.stream.StreamSupport;
 
@@ -33,6 +36,9 @@ class BackupRemoteService {
 
     @Inject
     private SystemService systemService;
+
+    @Inject
+    private ServerStatusService serverStatusService;
 
     private CloseableHttpClient httpClient = HttpClientBuilder.create().build();
     private final Md5CheckSumGenerator md5CheckSumGenerator = new Md5CheckSumGenerator();
@@ -51,8 +57,11 @@ class BackupRemoteService {
                             .build();
             HttpPost httpPost = new HttpPost(getBackupMethodUrl("file"));
             httpPost.setEntity(httpEntity);
-            httpClient.execute(httpPost);
+            serverStatusService.runWhenServerIsAvailable(() -> httpClient.execute(httpPost));
         } catch (Exception e) {
+            if (ExceptionUtils.getRootCause(e) instanceof ConnectException) {
+                serverStatusService.setServerAvailable(false);
+            }
             throw new ClientBackupException("couldn't backup file " + changedFile, e);
         }
     }
