@@ -43,7 +43,7 @@ public class StartupFileVisitor extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFileFailed(Path file, IOException exc) {
-        errorReporter.reportError("error while doing initial backup", exc);
+        errorReporter.reportError("skip backup for directory " + file + " because of error.", exc);
         return FileVisitResult.SKIP_SUBTREE;
     }
 }

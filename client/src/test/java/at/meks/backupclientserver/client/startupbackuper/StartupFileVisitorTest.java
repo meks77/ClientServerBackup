@@ -67,7 +67,7 @@ public class StartupFileVisitorTest {
         IOException ioException = mock(IOException.class);
         FileVisitResult result = visitor.visitFileFailed(expectedPath, ioException);
         assertThat(result).isEqualTo(FileVisitResult.SKIP_SUBTREE);
-        verify(errorReporter).reportError("error while doing initial backup", ioException);
+        verify(errorReporter).reportError("skip backup for directory " + expectedPath + " because of error.", ioException);
 
     }
 

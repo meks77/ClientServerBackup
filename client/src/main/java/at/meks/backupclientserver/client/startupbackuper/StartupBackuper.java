@@ -28,20 +28,20 @@ public class StartupBackuper {
 
     public void backupIfNecessary(Path[] paths) {
         Thread initialBackupThread = new Thread(() ->
-                Stream.of(paths).forEach(path -> walkThroughDirectoryAndBackupFiles(path, path)));
+                Stream.of(paths).forEach(this::walkThroughDirectoryAndBackupFiles));
         initialBackupThread.setDaemon(true);
         initialBackupThread.setName("starupBackuperThread");
         initialBackupThread.setPriority(Thread.MIN_PRIORITY);
         initialBackupThread.start();
     }
 
-    private void walkThroughDirectoryAndBackupFiles(Path directory, Path backupSetPath) {
-        logger.debug("check directory {} for backup", directory);
+    private void walkThroughDirectoryAndBackupFiles(Path backupSetPath) {
+        logger.debug("check directory {} for backup", backupSetPath);
         StartupFileVisitor visitor = new StartupFileVisitor(backupManager, backupSetPath, errorReporter, excludeService);
         try {
             Files.walkFileTree(backupSetPath, visitor);
         } catch (Exception e) {
-            errorReporter.reportError("error while doing initial backup", e);
+            errorReporter.reportError("error while do initial backup for backupset " + backupSetPath, e);
         }
     }
 
