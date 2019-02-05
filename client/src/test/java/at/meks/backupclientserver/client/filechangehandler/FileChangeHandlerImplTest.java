@@ -5,6 +5,7 @@ import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.PathChangeType;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
+import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;
 import org.awaitility.Awaitility;
@@ -54,6 +55,9 @@ public class FileChangeHandlerImplTest {
 
     @Mock
     private BackupManager backupManager;
+
+    @Mock
+    private FileExcludeService fileExcludeService;
 
     @InjectMocks
     private FileChangeHandlerImpl handler = new FileChangeHandlerImpl();

@@ -2,6 +2,7 @@ package at.meks.backupclientserver.client.filewatcher;
 
 import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.FileService;
+import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandler;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;
@@ -48,6 +49,9 @@ public class FileWatcherTest {
 
     @Mock
     private FileService fileService;
+
+    @Mock
+    private FileExcludeService fileExcludeService;
 
     @InjectMocks
     private FileWatcher fileWatcher = new FileWatcher();
