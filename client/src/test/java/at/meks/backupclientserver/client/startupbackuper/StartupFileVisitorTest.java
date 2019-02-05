@@ -7,6 +7,7 @@ import at.meks.backupclientserver.client.backupmanager.TodoEntry;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -28,6 +29,9 @@ public class StartupFileVisitorTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder folderRule = new TemporaryFolder();
 
     @Mock
     private BackupManager backupManager;
@@ -69,7 +73,7 @@ public class StartupFileVisitorTest {
 
     @Test
     public void givenExcludedDirWhenPreVisitDirectoryThenReturnsSkipSubtree() throws IOException {
-        Path visitedDir = mock(Path.class);
+        Path visitedDir = folderRule.newFolder().toPath();
         when(fileExcludeService.isFileExcludedFromBackup(visitedDir)).thenReturn(true);
 
         FileVisitResult result = visitor.preVisitDirectory(visitedDir, mock(BasicFileAttributes.class));
@@ -79,7 +83,7 @@ public class StartupFileVisitorTest {
 
     @Test
     public void givenIncludedDirWhenPreVisitDirectoryThenReturnsContinue() throws IOException {
-        Path visitedDir = mock(Path.class);
+        Path visitedDir = folderRule.newFolder().toPath();
 
         FileVisitResult result = visitor.preVisitDirectory(visitedDir, mock(BasicFileAttributes.class));
 
