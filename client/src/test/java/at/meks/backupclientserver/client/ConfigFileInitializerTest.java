@@ -59,7 +59,9 @@ public class ConfigFileInitializerTest {
                 getExpectedFileContent("excludes.exclude0 = **/.idea/*tmp__",
                         "excludes.exclude1 = **/*.lock",
                         "excludes.exclude2 = C:/Users/*/AppData",
-                        "excludes.exclude3 = C:/Users/*/.ClientServerBackup/directoriesWatchKey*.dir"));
+                        "excludes.exclude3 = C:/Users/*/.ClientServerBackup/directoriesWatchKey*.dir",
+                        "excludes.exclude4 = C:/Users/*/NTUSER.DAT",
+                        "excludes.exclude5 = C:/Users/*/ntuser.dat.LOG*"));
     }
 
     private String getExpectedFileContent(String...lines) {
