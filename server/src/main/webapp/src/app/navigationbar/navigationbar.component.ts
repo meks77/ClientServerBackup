@@ -10,6 +10,7 @@ export class NavigationbarComponent implements OnInit {
   private mySidebar:HTMLElement;
   private overlayBg:HTMLElement;
   private logo = "./assets/logo-small.png";
+  private client = "./assets/clients/client.zip";
   private refreshFunction: Function;
 
   constructor() { }

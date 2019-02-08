@@ -22,12 +22,13 @@ dependencies {
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
 //	testImplementation('org.springframework.security:spring-security-test')
 	compile project (':common')
+	compileOnly project (':client')
 	testCompile project (':testUtils')
 	implementation ('io.jsondb:jsondb-core:1.0.85')
 	implementation('com.google.guava:guava:27.0.1-jre')
 	implementation('commons-io:commons-io:2.6')
 	annotationProcessor 'org.projectlombok:lombok:1.18.4'
-	implementation 'org.projectlombok:lombok:1.18.4'
+	compileOnly 'org.projectlombok:lombok:1.18.4'
 }
 
 def webappDir = "$projectDir/src/main/webapp"
@@ -39,12 +40,27 @@ sourceSets {
 	}
 }
 
+task cleanClientFiles(type: Delete) {
+//	without deleting the client dist isn't replaced
+	delete fileTree("src").matching {
+		include "/main/webapp/src/assets/clients/*"
+	}
+}
+
+task copyClientFiles(type: Copy) {
+	from "$projectDir/../client/build/distributions"
+	include "*.zip"
+	into "$projectDir/src/main/webapp/src/assets/clients"
+	rename '(client).*(.zip)',  '$1$2'
+}
+
 processResources {
+	dependsOn "cleanClientFiles"
+	dependsOn "copyClientFiles"
 	dependsOn "buildAngular"
 }
 
 task buildAngular(type:Exec) {
-	// installAngular should be run prior to this task
 	dependsOn "installAngular"
 	workingDir "$webappDir"
 	inputs.dir "$webappDir"
