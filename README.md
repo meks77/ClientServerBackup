@@ -25,6 +25,28 @@ The backup admin can visit an admin area where he can see
 * reocvery to the defined timestamp
 
 # Project state
-Currently the idea is born. I will start with the architecture description and will continue with the first user stories.
 
-The plan is to work iterative with an working artifact after each iteration to have a working backup using a Synology NAS as fast as possible. The first supported client OS will be Windows.
+I would describe the current state alpha. I need setup and run it on my machines to get an impression how stable and how efficient it runs.
+
+When it is sufficient I'll would create the first beta release, which can be used already, but I would expect that problems occur.
+
+Finnally, when those problems are solved, I will create the first stable release.
+
+## What works
+* Users who are familar with computers can allready run the server and the client. 
+* Backup works already
+
+## What is missing
+* Installation/Configuration descpription
+* Recovery
+* Security
+
+## Ideas for future releases
+* Client state feedback to the user in the toolbar
+* Automatic client installation
+* comfortable client configuration within a GUI
+* comfortable server configuration
+* client configuration on the server which sends the update to the client
+* automatic client update
+* manage that some of reported errors are ignored
+ 
