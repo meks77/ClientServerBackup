@@ -75,7 +75,11 @@ public class ConfigFileInitializerTest {
         assertThat(configFile.toFile()).usingCharset("iso-8859-1").hasContent(
                 getExpectedFileContent("excludes.exclude0 = **/.idea/*tmp__",
                         "excludes.exclude1 = **/*.lock",
-                        "excludes.exclude2 = /home/*/.ClientServerBackup/directoriesWatchKey*.dir"));
+                        "excludes.exclude2 = /home/*/.ClientServerBackup/directoriesWatchKey*.dir",
+                        "excludes.exclude3 = /home/*/.cache",
+                        "excludes.exclude4 = /home/*/.local",
+                        "excludes.exclude5 = /home/*/.config",
+                        "excludes.exclude6 = /home/*/.mozilla/firefox"));
     }
 
     @Test
