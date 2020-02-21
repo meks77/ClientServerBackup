@@ -3,12 +3,11 @@ package at.meks.backupclientserver.backend.services.backup;
 import at.meks.backupclientserver.backend.services.file.DirectoryService;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,14 +18,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class MetaDataServiceTest {
 
     private static final String FILE_CONTENT = "theFileContent";
     private static final String TARGET_FILE_NAME = "targetFile.txt";
     private static final String TARGET_FILE_MD_5_FILE_NAME = "targetFile.txt.md5";
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private DirectoryService directoryService;
@@ -42,7 +39,6 @@ public class MetaDataServiceTest {
         String expectedMd5 = DigestUtils.md5Hex(fileContent);
         Path target = Paths.get(rootDir.toString(), TARGET_FILE_NAME);
         Files.write(target, fileContent.getBytes());
-
 
         service.writeMd5Checksum(target.toFile());
 

@@ -1,7 +1,7 @@
 package at.meks.backupclientserver.backend.webservices.backup;
 
 import at.meks.backupclientserver.backend.domain.Client;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.Date;
@@ -9,15 +9,17 @@ import java.util.Date;
 import static at.meks.clientserverbackup.testutils.DateTestUtils.fromLocalDateTime;
 import static java.time.LocalDateTime.of;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class StatisticClientTest {
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void givenNullWhenFromThenThrowsNullPointerException() {
         //noinspection ConstantConditions
-        StatisticClient.fromClient(null);
+        assertThatThrownBy(() -> StatisticClient.fromClient(null))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test

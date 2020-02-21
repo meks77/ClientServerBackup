@@ -5,23 +5,22 @@ import at.meks.backupclientserver.backend.services.ServerBackupException;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
-@Service
-@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Named
+@ApplicationScoped
 public class ExceptionHandler {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
+    @Inject
     private ErrorReportService errorReportService;
 
     <R> R runReportingException(Supplier<String> executionInformation, Callable<R> callable) {

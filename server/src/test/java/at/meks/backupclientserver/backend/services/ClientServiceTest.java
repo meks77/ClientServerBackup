@@ -3,12 +3,11 @@ package at.meks.backupclientserver.backend.services;
 import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
 import at.meks.clientserverbackup.testutils.DateTestUtils;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -22,10 +21,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ClientServiceTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ClientRepository repository;
@@ -51,7 +48,7 @@ public class ClientServiceTest {
         service.updateLastBackupTimestamp(expectedHostName);
 
         verify(repository).update(same(client));
-        assertThat(client.getLastBackupedFileTimestamp()).isAfterOrEqualsTo(timeBeforeCall);
+        assertThat(client.getLastBackupedFileTimestamp()).isAfterOrEqualTo(timeBeforeCall);
     }
 
     @Test
@@ -66,7 +63,7 @@ public class ClientServiceTest {
         service.updateLastBackupTimestamp(expectedHostName);
 
         verify(repository).update(same(client));
-        assertThat(client.getLastBackupedFileTimestamp()).isAfterOrEqualsTo(timeBeforeCall);
+        assertThat(client.getLastBackupedFileTimestamp()).isAfterOrEqualTo(timeBeforeCall);
     }
 
     @Test
@@ -83,7 +80,7 @@ public class ClientServiceTest {
         service.updateHeartbeat(hostName);
 
         verify(repository).update(same(clientOptional.get()));
-        assertThat(clientOptional.get().getHeartbeatTimestamp()).isAfterOrEqualsTo(minimumTimestamp);
+        assertThat(clientOptional.get().getHeartbeatTimestamp()).isAfterOrEqualTo(minimumTimestamp);
     }
 
     @Test

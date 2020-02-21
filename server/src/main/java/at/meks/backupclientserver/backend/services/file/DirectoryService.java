@@ -9,11 +9,10 @@ import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
 import at.meks.backupclientserver.common.Md5CheckSumGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,8 +22,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Service
-@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Named
+@ApplicationScoped
 public
 class DirectoryService {
 
@@ -36,13 +35,13 @@ class DirectoryService {
 
     private ReentrantLock createNewBackupSetLock = new ReentrantLock();
 
-    @Autowired
+    @Inject
     private BackupConfiguration configuration;
 
-    @Autowired
+    @Inject
     private ClientRepository clientRepository;
 
-    @Autowired
+    @Inject
     private LockService lockService;
 
     public Path getBackupSetPath(String hostName, String clientBackupSetPath) {
@@ -120,7 +119,7 @@ class DirectoryService {
         return createIfNotExists(backupDir);
     }
 
-    private Path getApplicationRoot() {
+    public Path getApplicationRoot() {
         String applicationRoot = configuration.getApplicationRoot();
         if (applicationRoot == null) {
             throw new ServerBackupException("applicationRoot directory is not set");
@@ -130,5 +129,10 @@ class DirectoryService {
 
     public Path getErrorDirectory() {
         return createIfNotExists(getApplicationRoot().resolve("errors"));
+    }
+
+    public Path getUploadDir() {
+        Path backupDir = getApplicationRoot().resolve("uploads");
+        return createIfNotExists(backupDir);
     }
 }

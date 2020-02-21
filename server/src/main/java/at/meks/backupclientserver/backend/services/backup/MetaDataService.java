@@ -3,19 +3,21 @@ package at.meks.backupclientserver.backend.services.backup;
 import at.meks.backupclientserver.backend.services.ServerBackupException;
 import at.meks.backupclientserver.backend.services.file.DirectoryService;
 import at.meks.backupclientserver.common.Md5CheckSumGenerator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@Service
+@Named
+@ApplicationScoped
 class MetaDataService {
 
-    @Autowired
+    @Inject
     private DirectoryService directoryService;
 
     private Md5CheckSumGenerator md5CheckSumGenerator = new Md5CheckSumGenerator();

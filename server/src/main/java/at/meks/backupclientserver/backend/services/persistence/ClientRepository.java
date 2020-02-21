@@ -2,21 +2,20 @@ package at.meks.backupclientserver.backend.services.persistence;
 
 import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.backupclientserver.backend.services.LockService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Service
-@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Named
+@ApplicationScoped
 public class ClientRepository extends AbstractRepository<Client, String> {
 
     private ReentrantLock createNewClientLock = new ReentrantLock();
 
-    @Autowired
+    @Inject
     private LockService lockService;
 
     @Override

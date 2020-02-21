@@ -3,18 +3,17 @@ package at.meks.backupclientserver.backend.services;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
 import javax.validation.constraints.NotNull;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
-@Service
-@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Named
+@ApplicationScoped
 public class LockService {
 
     private LoadingCache<String, ReentrantLock> clientLocks = CacheBuilder.newBuilder().build(

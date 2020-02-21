@@ -3,20 +3,20 @@ package at.meks.backupclientserver.backend.services.file;
 import at.meks.backupclientserver.backend.domain.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 
-@Service
-@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Named
+@ApplicationScoped
 public class FileService {
 
-    @Autowired
+    @Inject
     private DirectoryService directoryService;
 
     private Logger logger = LoggerFactory.getLogger(getClass());
@@ -55,6 +55,6 @@ public class FileService {
     }
 
     public Path createFileWithRandomName(Path parentDir) throws IOException {
-        return Files.createTempFile(parentDir, "errorStack", ".txt");
+        return Files.createFile(parentDir.resolve(UUID.randomUUID().toString() + ".txt"));
     }
 }

@@ -2,20 +2,18 @@ package at.meks.backupclientserver.backend.webservices.backup;
 
 import at.meks.backupclientserver.backend.services.ErrorReportService;
 import at.meks.backupclientserver.backend.services.ServerBackupException;
-import org.hamcrest.CoreMatchers;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.InetAddress;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -23,14 +21,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ExceptionHandlerTest {
 
     public static final String EXCEPTION_MESSAGE = "whatever";
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Mock
     private ErrorReportService errorReportService;
@@ -73,20 +67,20 @@ public class ExceptionHandlerTest {
     public void givenCallableWhenExceptionIsThrownThenExceptionIsThrownWithCause() throws Exception {
         IllegalArgumentException excpectedCause = new IllegalArgumentException(EXCEPTION_MESSAGE);
         when(callable.call()).thenThrow(excpectedCause);
-        expectedException.expect(ServerBackupException.class);
-        expectedException.expectCause(CoreMatchers.is(excpectedCause));
 
-        handler.runReportingException(execInfoSupplier, callable);
+        assertThatThrownBy(() -> handler.runReportingException(execInfoSupplier, callable))
+                .hasRootCause(excpectedCause)
+                .isInstanceOf(ServerBackupException.class);
     }
 
     @Test
     public void givenRunnableWhenExceptionIsThrownThenExceptionIsThrownWithCause() {
         IllegalArgumentException excpectedCause = new IllegalArgumentException(EXCEPTION_MESSAGE);
         doThrow(excpectedCause).when(runnable).run();
-        expectedException.expect(ServerBackupException.class);
-        expectedException.expectCause(CoreMatchers.is(excpectedCause));
 
-        handler.runReportingException(execInfoSupplier, runnable);
+        assertThatThrownBy(() -> handler.runReportingException(execInfoSupplier, runnable))
+            .isInstanceOf(ServerBackupException.class)
+            .hasRootCause(excpectedCause);
     }
 
     @Test
@@ -154,11 +148,10 @@ public class ExceptionHandlerTest {
     @Test
     public void givenRunnableWhenExceptionIsThrownThenHostNameIsReported() throws Exception {
         doThrow(new IllegalArgumentException()).when(runnable).run();
-        try {
-            handler.runReportingException(execInfoSupplier, runnable);
-            failBecauseExceptionWasNotThrown(IllegalArgumentException.class);
-        } catch (Exception ignore) {
-        }
+
+        assertThatThrownBy(() -> handler.runReportingException(execInfoSupplier, runnable))
+                .hasCauseInstanceOf(IllegalArgumentException.class);
+
         String expectedHost = InetAddress.getLocalHost().getHostName();
         verify(errorReportService).addError(eq(expectedHost), any(), any());
     }

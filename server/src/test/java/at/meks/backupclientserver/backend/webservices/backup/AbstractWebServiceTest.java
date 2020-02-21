@@ -1,7 +1,6 @@
 package at.meks.backupclientserver.backend.webservices.backup;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.junit.Before;
 import org.mockito.Mock;
 
 import java.util.concurrent.Callable;
@@ -18,14 +17,16 @@ public class AbstractWebServiceTest {
     @Mock
     ExceptionHandler exceptionHandler;
 
-    @Before
-    public void mockExceptionHandler() {
+    void mockExceptionHandlerForCallable() {
+        doAnswer(invocation -> ((Callable<?>) invocation.getArgument(1)).call())
+                .when(exceptionHandler).runReportingException(any(), any(Callable.class));
+    }
+
+    void mockExceptionHandlerForRunnable() {
         doAnswer(invocation -> {
                     ((Runnable)invocation.getArgument(1)).run();
                     return Void.TYPE;
                 }).when(exceptionHandler).runReportingException(any(), any(Runnable.class));
-        doAnswer(invocation -> ((Callable<?>) invocation.getArgument(1)).call())
-                .when(exceptionHandler).runReportingException(any(), any(Callable.class));
     }
 
     void verifyExceptionHandlerIsInvokedAndNothingElse(Runnable serviceMethod, Object...otherMocks) {

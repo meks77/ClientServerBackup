@@ -3,16 +3,14 @@ package at.meks.backupclientserver.backend.services.persistence;
 import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.backupclientserver.backend.services.LockService;
 import io.jsondb.JsonDBTemplate;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -25,13 +23,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ClientRepositoryTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private PersistenceService persistenceService;
@@ -48,24 +44,25 @@ public class ClientRepositoryTest {
     @InjectMocks
     private ClientRepository repository;
 
-    @Before
-    public void initDefaults() {
+    private void initDefaults() {
         when(persistenceService.getJsonDBTemplate()).thenReturn(dbTemplate);
     }
 
     @Test
     public void whenInitDbThenJsonDbCollectionIsCreated() {
+        initDefaults();
         repository.initDb();
         verify(dbTemplate).createCollection(Client.class);
     }
 
     @Test
     public void testThatInitDbIsAnnotatedWithInject() throws NoSuchMethodException {
-        assertThat(ClientRepository.class.getMethod("initDb").isAnnotationPresent(Autowired.class)).isTrue();
+        assertThat(ClientRepository.class.getMethod("initDb").isAnnotationPresent(PostConstruct.class)).isTrue();
     }
 
     @Test
     public void givenExistingClientWhenGetClientThenOptionalWithValueIsReturned() {
+        initDefaults();
         String hostName = "theUtHostName";
         Client expectedClient = mock(Client.class);
         when(dbTemplate.findById(hostName, Client.class)).thenReturn(expectedClient);
@@ -77,6 +74,7 @@ public class ClientRepositoryTest {
 
     @Test
     public void givenNotExistingClientWhenGetClientThenEmptyOptionalIsReturned() {
+        initDefaults();
         String hostName = "theUtHostName";
         when(persistenceService.getJsonDBTemplate()).thenReturn(dbTemplate);
         when(dbTemplate.findById(hostName, Client.class)).thenReturn(null);
@@ -88,6 +86,7 @@ public class ClientRepositoryTest {
 
     @Test
     public void whenCreateNewClientThenCreationIsInvokedWithinLock() {
+        initDefaults();
         String hostName = "hostNameForUt";
         String directoryName = "dirNameForHostName";
 
@@ -105,6 +104,7 @@ public class ClientRepositoryTest {
 
     @Test
     public void givenExistingClientThenClientIsNotCreated() {
+        initDefaults();
         String hostName = "hostNameForUt";
         String directoryName = "dirNameForHostName";
 
@@ -119,6 +119,7 @@ public class ClientRepositoryTest {
 
     @Test
     public void whenUpdateThenDbTemplateIsInvoked() {
+        initDefaults();
         Client client = mock(Client.class);
         repository.update(client);
 
@@ -127,6 +128,7 @@ public class ClientRepositoryTest {
 
     @Test
     public void whenGetClientCountThenSizeOfDbTemplateCollectionsIsReturned() {
+        initDefaults();
         int expectedResult = 74;
         when(dbTemplate.getCollection(Client.class)).thenReturn(Collections.nCopies(expectedResult, null));
 
@@ -137,6 +139,7 @@ public class ClientRepositoryTest {
 
     @Test
     public void whenGetClientsThenListOfDbTemplateIsReturned() {
+        initDefaults();
         @SuppressWarnings("unchecked")
         List<Client> expectedResult = mock(List.class);
 
@@ -144,6 +147,6 @@ public class ClientRepositoryTest {
 
         List<Client> clients = repository.getAll();
         assertThat(clients).isSameAs(expectedResult);
-        verifyZeroInteractions(expectedResult);
+        verifyNoInteractions(expectedResult);
     }
 }

@@ -6,10 +6,10 @@ import at.meks.backupclientserver.backend.services.file.DirectoryService;
 import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,28 +19,29 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Callable;
 
-@Service
+@Named
+@Dependent
 public class BackupService {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss.SSS");
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
+    @Inject
     private DirectoryService directoryService;
 
-    @Autowired
+    @Inject
     private MetaDataService metaDataService;
 
-    @Autowired
+    @Inject
     private ClientService clientService;
 
-    public void backup(MultipartFile file, FileInputArgs fileArgs) {
+    public void backup(Path file, FileInputArgs fileArgs) {
         runHandlingException("error while backup", () -> {
             File target = getTargetFile(fileArgs);
             logger.info("copy file to target {}", target.getAbsolutePath());
             moveOldFileToVersionsDir(target.toPath(), false);
-            file.transferTo(target);
+            Files.move(file, target.toPath());
             metaDataService.writeMd5Checksum(target);
             clientService.updateLastBackupTimestamp(fileArgs.getHostName());
             return Void.TYPE;

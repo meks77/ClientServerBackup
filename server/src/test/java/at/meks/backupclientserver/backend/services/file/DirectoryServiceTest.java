@@ -6,17 +6,14 @@ import at.meks.backupclientserver.backend.services.LockService;
 import at.meks.backupclientserver.backend.services.ServerBackupException;
 import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.springframework.test.annotation.Repeat;
-import org.springframework.test.context.junit4.rules.SpringClassRule;
-import org.springframework.test.context.junit4.rules.SpringMethodRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +32,8 @@ import java.util.function.Supplier;
 
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -42,10 +41,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class DirectoryServiceTest {
-
-    @ClassRule
-    public static final SpringClassRule springClassRule = new SpringClassRule();
 
     private static final String META_DATA_DIRECTORY_NAME = ".backupClientServer";
     private static final String BACKUPED_FILE_NAME = "backupedFile.txt";
@@ -54,12 +51,6 @@ public class DirectoryServiceTest {
     private static final String CLIENT_BACKUP_SET_PATH = "/backup/set/path";
 
     private final DateTimeFormatter deletedDirNameFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss.SSS");
-
-    @Rule
-    public SpringMethodRule repeatRule = new SpringMethodRule();
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private BackupConfiguration configuration;
@@ -73,17 +64,19 @@ public class DirectoryServiceTest {
     @InjectMocks
     private DirectoryService service = new DirectoryService();
 
-    private Path backupRootPath;
+    @TempDir
+    Path backupRootPath;
 
-    @Before
-    public void initService() {
-        backupRootPath = TestDirectoryProvider.createTempDirectory();
-        when(configuration.getApplicationRoot()).thenReturn(backupRootPath.toString());
-        when(lockService.runWithLock(any(), any()))
-                .thenAnswer(invocationOnMock -> ((Supplier<?>)invocationOnMock.getArgument(1)).get());
+    private void mockDefaults() {
+        mockBackupRootPath();
+        mockLockService();
         when(clientRepository.getById(any())).thenReturn(Optional.empty());
         when(clientRepository.createNewClient(any(), any()))
                 .thenAnswer(invocation -> createClient(invocation.getArgument(0), invocation.getArgument(1)));
+    }
+
+    private void mockBackupRootPath() {
+        when(configuration.getApplicationRoot()).thenReturn(backupRootPath.toString());
     }
 
     private Client createClient(String hostName, String directoryName1) {
@@ -94,11 +87,10 @@ public class DirectoryServiceTest {
         return client;
     }
 
-    //    @RepeatedTest(10) sadly junit 5 doesn't work with mockito :(
-    @Test
-    @Repeat(10)
+    @RepeatedTest(10)
     public void givenManyThreadsForSameHostAndBackupSetPathWhenGetBackupSetPathThenNoExceptionIsThrown()
             throws InterruptedException {
+        mockDefaults();
         String clientBackupSetPath = CLIENT_BACKUP_SET_PATH;
         ReentrantLock lock = new ReentrantLock();
         reset(lockService);
@@ -124,10 +116,11 @@ public class DirectoryServiceTest {
 
     @Test
     public void givenHostNameAndBackupSetPathWhenGetBackupSetPathReturnsExpected() {
+        mockDefaults();
         String clientBackupSetPath = CLIENT_BACKUP_SET_PATH;
         String clientHostName = "utHostName";
 
-        when(configuration.getApplicationRoot()).thenReturn(backupRootPath.toString());
+        mockBackupRootPath();
 
         service.getBackupSetPath(clientHostName, clientBackupSetPath);
         assertThat(getExpectedPath(backupRootPath, clientBackupSetPath, clientHostName)).exists();
@@ -139,12 +132,19 @@ public class DirectoryServiceTest {
 
     @Test
     public void whenGetMetadataDirectoryPathReturnsExcpectedPath() {
+        mockLockService();
         Path result = service.getMetadataDirectoryPath(backupRootPath);
         assertThat(result).isEqualTo(Paths.get(backupRootPath.toString(), META_DATA_DIRECTORY_NAME));
     }
 
+    private void mockLockService() {
+        when(lockService.runWithLock(any(), any()))
+                .thenAnswer(invocationOnMock -> ((Supplier<?>) invocationOnMock.getArgument(1)).get());
+    }
+
     @Test
     public void givenMetadataDirNotExistsWhenGetMetadataDirectoryPathThenDirIsCreated() {
+        mockLockService();
         Path result = service.getMetadataDirectoryPath(backupRootPath);
         assertThat(result).exists();
     }
@@ -157,6 +157,7 @@ public class DirectoryServiceTest {
 
     @Test
     public void givenNotExistingVersionsDirWhenGetVersionDirectoryThenVersionDirIsCreatedAndReturned() {
+        mockLockService();
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
         Path backupedFile = backupSetPath.resolve(BACKUPED_FILE_NAME);
         Path expectedVersionsDir = backupSetPath.resolve(META_DATA_DIRECTORY_NAME)
@@ -170,6 +171,7 @@ public class DirectoryServiceTest {
 
     @Test
     public void givenExistingVersionsDirWhenGetVersionDirectoryThenVersionDirIsCreatedAndReturned() throws IOException {
+        mockLockService();
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
         Path backupedFile = backupSetPath.resolve(BACKUPED_FILE_NAME);
         Path expectedVersionsDir = backupSetPath.resolve(META_DATA_DIRECTORY_NAME)
@@ -184,6 +186,7 @@ public class DirectoryServiceTest {
 
     @Test
     public void givenFileInSubDirWhenGetVersionDirectoryThenExpectedDirectoryIsReturned() {
+        mockLockService();
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
         Path backupedFile = backupSetPath.resolve("subDir").resolve(BACKUPED_FILE_NAME);
         Path expectedVersionsDir = backupedFile.getParent()
@@ -198,6 +201,7 @@ public class DirectoryServiceTest {
 
     @Test
     public void givenExistingDeletedDirsWhenGetDeletedVersionsDirReturnsExpected() throws IOException {
+        mockLockService();
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
         Path dirToDelete = Files.createDirectories(backupSetPath.resolve(DIR_FOR_DELETE));
         Path expectedDeletedDirs = backupSetPath.resolve(META_DATA_DIRECTORY_NAME).resolve(DELETED_DIRS);
@@ -215,19 +219,23 @@ public class DirectoryServiceTest {
                 .isBeforeOrEqualTo(LocalDateTime.now());
     }
 
+    @SneakyThrows
     @Test
-    public void givenNotExistingDeletedDirsWhenGetDeletedVersionsDirThenCreatedDirIsReturned() {
-        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-        Path dirToDelete = backupSetPath.resolve(DIR_FOR_DELETE);
+    public void givenNotExistingDeletedDirsWhenGetDeletedVersionsDirThenCreatedDirIsReturned(@TempDir Path backupSetPath) {
+        mockLockService();
+        Path dirToDelete = Files.createFile(backupSetPath.resolve(DIR_FOR_DELETE));
         Path expectedDeletedDirs = backupSetPath.resolve(META_DATA_DIRECTORY_NAME).resolve(DELETED_DIRS);
 
         Path deletedDirsDirectory = service.getDirectoryForDeletedDir(dirToDelete);
-        assertThat(deletedDirsDirectory).doesNotExist().hasFileName(DIR_FOR_DELETE);
-        assertThat(deletedDirsDirectory.getParent()).exists().isDirectory().hasParent(expectedDeletedDirs);
+        assertAll( () -> {
+            assertThat(deletedDirsDirectory).doesNotExist().hasFileName(DIR_FOR_DELETE);
+            assertThat(deletedDirsDirectory.getParent()).exists().isDirectory().hasParent(expectedDeletedDirs);
+        });
     }
 
     @Test
     public void givenSubdirWhenGetDeletedVersionsDirThenCreatedDirIsReturned() {
+        mockLockService();
         Path backupSetPath = TestDirectoryProvider.createTempDirectory();
         Path dirToDelete = backupSetPath.resolve("subdir").resolve(DIR_FOR_DELETE);
         Path expectedDeletedDirs = backupSetPath.resolve("subdir").resolve(META_DATA_DIRECTORY_NAME).resolve(
@@ -238,14 +246,16 @@ public class DirectoryServiceTest {
         assertThat(deletedDirsDirectory.getParent()).exists().isDirectory().hasParent(expectedDeletedDirs);
     }
 
-    @Test(expected = ServerBackupException.class)
+    @Test
     public void givenNoDirWhenGetApplicationRootDirectoryThenExceptionIsThrown() {
         when(configuration.getApplicationRoot()).thenReturn(null);
-        service.getBackupSetPath("host", "path");
+        assertThatThrownBy(() -> service.getBackupSetPath("host", "path"))
+                .isInstanceOf(ServerBackupException.class);
     }
 
     @Test
     public void givenNewClientWhenGetBackupSetPathThenNewClientIsCreated() {
+        mockDefaults();
         String hostName = "theNewHostname";
         when(clientRepository.getById(hostName)).thenReturn(Optional.empty());
         when(clientRepository.createNewClient(eq(hostName), any()))
@@ -258,6 +268,9 @@ public class DirectoryServiceTest {
 
     @Test
     public void givenExistingClientWhenGetBackupSetPathThenNoClientIsCreated() throws IOException {
+        mockBackupRootPath();
+        mockLockService();
+        when(clientRepository.getById(any())).thenReturn(Optional.empty());
         String hostName = "theNewHostname";
         String expectedDirName ="dirForNewHost";
         Client client = createClient(hostName, expectedDirName);
@@ -272,6 +285,8 @@ public class DirectoryServiceTest {
 
     @Test
     public void whenGetErrorDirectoryThenReturnsExpectedDirectory() {
+        mockBackupRootPath();
+        mockLockService();
         Path errorDirectory = service.getErrorDirectory();
         assertThat(errorDirectory).exists().isEqualByComparingTo(backupRootPath.resolve("errors"));
     }

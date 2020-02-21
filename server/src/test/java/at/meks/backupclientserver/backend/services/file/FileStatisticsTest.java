@@ -1,6 +1,6 @@
 package at.meks.backupclientserver.backend.services.file;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.Arrays;

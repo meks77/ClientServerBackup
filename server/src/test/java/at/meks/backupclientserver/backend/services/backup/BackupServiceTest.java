@@ -5,12 +5,12 @@ import at.meks.backupclientserver.backend.services.ServerBackupException;
 import at.meks.backupclientserver.backend.services.file.DirectoryService;
 import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.web.multipart.MultipartFile;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,13 +22,14 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class BackupServiceTest {
 
     private static final String BACKUP_SET_PATH = "backupSetPath";
@@ -36,6 +37,7 @@ public class BackupServiceTest {
     private static final String BACKUPED_FILE_TXT = "backupedFile.txt";
     private static final String BACKUP_SET = "backupSet";
     private static final String BACKUP_CLIENT_SERVER = ".backupClientServer";
+    private static final String UPLOADED_FILE_NAME = "uploadedFile.txt";
     private final DateTimeFormatter versionedFileNameFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH_mm_ss" +
             ".SSS");
 
@@ -46,30 +48,30 @@ public class BackupServiceTest {
     private MetaDataService metaDataService;
 
     @Mock
-    private MultipartFile multipartFile;
-
-    @Mock
     private ClientService clientService;
 
     @InjectMocks
     private BackupService service = new BackupService();
 
     @Test
-    public void givenFileWhenBackupThenFileIsSavedToExpectedDirectory() throws IOException {
+    public void givenFileWhenBackupThenFileIsSavedToExpectedDirectory(@TempDir Path uploadDir) throws IOException {
+        final Path uploadedFile = uploadDir.resolve(UPLOADED_FILE_NAME);
+        final String expectedContent = "uploaded file context";
+        Files.write(uploadedFile, expectedContent.getBytes());
         String hostName = "utHostName";
         String clientBackupSetPath = "path\\to\\backup\\file";
         Path tempDir = Files.createTempDirectory("utBsT");
         Path backupSetTargetPath = Paths.get(tempDir.toString(), BACKUP_SET_PATH);
         String fileNameOfBackedupFile = "backedUpFilename.xpktd";
-        File expectedTarget = Paths.get(backupSetTargetPath.toString(), "expected", "target",
-                fileNameOfBackedupFile).toFile();
+        Path expectedTarget = Paths.get(backupSetTargetPath.toString(), "expected", "target",
+                fileNameOfBackedupFile);
 
         when(directoryService.getBackupSetPath(hostName, clientBackupSetPath)).thenReturn(backupSetTargetPath);
         FileInputArgs fileInputArgs = createFileInputArgs(hostName, clientBackupSetPath,
                 new String[]{"expected", "target"}, fileNameOfBackedupFile);
-        service.backup(multipartFile, fileInputArgs);
+        service.backup(uploadedFile, fileInputArgs);
 
-        verify(multipartFile).transferTo(expectedTarget);
+        assertThat(expectedTarget).hasContent(expectedContent);
     }
 
     private FileInputArgs createFileInputArgs(String hostName, String clientBackupSetPath, String[] relativePath,
@@ -80,13 +82,14 @@ public class BackupServiceTest {
                 .fileName(fileNameOfBackedupFile).build();
     }
 
-    @Test(expected = ServerBackupException.class)
-    public void givenIoExceptionWhenBackupThenServerBackupExceptionIsThrown() throws IOException {
-        doThrow(new IOException("ut expktd exc")).when(multipartFile).transferTo(any(File.class));
-        when(directoryService.getBackupSetPath(any(), any())).thenReturn(Files.createTempDirectory("utThrw"));
+    @Test
+    public void givenExceptionWhenBackupThenServerBackupExceptionIsThrown(@TempDir Path tempDir) {
+        doThrow(new NullPointerException("ut expktd exc")).when(directoryService).getBackupSetPath(any(), any());
         FileInputArgs fileInputArgs = createFileInputArgs("myHostName", "C:\\f1\\f2", new String[]{"a", "b", "c"},
                 "whatever");
-        service.backup(multipartFile, fileInputArgs);
+
+        assertThatThrownBy(() -> service.backup(Files.createFile(tempDir.resolve(UPLOADED_FILE_NAME)), fileInputArgs))
+                .isInstanceOf(ServerBackupException.class);
     }
 
     @Test
@@ -129,24 +132,25 @@ public class BackupServiceTest {
     }
 
     @Test
-    public void givenFirstVersionOfFileWhenBackupThenNoFileIsCreatedInVersionsDir() throws IOException {
-        Path testRootDir = TestDirectoryProvider.createTempDirectory();
+    public void givenFirstVersionOfFileWhenBackupThenNoFileIsCreatedInVersionsDir(@TempDir Path tempDir) throws IOException {
+        Path testRootDir = Files.createDirectory(tempDir.resolve("rootDir"));
         Path backupSetPath = testRootDir.resolve(BACKUP_SET_PATH);
         Path versionsDir = backupSetPath.resolve(".versions");
         Path fileToBackup = testRootDir.resolve("fileForBackup.txt");
         Files.createFile(fileToBackup);
+        final Path uploadedFile = Files.createFile(tempDir.resolve("uplodaedFile.txt"));
 
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(backupSetPath);
 
-        service.backup(multipartFile,
+        service.backup(uploadedFile,
                 createFileInputArgs(HOST_NAME, BACKUP_SET_PATH, new String[0], fileToBackup.toFile().getName()));
 
         assertThat(versionsDir).doesNotExist();
     }
 
     @Test
-    public void givenSecondVersionOfFileWhenBackupThenTheOldFileIsMovedToVersionsDir() throws IOException {
-        Path testRootDir = TestDirectoryProvider.createTempDirectory();
+    public void givenSecondVersionOfFileWhenBackupThenTheOldFileIsMovedToVersionsDir(@TempDir Path tempDir) throws IOException {
+        Path testRootDir = Files.createDirectory(tempDir.resolve("rootDir"));
         Path backupSetPath = testRootDir.resolve(BACKUP_SET_PATH);
         Files.createDirectories(backupSetPath);
         Path versionsDir = backupSetPath.resolve(".versions");
@@ -156,12 +160,14 @@ public class BackupServiceTest {
         Path backupTargetFile = backupSetPath.resolve(fileToBackup.toFile().getName());
         Files.createFile(backupTargetFile);
 
+        final Path uploadedFile = Files.createFile(tempDir.resolve("uplodaedFile.txt"));
+
         when(directoryService.getFileVersionsDirectory(backupTargetFile)).thenReturn(versionsDir);
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(backupSetPath);
 
         LocalDateTime timeStampBeforeBackup = LocalDateTime.now();
 
-        service.backup(multipartFile,
+        service.backup(uploadedFile,
                 createFileInputArgs(HOST_NAME, BACKUP_SET_PATH, new String[0], fileToBackup.toFile().getName()));
 
         assertThat(versionsDir).exists().isDirectory();
@@ -264,13 +270,14 @@ public class BackupServiceTest {
     }
 
     @Test
-    public void whenBackupThenClientsLastUpdateTimeIsPersisted() {
-        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+    public void whenBackupThenClientsLastUpdateTimeIsPersisted(@TempDir Path tempDir) throws IOException {
+        Path backupSetPath = Files.createDirectory(tempDir.resolve(BACKUP_SET_PATH));
         String hostName = "theUtHostName";
+        final Path uploadedFile = Files.createFile(tempDir.resolve(UPLOADED_FILE_NAME));
 
         when(directoryService.getBackupSetPath(any(), any())).thenReturn(backupSetPath);
 
-        service.backup(multipartFile, createFileInputArgs(hostName, backupSetPath.toString(), new String[0],
+        service.backup(uploadedFile, createFileInputArgs(hostName, backupSetPath.toString(), new String[0],
                 BACKUPED_FILE_TXT));
 
         verify(clientService).updateLastBackupTimestamp(hostName);

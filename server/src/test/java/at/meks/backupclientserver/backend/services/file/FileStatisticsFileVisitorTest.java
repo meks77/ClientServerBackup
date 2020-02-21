@@ -1,11 +1,10 @@
 package at.meks.backupclientserver.backend.services.file;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -19,13 +18,11 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class FileStatisticsFileVisitorTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private FileStatistics fileStatistics;
@@ -71,7 +68,7 @@ public class FileStatisticsFileVisitorTest {
 
         visitor.visitFile(path, attrs);
 
-        verifyZeroInteractions(fileStatistics);
+        verifyNoInteractions(fileStatistics);
     }
 
     @Test

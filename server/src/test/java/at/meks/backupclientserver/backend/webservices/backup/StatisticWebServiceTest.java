@@ -5,12 +5,11 @@ import at.meks.backupclientserver.backend.services.ClientService;
 import at.meks.backupclientserver.backend.services.file.FileService;
 import at.meks.backupclientserver.backend.services.file.FileStatistics;
 import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,10 +25,8 @@ import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class StatisticWebServiceTest extends AbstractWebServiceTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private FileService fileService;
@@ -45,6 +42,7 @@ public class StatisticWebServiceTest extends AbstractWebServiceTest {
 
     @Test
     public void testGetFileStatistics() {
+        mockExceptionHandlerForCallable();
         FileStatistics fileStatistics = mock(FileStatistics.class);
         when(fileService.getBackupFileStatistics()).thenReturn(fileStatistics);
         FileStatistics result = service.getFileStatistics();
@@ -53,6 +51,7 @@ public class StatisticWebServiceTest extends AbstractWebServiceTest {
 
     @Test
     public void testGetBackupedClientsCount() {
+        mockExceptionHandlerForCallable();
         int expectedResult = 16;
         when(clientService.getClientCount()).thenReturn(expectedResult);
 
@@ -63,6 +62,7 @@ public class StatisticWebServiceTest extends AbstractWebServiceTest {
 
     @Test
     public void testGetBackupedClients() {
+        mockExceptionHandlerForCallable();
         Client client1 = Client.aClient().
                 name("client1").lastBackupedFileTimestamp(fromLocalDateTime(now().minusHours(1))).build();
         Client client2 = Client.aClient().
@@ -80,6 +80,7 @@ public class StatisticWebServiceTest extends AbstractWebServiceTest {
 
     @Test
     public void givenExistingHostnameWhenGetClientDiskUsageThenReturnsFileStatisticsOfClientDir() {
+        mockExceptionHandlerForCallable();
         String hostName = "the Ut hostname";
         Client client = mock(Client.class);
         FileStatistics expectedFileStats = mock(FileStatistics.class);
@@ -94,6 +95,7 @@ public class StatisticWebServiceTest extends AbstractWebServiceTest {
 
     @Test
     public void givenNotExistingHostnameWhenGetClientDiskUsageThenReturnsNotAnalyzedStats() {
+        mockExceptionHandlerForCallable();
         String hostName = "the Ut hostname";
         when(clientRepository.getById(hostName)).thenReturn(Optional.empty());
 

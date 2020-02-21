@@ -4,19 +4,16 @@ import at.meks.backupclientserver.backend.domain.ErrorLog;
 import at.meks.backupclientserver.backend.services.file.DirectoryService;
 import at.meks.backupclientserver.backend.services.file.FileService;
 import at.meks.backupclientserver.backend.services.persistence.ErrorLogRepository;
-import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
-import org.apache.commons.io.FileUtils;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,10 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.extractProperty;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ErrorReportServiceTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ErrorLogRepository errorLogRepository;
@@ -50,34 +45,23 @@ public class ErrorReportServiceTest {
     @InjectMocks
     private ErrorReportService service = new ErrorReportService();
 
-    private Path errorsDirectory = TestDirectoryProvider.createTempDirectory();
+    @TempDir
+    Path errorsDirectory;
     private String hostName = "the host of the client which was processed";
     private String message = "a message with detail information";
     private Exception occuredException = new IllegalStateException("just a exception", new IOException("the cause"));
     private Path errorFile;
 
-    @Before
-    public void mockDefaults() throws IOException {
-        errorFile = Files.createTempFile(errorsDirectory, "ut-error-file", ".txt");
-        Files.deleteIfExists(errorFile);
+    @SneakyThrows
+    private void mockDefaults() {
         when(directoryService.getErrorDirectory()).thenReturn(errorsDirectory);
+        errorFile = Files.createFile(errorsDirectory.resolve("ut-error-file.txt"));
         when(fileService.createFileWithRandomName(errorsDirectory)).thenReturn(errorFile);
-    }
-
-    @After
-    public void deleteDir() throws IOException {
-        FileUtils.deleteDirectory(errorsDirectory.toFile());
-    }
-
-    @Test
-    public void givenNullExceptionWhenAddErrorThenNoFileIsWritten() {
-        service.addError(hostName, message, null);
-
-        assertThat(errorFile).doesNotExist();
     }
 
     @Test
     public void givenExceptionWithCauseWhenAddErrorThenExceptionIsWrittenToFile() {
+        mockDefaults();
         service.addError(hostName, message, occuredException);
 
         Throwable rootCause = ExceptionUtils.getRootCause(occuredException);
@@ -92,7 +76,9 @@ public class ErrorReportServiceTest {
 
     @Test
     public void givenExceptionWithoutCauseWhenAddErrorThenExceptionIsWrittenToFile() {
+        mockDefaults();
         occuredException = new FileNotFoundException("this file wasn't found");
+
         service.addError(hostName, message, occuredException);
 
         String expectedFileContent = ExceptionUtils.getMessage(occuredException) + System.lineSeparator() +
@@ -102,6 +88,7 @@ public class ErrorReportServiceTest {
 
     @Test
     public void givenExceptionWhenAddErrorThenExceptionFileIsPersistedInErrorLog() {
+        mockDefaults();
         ErrorLog errorLog = invokeAndVerifyInsert();
         assertThat(errorLog.getErrorFilePath()).isNotNull();
         assertThat(Paths.get(errorLog.getErrorFilePath())).exists();
@@ -117,12 +104,14 @@ public class ErrorReportServiceTest {
 
     @Test
     public void givenHostNametWhenAddErrorThenErrorLogContainsExpectedHostName() {
+        mockDefaults();
         ErrorLog errorLog = invokeAndVerifyInsert();
         assertThat(errorLog.getHostName()).isSameAs(hostName);
     }
 
     @Test
     public void givenMessageWhenAddErrorThenErrorLogContainsMessage() {
+        mockDefaults();
         ErrorLog errorLog = invokeAndVerifyInsert();
         assertThat(errorLog.getErrorMessage()).isEqualTo(message);
     }

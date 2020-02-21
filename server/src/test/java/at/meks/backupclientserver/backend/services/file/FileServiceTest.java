@@ -4,12 +4,11 @@ import at.meks.backupclientserver.backend.domain.Client;
 import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.data.Offset;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -26,10 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class FileServiceTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private DirectoryService directoryService;
@@ -92,7 +89,6 @@ public class FileServiceTest {
         double expectedUsedSpaceMb = FileUtils.sizeOfDirectory(clientDir.toFile()) / 1024.0 / 1024.0;
         Client client = mock(Client.class);
 
-        when(directoryService.getBackupRootDirectory()).thenReturn(rootBackupDir);
         when(directoryService.getClientPath(client)).thenReturn(clientDir);
 
         FileStatistics statistics = service.getDiskUsage(client);

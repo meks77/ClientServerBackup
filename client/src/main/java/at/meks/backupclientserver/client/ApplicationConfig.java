@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.client;
 
 import at.meks.validation.result.ValidationException;
+import at.meks.validation.validations.list.ListValidations;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -17,10 +18,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static at.meks.validation.validations.common.CommonValidations.isTrue;
-import static at.meks.validation.validations.list.ListValidations.hasMinSize;
 import static at.meks.validation.validations.string.StringValidations.isNotBlank;
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 
 @Singleton
@@ -69,8 +68,8 @@ public class ApplicationConfig {
 
     void validate() throws ValidationException {
         isNotBlank().test(getServerHost()).throwIfInvalid("Config property server.host");
-        Path[] backupedDirs = getBackupedDirs();
-        hasMinSize(1).test(asList(backupedDirs)).throwIfInvalid("Configured directories for backup");
+        List<Path> backupedDirs = Arrays.stream(getBackupedDirs()).collect(Collectors.toList());
+        ListValidations.<Path>hasMinSize(1).test(backupedDirs).throwIfInvalid("Configured directories for backup");
         for (Path backupedDir : backupedDirs) {
             isTrue().test(backupedDir.toFile().exists())
                     .throwIfInvalid(format("Configured directory %s must exist", backupedDir));

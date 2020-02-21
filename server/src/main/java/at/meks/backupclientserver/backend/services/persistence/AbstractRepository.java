@@ -1,8 +1,9 @@
 package at.meks.backupclientserver.backend.services.persistence;
 
 import io.jsondb.JsonDBTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,10 +11,10 @@ import static java.util.Optional.ofNullable;
 
 public abstract class AbstractRepository<E, I> {
 
-    @Autowired
+    @Inject
     PersistenceService persistenceService;
 
-    @Autowired
+    @PostConstruct
     public void initDb() {
         if (!persistenceService.getJsonDBTemplate().collectionExists(getEntityClass())) {
             persistenceService.getJsonDBTemplate().createCollection(getEntityClass());

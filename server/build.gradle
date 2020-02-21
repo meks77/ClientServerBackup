@@ -1,34 +1,53 @@
-buildscript {
-	ext {
-		springBootVersion = '2.1.1.RELEASE'
-	}
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-	}
+plugins {
+	id 'java'
+	id 'io.quarkus' version '1.2.0.Final'
 }
 
-apply plugin: 'java'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
+repositories {
+	mavenCentral()
+	mavenLocal()
+	gradlePluginPortal()
+}
 
 sourceCompatibility = 1.8
 
 dependencies {
-//	implementation('org.springframework.boot:spring-boot-starter-security')
-	implementation('org.springframework.boot:spring-boot-starter-web')
-	testImplementation('org.springframework.boot:spring-boot-starter-test')
-//	testImplementation('org.springframework.security:spring-security-test')
+//	implementation 'org.axonframework:axon-messaging:4.2.1'
+//	implementation 'org.axonframework:axon-modelling:4.2.1'
+//	implementation 'org.axonframework:axon-eventsourcing:4.2.1'
+//	implementation 'org.axonframework:axon-configuration:4.2.1'
+//	implementation 'org.axonframework:axon-configuration:4.2.1'
+
+	testImplementation 'org.axonframework:axon-test:4.2.1'
+
+	implementation 'io.quarkus:quarkus-resteasy-jsonb'
+	implementation enforcedPlatform('io.quarkus:quarkus-bom:1.2.0.Final')
+	implementation 'io.quarkus:quarkus-resteasy'
+
+	testImplementation 'io.quarkus:quarkus-junit5'
+	testImplementation 'io.rest-assured:rest-assured'
+
 	compile project (':common')
 	compileOnly project (':client')
-	testCompile project (':testUtils')
 	implementation ('io.jsondb:jsondb-core:1.0.85')
 	implementation('com.google.guava:guava:27.0.1-jre')
 	implementation('commons-io:commons-io:2.6')
+	implementation 'at.meks:easy-validation:1.0.0'
+
 	annotationProcessor 'org.projectlombok:lombok:1.18.4'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.4'
 	compileOnly 'org.projectlombok:lombok:1.18.4'
+	testCompile 'org.projectlombok:lombok:1.18.4'
+
+	testImplementation('org.junit.jupiter:junit-jupiter:5.6.0')
+	testRuntime("org.junit.jupiter:junit-jupiter-engine:5.6.0")
+	testRuntime("org.junit.platform:junit-platform-runner:1.6.0")
+
+	testCompile project (':testUtils')
+	testImplementation('org.mockito:mockito-core:3.2.4')
+	testImplementation('org.mockito:mockito-junit-jupiter:3.2.4')
+	testImplementation('org.assertj:assertj-core:3.14.0')
+
 }
 
 def webappDir = "$projectDir/src/main/webapp"
@@ -83,4 +102,8 @@ task installAngular(type:Exec) {
 	} else {
 		commandLine "npm", "install"
 	}
+}
+
+compileJava {
+	options.compilerArgs << '-parameters'
 }

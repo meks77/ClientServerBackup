@@ -1,12 +1,15 @@
 package at.meks.backupclientserver.backend.services;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-@Service
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
+
+@Named
+@ApplicationScoped
 public class BackupConfiguration {
 
-    @Value("${application.root.dir}")
+    @ConfigProperty(name = "application.root.dir")
     private String applicationRoot;
 
     public String getApplicationRoot() {

@@ -7,11 +7,10 @@ import at.meks.backupclientserver.backend.services.persistence.ErrorLogRepositor
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -19,19 +18,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
-@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Named
+@ApplicationScoped
 public class ErrorReportService {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
+    @Inject
     private DirectoryService directoryService;
 
-    @Autowired
+    @Inject
     private FileService fileService;
 
-    @Autowired
+    @Inject
     private ErrorLogRepository errorLogRepository;
 
     public void addError(String hostName, String message, Exception occuredException) {

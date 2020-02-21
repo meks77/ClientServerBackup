@@ -5,54 +5,58 @@ import at.meks.backupclientserver.backend.services.ClientService;
 import at.meks.backupclientserver.backend.services.file.FileService;
 import at.meks.backupclientserver.backend.services.file.FileStatistics;
 import at.meks.backupclientserver.backend.services.persistence.ClientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@RestController
-@RequestMapping(path = "/api/v1.0/statistics")
-@CrossOrigin(origins = "*")
+@Path("/api/v1.0/statistics")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 public class StatisticWebService {
 
-    @Autowired
+    @Inject
     private FileService fileService;
 
-    @Autowired
+    @Inject
     private ClientService clientService;
 
-    @Autowired
+    @Inject
     private ClientRepository clientRepository;
 
-    @Autowired
+    @Inject
     private ExceptionHandler exceptionHandler;
 
-    @GetMapping(value="fileStatistics", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Path("fileStatistics")
+    @GET
     public FileStatistics getFileStatistics() {
         return exceptionHandler.runReportingException(() -> "getFileStatistics",
                 fileService::getBackupFileStatistics);
     }
 
-    @GetMapping(value="clients/count", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Path(value="clients/count")
+    @GET
     public int getBackupedCientsCount() {
         return exceptionHandler.runReportingException(() -> "getBackupedCientsCount", () -> clientService.getClientCount());
     }
 
-    @GetMapping(value="clients", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Path(value="clients")
+    @GET
     public List<StatisticClient> getBackupedCients() {
         return exceptionHandler.runReportingException(() -> "backupFile",
                 () -> clientRepository.getAll().stream().map(StatisticClient::fromClient).collect(Collectors.toList()));
     }
 
-    @GetMapping(value="client/{hostName}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public FileStatistics getClientDiskUsage(@PathVariable String hostName) {
+    @Path(value="client/{hostName}")
+    @GET
+    public FileStatistics getClientDiskUsage(@PathParam("hostName") String hostName) {
         return exceptionHandler.runReportingException(() -> "backupFile", () -> {
             Optional<Client> client = clientRepository.getById(hostName);
             return client.map(client1 -> fileService.getDiskUsage(client1))

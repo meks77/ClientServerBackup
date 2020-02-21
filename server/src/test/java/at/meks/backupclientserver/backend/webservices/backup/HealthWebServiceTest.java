@@ -3,12 +3,11 @@ package at.meks.backupclientserver.backend.webservices.backup;
 import at.meks.backupclientserver.backend.domain.ErrorLog;
 import at.meks.backupclientserver.backend.services.ClientService;
 import at.meks.backupclientserver.backend.services.ErrorReportService;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +17,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class HealthWebServiceTest extends AbstractWebServiceTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ClientService clientService;
@@ -34,6 +31,7 @@ public class HealthWebServiceTest extends AbstractWebServiceTest {
 
     @Test
     public void givenHostNameWhenHeartbeatThenClientServiceIsInvoked() {
+        mockExceptionHandlerForRunnable();
         String hostName = "theUtHostName";
         service.heartbeat(hostName);
         verify(clientService).updateHeartbeat(hostName);
@@ -41,18 +39,21 @@ public class HealthWebServiceTest extends AbstractWebServiceTest {
 
     @Test
     public void givenNullHostNameWhenHeartbeatThenClientServiceIsInvoked() {
+        mockExceptionHandlerForRunnable();
         service.heartbeat(null);
         verify(clientService).updateHeartbeat(null);
     }
 
     @Test
     public void givenListSizeNullWhenGetErrorsThenErrorReportServiceIsInvokeWithListSize20() {
+        mockExceptionHandlerForCallable();
         service.getErrors(null);
         verify(errorReportService).getErrors(20);
     }
 
     @Test
     public void whenGetErrorsThenReturnsListOfErrorReportService() {
+        mockExceptionHandlerForCallable();
         List<ErrorLog> expectedList = new ArrayList<>();
         when(errorReportService.getErrors(any(Integer.class))).thenReturn(expectedList);
 
