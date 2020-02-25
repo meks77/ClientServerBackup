@@ -37,7 +37,8 @@ public class ErrorReporter {
             if (url == null) {
                 url = urlResolver.getWebserviceUrl("health", "error/" + systemService.getHostname());
             }
-            jsonHttpClient.put(url, ErrorReport.anErrorReport().message(message).exception(exc).build(), Void.TYPE);
+            // TODO create serializable exception info
+//            jsonHttpClient.put(url, ErrorReport.anErrorReport().message(message).exception(exc).build(), Void.TYPE);
         } catch (Exception e) {
             logger.error("couldn't report error to server", e);
         }

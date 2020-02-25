@@ -27,7 +27,7 @@ public class UploadService {
             Files.createDirectories(filePath.getParent());
             Files.createFile(filePath);
             appendToFile(filePath, inputStream);
-            return directoryService.getApplicationRoot().relativize(filePath);
+            return directoryService.getUploadDir().relativize(filePath);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }

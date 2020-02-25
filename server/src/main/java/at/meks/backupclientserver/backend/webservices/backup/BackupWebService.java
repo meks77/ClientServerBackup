@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -49,7 +48,7 @@ public class BackupWebService {
     }
 
     @Path("/isFileUpToDate")
-    @GET
+    @POST
     public FileUp2dateResult isFileUp2date(FileUp2dateInput fileUp2DateInput) {
         return exceptionHandler.runReportingException(() -> "isFileUp2date", () -> {
             boolean upToDate = backupService.isFileUpToDate(fileUp2DateInput, fileUp2DateInput.getMd5Checksum());

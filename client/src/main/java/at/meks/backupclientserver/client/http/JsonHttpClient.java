@@ -5,6 +5,7 @@ import at.meks.backupclientserver.client.ServerStatusService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -22,7 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 
 @Singleton
 public class JsonHttpClient {
@@ -67,7 +70,11 @@ public class JsonHttpClient {
                 //noinspection unchecked
                 return (R) Void.TYPE;
             }
-            return mapper.readValue(response.getEntity().getContent(), resultClass);
+            if (resultClass.equals(String.class)) {
+                return resultClass.cast(IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8));
+            } else {
+                return mapper.readValue(response.getEntity().getContent(), resultClass);
+            }
         } finally {
             closeResponse(response);
         }
@@ -85,15 +92,20 @@ public class JsonHttpClient {
 
     private <I> CloseableHttpResponse getResponse(I input, HttpEntityEnclosingRequestBase request) throws IOException {
         if (input != null) {
-            HttpEntity httpEntity =
-                    EntityBuilder.create().setContentType(ContentType.APPLICATION_JSON.withCharset("utf8"))
-                            .setText(mapper.writeValueAsString(input)).build();
+            HttpEntity httpEntity;
+            if (input instanceof InputStream) {
+                httpEntity = EntityBuilder.create().setStream((InputStream) input).build();
+            } else {
+                httpEntity = EntityBuilder.create()
+                        .setContentType(ContentType.APPLICATION_JSON.withCharset("utf8"))
+                        .setText(mapper.writeValueAsString(input)).build();
+                request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+            }
             request.setEntity(httpEntity);
         }
-        request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         CloseableHttpResponse response = httpClient.execute(request);
         StatusLine statusLine = response.getStatusLine();
-        if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
+        if (statusLine.getStatusCode() != HttpStatus.SC_OK && statusLine.getStatusCode() != HttpStatus.SC_NO_CONTENT)  {
             String errorMessage = "Received error from rest service. Code: {}, Message: {}";
             logger.error(errorMessage, statusLine.getStatusCode(), statusLine.getReasonPhrase());
             throw new ClientBackupException(errorMessage);

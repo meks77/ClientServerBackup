@@ -15,4 +15,9 @@ public class HttpUrlResolver {
         return String.format("http://%s:%s/api/v1.0/%s/%s",
                 config.getServerHost(), config.getServerPort(), module, methodUrl);
     }
+
+    public String getWebserviceUrl(String module) {
+        return String.format("http://%s:%s/api/v1.0/%s",
+                config.getServerHost(), config.getServerPort(), module);
+    }
 }

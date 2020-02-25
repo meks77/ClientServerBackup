@@ -83,6 +83,9 @@ public class BackupManager {
 
     public void addForBackup(TodoEntry item) {
         if (!fileExcludeService.isFileExcludedFromBackup(item.getChangedFile())) {
+            if (logger.isInfoEnabled()) {
+                logger.info(String.format("adding for backup: %s", item.getChangedFile().toString()));
+            }
             try {
                 backupQueue.put(item);
             } catch (InterruptedException e) {
