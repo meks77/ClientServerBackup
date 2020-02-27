@@ -50,3 +50,11 @@ Finnally, when those problems are solved, I will create the first stable release
 * automatic client update
 * manage that some of reported errors are ignored
  
+I was getting frustrated by the performancd of the server application. The file upload was realy very slow. Furthermore the code gets confusing. Therefor I started reimplementing the server backand. What I plan to do(or did already) is to
+
+* migrate from Spring to Quarkus
+* provide a native image at least for raspberry
+* separated the one server backup service to a file upload and and a backup command
+* reimplement with DDD, CQRS and Event-Sourcing
+
+I started on a new branch an will merge back when the migration is finished
