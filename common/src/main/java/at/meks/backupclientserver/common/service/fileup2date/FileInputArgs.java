@@ -1,11 +1,12 @@
 package at.meks.backupclientserver.common.service.fileup2date;
 
+import at.meks.backupclientserver.api.ClientId;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-@Builder(builderMethodName = "aFileInputArgs")
+@SuperBuilder(builderMethodName = "aFileInputArgs")
 @Data
 @NoArgsConstructor @AllArgsConstructor
 public class FileInputArgs {
@@ -14,5 +15,6 @@ public class FileInputArgs {
     private String backupedPath;
     private String[] relativePath;
     private String fileName;
+    private ClientId clientId;
 
 }

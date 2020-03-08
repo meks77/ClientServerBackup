@@ -14,7 +14,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -61,21 +60,20 @@ class BackupRemoteService {
     }
 
     private FileUp2dateInput getFileUp2DateRequestInput(Path backupSetPath, Path file)  {
-        FileUp2dateInput input = new FileUp2dateInput();
-        setFileInputArgsProps(backupSetPath, file, input);
-        try {
-            input.setMd5Checksum(md5CheckSumGenerator.md5HexFor(file.toFile()));
-        } catch (IOException e) {
-            throw new ClientBackupException("error while preparing the json input hostname and md5 checksum", e);
-        }
-        return input;
+        return FileUp2dateInput.builder()
+                .md5Checksum(md5CheckSumGenerator.md5HexFor(file.toFile()))
+                .backupedPath(backupSetPath.toString())
+                .relativePath(getRelativePathAsStringArray(backupSetPath, file))
+                .fileName(file.getFileName().toString())
+                .hostName(systemService.getHostname())
+                .build();
     }
 
-    private void setFileInputArgsProps(Path backupSetPath, Path file, FileInputArgs input) {
-        input.setBackupedPath(backupSetPath.toString());
-        input.setRelativePath(getRelativePathAsStringArray(backupSetPath, file));
-        input.setFileName(file.toFile().getName());
-        input.setHostName(systemService.getHostname());
+    private FileInputArgs createFileInputArgs(Path backupSetPath, Path file) {
+        return FileInputArgs.aFileInputArgs().backupedPath(backupSetPath.toString())
+                .relativePath(getRelativePathAsStringArray(backupSetPath, file))
+                .fileName(file.toFile().getName())
+                .hostName(systemService.getHostname()).build();
     }
 
     private String[] getRelativePathAsStringArray(Path backupSetPath, Path file) {
@@ -89,8 +87,7 @@ class BackupRemoteService {
     }
 
     void delete(Path backupSetPath, Path file) {
-        FileInputArgs fileInputArgs = new FileInputArgs();
-        setFileInputArgsProps(backupSetPath, file, fileInputArgs);
+        FileInputArgs fileInputArgs = createFileInputArgs(backupSetPath, file);
         jsonHttpClient.delete(getBackupMethodUrl("delete"), fileInputArgs);
     }
 }

@@ -1,14 +1,15 @@
 package at.meks.backupclientserver.common;
 
+import lombok.SneakyThrows;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 
 public class Md5CheckSumGenerator {
 
-    public String md5HexFor(File file) throws IOException {
+    @SneakyThrows
+    public String md5HexFor(File file) {
         try (FileInputStream fis = new FileInputStream(file)) {
             return DigestUtils.md5Hex(fis);
         }
