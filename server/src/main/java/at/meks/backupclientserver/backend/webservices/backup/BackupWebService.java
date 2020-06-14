@@ -2,20 +2,26 @@ package at.meks.backupclientserver.backend.webservices.backup;
 
 import at.meks.backupclientserver.api.AvailableActionsQuery;
 import at.meks.backupclientserver.api.BackupAction;
+import at.meks.backupclientserver.api.BackupFile;
+import at.meks.backupclientserver.api.ClientId;
 import at.meks.backupclientserver.api.FileId;
 import at.meks.backupclientserver.api.FileProperties;
 import at.meks.backupclientserver.api.ManagedPath;
 import at.meks.backupclientserver.api.ManagedRootDir;
 import at.meks.backupclientserver.backend.services.backup.BackupService;
-import at.meks.backupclientserver.backend.services.file.UploadService;
 import at.meks.backupclientserver.common.service.BackupCommandArgs;
+import at.meks.backupclientserver.common.service.backup.FileStatus;
+import at.meks.backupclientserver.common.service.backup.WebBackupAction;
+import at.meks.backupclientserver.common.service.backup.WebLink;
+import at.meks.backupclientserver.common.service.backup.WebMethod;
 import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import org.apache.commons.lang3.ArrayUtils;
+import org.axonframework.commandhandling.GenericCommandMessage;
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.queryhandling.QueryGateway;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -27,6 +33,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,13 +44,14 @@ import java.util.StringJoiner;
 @Consumes(MediaType.APPLICATION_JSON)
 public class BackupWebService {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    @ConfigProperty(name = "application.root.dir")
+    private String rootDir;
+
+    @ConfigProperty(name = "application.upload.dir")
+    private String uploadDir;
 
     @Inject
     private BackupService backupService;
-
-    @Inject
-    private UploadService uploadService;
 
     @Inject
     private ExceptionHandler exceptionHandler;
@@ -51,18 +59,20 @@ public class BackupWebService {
     @Inject
     private QueryGateway queryGateway;
 
+    @Inject
+    private CommandGateway commandGateway;
+
     @POST
     public void backupFile(BackupCommandArgs backupCommandArgs) {
-        exceptionHandler.runReportingException(() -> "backupFile", () -> {
-            logger.info("received file for hostName {} and backedupPath {} and relative path {}. File: {}",
-                    backupCommandArgs.getHostName(), backupCommandArgs.getBackupedPath(),
-                    backupCommandArgs.getRelativePath(), backupCommandArgs.getRelativePathUplodadedFile());
-            FileInputArgs fileInputArgs =
-                    FileInputArgs.aFileInputArgs().hostName(backupCommandArgs.getHostName()).backupedPath(backupCommandArgs.getBackupedPath())
-                            .relativePath(backupCommandArgs.getRelativePath()).fileName(backupCommandArgs.getFileName()).build();
-            backupService.backup(uploadService.getAbsolutePath(backupCommandArgs.getRelativePathUplodadedFile()), fileInputArgs);
-            logger.info("backup completed");
-        });
+        final BackupFile backupCmd = new BackupFile(
+                new FileProperties(
+                        new ManagedPath(
+                                new ManagedRootDir(backupCommandArgs.getBackupedPath()),
+                                String.join("/", backupCommandArgs.getRelativePath()),
+                                new ClientId(backupCommandArgs.getClientId())),
+                        backupCommandArgs.getFileName()),
+                Paths.get(rootDir, uploadDir, backupCommandArgs.getRelativePathUplodadedFile()).toString());
+        commandGateway.sendAndWait(GenericCommandMessage.asCommandMessage(backupCmd));
     }
 
     @Path("/isFileUpToDate")

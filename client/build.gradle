@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id "org.jetbrains.kotlin.jvm"
     id 'application'
 }
 
@@ -17,6 +18,11 @@ dependencies {
     implementation('org.apache.logging.log4j:log4j-slf4j-impl:2.11.1')
     implementation('commons-io:commons-io:2.6')
     implementation('at.meks:easy-validation:1.0.0')
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.4'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.4'
+    compileOnly 'org.projectlombok:lombok:1.18.4'
+    testImplementation 'org.projectlombok:lombok:1.18.4'
 
     testImplementation('org.mockito:mockito-core:2.18.3')
     testImplementation('org.easytesting:fest-assert-core:2.0M10')

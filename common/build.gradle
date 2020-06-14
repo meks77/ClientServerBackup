@@ -1,13 +1,16 @@
 plugins {
     id 'java'
+    id "org.jetbrains.kotlin.jvm"
 }
 
 sourceCompatibility = 1.8
 
 dependencies {
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
-    compile group: 'commons-codec', name: 'commons-codec', version: '1.11'
-    compile project (':api')
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
+    implementation group: 'commons-codec', name: 'commons-codec', version: '1.11'
+    implementation project (':api')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+
     annotationProcessor 'org.projectlombok:lombok:1.18.4'
     compileOnly 'org.projectlombok:lombok:1.18.4'
     testImplementation group: 'org.easytesting', name: 'fest-assert-core', version: '2.0M10'

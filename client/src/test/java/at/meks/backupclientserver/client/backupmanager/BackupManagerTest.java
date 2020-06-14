@@ -71,38 +71,6 @@ public class BackupManagerTest {
     }
 
     @Test
-    public void givenFileMd5EqualsWhenAddForBackupThenFileIsntBackuped() throws InterruptedException,
-            URISyntaxException {
-        Path uplodedFilePath = Paths.get(getClass().getResource(FILE_NAME_IN_TEST_SOURCE_FOR_BACKUP).toURI());
-        Path backupSetPath = Paths.get(getClass().getResource("/").toURI());
-        when(backupRemoteService.isFileUpToDate(any(), any())).thenReturn(true);
-
-        manager.addForBackup(new TodoEntry(PathChangeType.MODIFIED,
-                uplodedFilePath,
-                backupSetPath));
-        waitForQueueItemIsProcessed();
-
-        verify(backupRemoteService).isFileUpToDate(backupSetPath, uplodedFilePath);
-        verify(backupRemoteService, never()).backupFile(any(), any());
-    }
-
-    @Test
-    public void givenFileMd5DiffersWhennAddForBackupThenFileIsBackuped() throws InterruptedException,
-            URISyntaxException {
-        Path uplodedFilePath = Paths.get(getClass().getResource(FILE_NAME_IN_TEST_SOURCE_FOR_BACKUP).toURI());
-        Path backupSetPath = Paths.get(getClass().getResource("/").toURI());
-        when(backupRemoteService.isFileUpToDate(any(), any())).thenReturn(false);
-
-        manager.addForBackup(new TodoEntry(PathChangeType.MODIFIED,
-                uplodedFilePath,
-                backupSetPath));
-        waitForQueueItemIsProcessed();
-
-        verify(backupRemoteService).isFileUpToDate(backupSetPath, uplodedFilePath);
-        verify(backupRemoteService).backupFile(backupSetPath, uplodedFilePath);
-    }
-
-    @Test
     public void givenDeletedEntryWhenBackupThenBackupRemoteServiceDeleteIsInvoked() {
         Path file = Paths.get("deletedFile.txt");
         Path backupSet = Paths.get("backupSet");

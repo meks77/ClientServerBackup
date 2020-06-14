@@ -54,8 +54,7 @@ public class BackupManager {
         logger.debug("backup {}", item);
         try {
             if (item.getChangedFile().toFile().isFile() &&
-                    item.getType() != PathChangeType.DELETED &&
-                    !isFileUpToDate(item)) {
+                    item.getType() != PathChangeType.DELETED) {
                 backupFile(item);
             } else if (item.getType() == PathChangeType.DELETED) {
                 deleteBackupedFile(item);
@@ -65,14 +64,9 @@ public class BackupManager {
         }
     }
 
-    private boolean isFileUpToDate(TodoEntry item) {
-        boolean fileUpToDate = backupRemoteService.isFileUpToDate(item.getWatchedPath(), item.getChangedFile());
-        logger.debug("the file {} is update2date: {}", item.getChangedFile(), fileUpToDate);
-        return fileUpToDate;
-    }
-
     private void backupFile(TodoEntry item) {
         logger.info("backup file {}", item.getChangedFile());
+
         backupRemoteService.backupFile(item.getWatchedPath(), item.getChangedFile());
     }
 

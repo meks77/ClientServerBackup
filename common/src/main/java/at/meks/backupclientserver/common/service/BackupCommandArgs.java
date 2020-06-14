@@ -14,5 +14,6 @@ public class BackupCommandArgs {
     String[] relativePath;
     String backupedPath;
     String fileName;
+    String clientId;
 
 }

@@ -7,21 +7,29 @@ import at.meks.backupclientserver.client.http.HttpUrlResolver;
 import at.meks.backupclientserver.client.http.JsonHttpClient;
 import at.meks.backupclientserver.common.Md5CheckSumGenerator;
 import at.meks.backupclientserver.common.service.BackupCommandArgs;
+import at.meks.backupclientserver.common.service.backup.FileStatus;
+import at.meks.backupclientserver.common.service.backup.WebBackupAction;
+import at.meks.backupclientserver.common.service.backup.WebLink;
 import at.meks.backupclientserver.common.service.fileup2date.FileInputArgs;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateInput;
 import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import lombok.SneakyThrows;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.StreamSupport;
 
 @Singleton
 class BackupRemoteService {
 
+    private static final String CLIENT_ID = "currentlyHardcodedClientId";
     @Inject
     private JsonHttpClient jsonHttpClient;
 
@@ -37,18 +45,34 @@ class BackupRemoteService {
     private final Md5CheckSumGenerator md5CheckSumGenerator = new Md5CheckSumGenerator();
 
     void backupFile(Path backupSetPath, Path changedFile) {
-        try {
-            String uploadedFile = jsonHttpClient.post(urlResolver.getWebserviceUrl("file"),
-                    Files.newInputStream(changedFile), String.class);
-            jsonHttpClient.post(urlResolver.getWebserviceUrl("backup"), new BackupCommandArgs(uploadedFile,
-                    systemService.getHostname(), getRelativePathAsStringArray(backupSetPath, changedFile),
-                    backupSetPath.toString(), changedFile.toFile().getName()), Void.TYPE);
-        } catch (Exception e) {
-            if (ExceptionUtils.getRootCause(e) instanceof ConnectException) {
-                serverStatusService.setServerAvailable(false);
-            }
-            throw new ClientBackupException("couldn't backup file " + changedFile, e);
-        }
+        final FileUp2dateInput input = new FileUp2dateInput();
+        input.setHostName(systemService.getHostname());
+        input.setRelativePath(getRelativePathAsStringArray(backupSetPath, changedFile));
+        input.setFileName(changedFile.getFileName().toString());
+        input.setBackupedPath(backupSetPath.toString());
+        input.setMd5Checksum(md5CheckSumGenerator.md5HexFor(changedFile.toFile()));
+        FileStatus result = jsonHttpClient.post(urlResolver.getWebserviceUrl("backup/filestatus"), input,
+                FileStatus.class);
+        List<WebLink> webLinks = result.getLinks();
+
+        WebLink uploadLink = webLinks.stream()
+                .filter(webLink -> webLink.getRel().equals(WebBackupAction.UPLOAD))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Upload link is not available"));
+
+        webLinks.stream()
+                .filter(webLink -> webLink.getRel().equals(WebBackupAction.INITIAL_BACKUP))
+                .findFirst()
+                .ifPresent(webLink -> doInitialBackup(uploadLink, webLink, backupSetPath, changedFile));
+    }
+
+    @SneakyThrows(IOException.class)
+    private void doInitialBackup(WebLink uploadLink, WebLink backupLink, Path backupSetPath, Path changedFile) {
+        String uploadedFile = jsonHttpClient.invoke(uploadLink, Files.newInputStream(changedFile),
+                String.class);
+        jsonHttpClient.invoke(backupLink, new BackupCommandArgs(uploadedFile,
+                systemService.getHostname(), getRelativePathAsStringArray(backupSetPath, changedFile),
+                backupSetPath.toString(), changedFile.toFile().getName(), CLIENT_ID), Void.TYPE);
     }
 
     boolean isFileUpToDate(Path backupSetPath, Path file) {

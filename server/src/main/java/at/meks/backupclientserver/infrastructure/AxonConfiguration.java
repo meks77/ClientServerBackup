@@ -19,7 +19,8 @@ class AxonConfiguration {
     @Produces
     Configuration produceConfiguration() {
         return DefaultConfigurer.defaultConfiguration()
-                .configureAggregate(AggregateConfigurer.defaultConfiguration(ManagedFile.class))
+                .configureAggregate(ManagedFile.class)
+                .configureAggregate(at.meks.backupclientserver.context.backup.ManagedFile.class)
                 .registerQueryHandler(configuration -> availableActionsQueryHandler)
                 .buildConfiguration();
     }

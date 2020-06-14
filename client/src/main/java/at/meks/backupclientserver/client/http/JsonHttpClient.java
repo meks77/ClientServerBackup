@@ -2,6 +2,8 @@ package at.meks.backupclientserver.client.http;
 
 import at.meks.backupclientserver.client.ClientBackupException;
 import at.meks.backupclientserver.client.ServerStatusService;
+import at.meks.backupclientserver.common.service.backup.WebLink;
+import at.meks.backupclientserver.common.service.backup.WebMethod;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -14,6 +16,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
@@ -37,6 +40,24 @@ public class JsonHttpClient {
 
     @Inject
     private ServerStatusService serverStatusService;
+
+    public <I, R> R invoke(WebLink webLink, I input, Class<R> resultClass) {
+        return invokeHttpRequestAndCatchError(input, resultClass, getHttpMethod(webLink.getHref(), webLink.getType()));
+    }
+
+    private HttpEntityEnclosingRequestBase getHttpMethod(String url, WebMethod webMethod) {
+        HttpEntityEnclosingRequestBase method;
+        if (webMethod == WebMethod.POST) {
+            method = new HttpPost(url);
+        } else if (webMethod == WebMethod.PUT) {
+            method = new HttpPut(url);
+        } else if (webMethod == WebMethod.DELETE) {
+            method = new HttpDelete(url);
+        } else {
+            throw new IllegalArgumentException(webMethod + " not supported");
+        }
+        return method;
+    }
 
     public <I, R> R post(String url, I input, Class<R> resultClass) {
         return invokeHttpRequestAndCatchError(input, resultClass, new HttpPost(url));

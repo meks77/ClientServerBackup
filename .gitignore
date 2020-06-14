@@ -32,3 +32,8 @@ nb-configuration.xml
 # Gradle
 .gradle/
 build/
+
+# Maven
+target/
+
+out/
