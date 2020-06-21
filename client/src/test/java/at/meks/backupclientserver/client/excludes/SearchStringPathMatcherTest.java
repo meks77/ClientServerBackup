@@ -2,6 +2,8 @@ package at.meks.backupclientserver.client.excludes;
 
 import org.junit.Test;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -48,7 +50,9 @@ public class SearchStringPathMatcherTest {
 
     @Test
     public void giventRepeatedDoubleStarAndSingleStarWhenPathMatchesReturnsTrue() {
-        assertThat(pathMatcher.matches("C:/**/FireFox/**/cache/*",
+        String path = String.format("C:%s**%sFirefox%s**%scache%s*",
+                File.separator, File.separator, File.separator, File.separator, File.separator);
+        assertThat(pathMatcher.matches(path,
                     Paths.get("C:", "Users", "user1", "AppData", "Firefox", "runtime", "cache", "xyz.txt")))
                 .isTrue();
     }

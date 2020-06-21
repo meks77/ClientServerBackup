@@ -127,7 +127,7 @@ public class ApplicationConfigTest {
         writeLines(configFile, asList(DEFAULT_HOST_ENTRY, getBackupsetConfigEntryFor("C:/whatever", 0)));
 
         expectedException.expect(ValidationException.class);
-        expectedException.expectMessage(startsWith("Configured directory C:\\whatever must exist"));
+        expectedException.expectMessage(startsWith("Configured directory C:" + File.separator + "whatever must exist"));
 
         config.validate();
     }

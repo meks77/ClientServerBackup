@@ -11,16 +11,9 @@ repositories {
 	gradlePluginPortal()
 }
 
-sourceCompatibility = 1.8
+sourceCompatibility = 11
 
 dependencies {
-	implementation 'org.axonframework:axon-messaging:4.2.1'
-	implementation 'org.axonframework:axon-modelling:4.2.1'
-	implementation 'org.axonframework:axon-eventsourcing:4.2.1'
-	implementation 'org.axonframework:axon-configuration:4.2.1'
-	implementation 'org.axonframework:axon-server-connector:4.2.1'
-	testImplementation 'org.axonframework:axon-test:4.2.1'
-
 	implementation 'io.quarkus:quarkus-resteasy-jackson'
 	implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2'
 	implementation enforcedPlatform('io.quarkus:quarkus-bom:1.2.0.Final')
@@ -30,12 +23,12 @@ dependencies {
 	testImplementation 'io.quarkus:quarkus-junit5'
 	testImplementation 'io.rest-assured:rest-assured'
 
-	compile project (':api')
+	implementation project (':api')
 	compile project (':common')
 	implementation ('io.jsondb:jsondb-core:1.0.85')
 	implementation('com.google.guava:guava:27.0.1-jre')
 	implementation('commons-io:commons-io:2.6')
-	implementation 'at.meks:easy-validation:1.0.0'
+	implementation 'at.meks:easy-validation-args:2.0.0-RC3'
 
 	annotationProcessor 'org.projectlombok:lombok:1.18.4'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.4'
