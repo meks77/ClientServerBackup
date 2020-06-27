@@ -1,10 +1,10 @@
 package at.meks.backupclientserver.context.backup.model;
 
-import java.io.InputStream;
+import java.util.Optional;
 
 public interface BackupedFileRepository {
 
-    BackupedFile findById(String id);
+    Optional<BackupedFile> findById(String id);
 
     void save(BackupedFile backupedFile);
 

@@ -6,4 +6,5 @@ import lombok.Value;
 public class Client {
 
     String id;
+
 }

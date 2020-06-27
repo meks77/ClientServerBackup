@@ -22,11 +22,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
-import java.util.Base64;
+import java.util.Optional;
 
-@javax.ws.rs.Path("/api/v1.0/backup/{clientId}/{directory}/{filename}")
+@javax.ws.rs.Path("/api/v1.0/{clientId}/{directory}/{filename}")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Slf4j
@@ -41,18 +43,46 @@ public class BackupWebService {
     @Inject
     Configuration configuration;
 
-    @POST
+    @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public void backupFile(@PathParam("clientId") String clientId, @PathParam("directory") String directory,
-                           @PathParam("filename") String filename, InputStream fileContent) {
-        log.info("backup file {}/{} for client {}", directory, filename, clientId );
+    public Response backupFile(@PathParam("clientId") String clientId, @PathParam("directory") String encodedDirectory,
+                           @PathParam("filename") String encodedFilename, InputStream fileContent) {
+        String filename = decode(encodedFilename);
+        String directoryName = decode(encodedDirectory);
+        log.info("backup file {}/{} for client {}", directoryName, filename, clientId );
+        Optional<BackupedFile> persistedFile = findBackupedFile(clientId, directoryName, filename);
+        try {
+            if(persistedFile.isEmpty()) {
+                backupNewFile(clientId, directoryName, filename, fileContent);
+            } else {
+                backupNewVersion(fileContent, persistedFile.get());
+            }
+            return Response.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(HttpResponseStatus.BAD_REQUEST.code()).type(MediaType.TEXT_PLAIN_TYPE)
+                    .entity(e.getMessage()).build();
+        } finally {
+            log.info("backup completed");
+        }
+    }
+
+    private String decode(@PathParam("filename") String encodedFilename) {
+        return URLDecoder.decode(encodedFilename, StandardCharsets.UTF_8);
+    }
+
+    private void backupNewFile(@PathParam("clientId") String clientId, @PathParam("directory") String directory, @PathParam("filename") String filename, InputStream fileContent) {
         BackupedFile backupedFile = BackupedFile.backupNewFile(() -> configuration.uploadDir(), fileSystem,
                 new Client(clientId),
                 getContainingDirectory(directory),
                 filename,
                 ZonedDateTime.now(), fileContent);
         repository.save(backupedFile);
-        log.info("backup completed");
+    }
+
+    private void backupNewVersion(InputStream fileContent, BackupedFile persistedFile) {
+        persistedFile.updateBackupedFile(() -> configuration.uploadDir(), fileSystem, ZonedDateTime.now(), fileContent);
+        repository.update(persistedFile);
+        log.info("backup new version completed");
     }
 
     private Path toPath(String encodedPath) {
@@ -64,15 +94,16 @@ public class BackupWebService {
     }
 
     @GET
-    @javax.ws.rs.Path("isFileUpToDate")
+    @javax.ws.rs.Path("/isFileUpToDate")
     public FileUp2dateResult isFileUp2date(@PathParam("clientId") String clientId, @PathParam("directory") String directory,
                                            @PathParam("filename") String filename, @HeaderParam("md5Checksum") String md5Checksum) {
-        BackupedFile backupedFile = findBackupedFile(clientId, directory, filename);
-        boolean upToDate = backupedFile.isCurrentChecksumEqualTo(md5Checksum);
+        Optional<BackupedFile> backupedFile = findBackupedFile(clientId, decode(directory), decode(filename));
+        boolean upToDate = backupedFile.map(file -> file.isCurrentChecksumEqualTo(md5Checksum)).orElse(false);
+        log.info("{}}/{}} is up2date: {}", directory, filename, upToDate);
         return new FileUp2dateResult(upToDate);
     }
 
-    private BackupedFile findBackupedFile(String clientId, String directory, String filename) {
+    private Optional<BackupedFile> findBackupedFile(String clientId, String directory, String filename) {
         return repository.findById(
                 getBackupedFileId(clientId, directory, filename));
     }
@@ -81,29 +112,16 @@ public class BackupWebService {
         return BackupedFile.getIdFor(new Client(clientId), getContainingDirectory(directory), filename);
     }
 
-    @PUT
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public Response backupChangedFile(@PathParam("clientId") String clientId, @PathParam("directory") String directory,
-                                  @PathParam("filename") String filename, InputStream fileContent) {
-        log.info("backup new version of file {}/{} of client {}", directory, filename, clientId);
-        BackupedFile backupedFile = findBackupedFile(clientId, directory, filename);
-        try {
-            backupedFile.updateBackupedFile(() -> configuration.uploadDir(), fileSystem, ZonedDateTime.now(), fileContent);
-            repository.update(backupedFile);
-            log.info("backup new version completed");
-            return Response.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return Response.status(HttpResponseStatus.BAD_REQUEST.code(), e.getMessage()).build();
-        }
-    }
-
     @DELETE
     public void deletePath(@PathParam("clientId") String clientId, @PathParam("directory") String directory,
                            @PathParam("filename") String filename) {
         log.info("delete file {}/{} of client {}", directory, filename, clientId);
-        BackupedFile backupedFile = findBackupedFile(clientId, directory, filename);
-        backupedFile.markDeleted(ZonedDateTime.now());
-        repository.update(backupedFile);
+        Optional<BackupedFile> backupedFile = findBackupedFile(clientId, directory, filename);
+        if (backupedFile.isEmpty()) {
+            return;
+        }
+        backupedFile.get().markDeleted(ZonedDateTime.now());
+        repository.update(backupedFile.get());
         log.info("delete completed");
     }
 
