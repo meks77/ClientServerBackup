@@ -32,3 +32,4 @@ nb-configuration.xml
 # Gradle
 .gradle/
 build/
+gradle.properties
