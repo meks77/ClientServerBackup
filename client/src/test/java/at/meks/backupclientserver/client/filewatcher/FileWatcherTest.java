@@ -4,17 +4,17 @@ import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.FileService;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandler;
-import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,22 +26,18 @@ import java.nio.file.StandardWatchEventKinds;
 import java.util.Collections;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class FileWatcherTest {
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private Logger logger = LoggerFactory.getLogger(getClass());
-    private File testDir;
+
+    @TempDir
+    File testDir;
+
     private boolean mockInvoked;
 
     @Mock
@@ -56,21 +52,21 @@ public class FileWatcherTest {
     @InjectMocks
     private FileWatcher fileWatcher = new FileWatcher();
 
-    @Before
+    @BeforeEach
     public void reinit() throws IOException {
         mockInvoked = false;
-        testDir = TestDirectoryProvider.createTempDirectory().toFile();
         when(fileService.getDirectoriesMapFile()).thenReturn(
                 Files.createFile(testDir.toPath().resolve("dirMapFile.dir")));
     }
 
-    @After
+    @AfterEach
     public void stopWatcher() throws IOException {
         fileWatcher.stopWatching();
         FileUtils.forceDeleteOnExit(testDir);
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void whenFileChangesConsumerIsInformed() throws IOException {
         File testFile = new File(testDir, "whenFileChanges.txt");
         assertTrue(testFile.createNewFile());
@@ -101,7 +97,8 @@ public class FileWatcherTest {
         return consumer;
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void whenFileIsCreatedConsumerIsInformed() throws IOException {
         File testFile = new File(testDir, "whenFileIsCreated.txt");
         FileChangeHandler consumer = mockConsumerAndStartWatcher();
@@ -111,7 +108,8 @@ public class FileWatcherTest {
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, testFile.toPath());
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void whenDirectoryIsCreatedConsumerIsInformed() {
         File subDir = new File(testDir, "whenDirectoryIsCreated");
         FileChangeHandler consumer = mockConsumerAndStartWatcher();
@@ -121,7 +119,8 @@ public class FileWatcherTest {
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, subDir.toPath());
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void whenFileIsDeletedConsumerIsInformed() throws IOException {
         File testFile = new File(testDir, "whenFileIsDeleted.txt");
         assertTrue(testFile.createNewFile());
@@ -133,7 +132,8 @@ public class FileWatcherTest {
         verify(consumer, timeout(50)).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_DELETE, testFile.toPath());
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void whenDirectoryIsDeletedConsumerIsInformed() throws IOException {
         File subDir = new File(testDir, "whenDirectoryIsDeleted");
         //noinspection ResultOfMethodCallIgnored
@@ -145,7 +145,8 @@ public class FileWatcherTest {
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_DELETE, subDir.toPath());
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void givenDirectoryAndFileWithinNewDirIsCreatedConsumerIsInformed() throws IOException {
         File subDir = new File(testDir, "givenDirectoryAndFileWithinNewDirIsCreated");
         FileChangeHandler consumer = mockConsumerAndStartWatcher();
@@ -161,7 +162,8 @@ public class FileWatcherTest {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void whenFileIsAddedToSubDirConsumerIsInformed() throws IOException {
         File subDir = new File(testDir, "whenFileIsAddedToSubDir");
         subDir.mkdirs();
@@ -174,7 +176,8 @@ public class FileWatcherTest {
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, newFileInSubdir.toPath());
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void whenDirectoryIsAddedToSubDirConsumerIsInformed() {
         File subDir = new File(testDir, "whenDirectoryIsAddedToSubDir");
         //noinspection ResultOfMethodCallIgnored
@@ -188,7 +191,8 @@ public class FileWatcherTest {
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, subSubDir.toPath());
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void whenFileIsRenamedConsumerIsInformed() throws IOException {
         File originFile = new File(testDir, "whenFileIsRenamed-Origin.txt");
         assertTrue(originFile.createNewFile());
@@ -202,7 +206,8 @@ public class FileWatcherTest {
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, renamedFile.toPath());
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(5)
     public void whenDirectoryIsRenamedConsumerIsInformed() {
         File originDir = new File(testDir, "whenDirectoryIsRenamed-Origin");
         //noinspection ResultOfMethodCallIgnored
@@ -215,7 +220,7 @@ public class FileWatcherTest {
         waitForConsumerInvocation();
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_DELETE, originDir.toPath());
         verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, renamedDir.toPath());
-        verifyZeroInteractions(errorReporter);
+        verifyNoInteractions(errorReporter);
     }
 
     private FileChangeHandler mockConsumerAndStartWatcher() {

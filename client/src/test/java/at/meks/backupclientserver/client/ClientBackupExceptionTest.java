@@ -1,10 +1,10 @@
 package at.meks.backupclientserver.client;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.security.InvalidKeyException;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ClientBackupExceptionTest {
 

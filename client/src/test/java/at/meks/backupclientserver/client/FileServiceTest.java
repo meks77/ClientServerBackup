@@ -1,31 +1,27 @@
 package at.meks.backupclientserver.client;
 
-import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+@ExtendWith(MockitoExtension.class)
 public class FileServiceTest {
 
     private static final String APPLICATION_DIR_NAME = ".ClientServerBackup";
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ConfigFileInitializer configFileInitializer;
@@ -33,17 +29,12 @@ public class FileServiceTest {
     @InjectMocks
     private FileService fileService = new FileService();
 
-    private Path userHomePath;
+    @TempDir
+    Path userHomePath;
 
-    @Before
+    @BeforeEach
     public void initUserHome() {
-        userHomePath = TestDirectoryProvider.createTempDirectory();
         System.setProperty("user.home", userHomePath.toString());
-    }
-
-    @After
-    public void deleteTempDir() throws IOException {
-        FileUtils.forceDeleteOnExit(userHomePath.toFile());
     }
 
     @Test
@@ -79,7 +70,7 @@ public class FileServiceTest {
     public void givenExistingFileWhenGetConfigFileThenFileContentIsNotInitialized() throws IOException {
         Files.createFile(Files.createDirectory(getApplicationRoot()).resolve(".config"));
         fileService.getConfigFile();
-        verifyZeroInteractions(configFileInitializer);
+        verifyNoInteractions(configFileInitializer);
     }
 
     @Test

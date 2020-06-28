@@ -2,9 +2,9 @@ package at.meks.backupclientserver.client;
 
 import at.meks.validation.result.ValidationException;
 import at.meks.validation.validations.list.ListValidations;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -28,7 +28,7 @@ public class ApplicationConfig {
     private Properties properties;
 
     @Inject
-    private FileService fileService;
+    FileService fileService;
 
     Path[] getBackupedDirs() {
         return getProperties().stringPropertyNames().stream()

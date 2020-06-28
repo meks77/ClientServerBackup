@@ -3,24 +3,24 @@ package at.meks.backupclientserver.client;
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandlerImpl;
 import at.meks.backupclientserver.client.filewatcher.FileWatcher;
 import at.meks.backupclientserver.client.startupbackuper.StartupBackuper;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.quarkus.runtime.Quarkus;
+import lombok.SneakyThrows;
+import mockit.MockUp;
+import mockit.integration.junit5.JMockitExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Path;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith({MockitoExtension.class, JMockitExtension.class})
 public class BackupClientApplicationTest {
 
     @Mock
@@ -41,9 +41,18 @@ public class BackupClientApplicationTest {
     @InjectMocks
     private BackupClientApplication application;
 
+    @BeforeEach
+    void mockQuarkus() {
+        new MockUp<Quarkus>() {
+            @mockit.Mock
+            public void waitForExit() {
+
+            }
+        };
+    }
+
     @Test
-    public void givenConfigurePathesWhenRunAreSetAtWatcher() throws InvocationTargetException, IllegalAccessException,
-            NoSuchMethodException {
+    void givenConfigurePathesWhenRunAreSetAtWatcher() {
         Path[] paths = createPathsArray();
         when(applicationConfig.getBackupedDirs()).thenReturn(paths);
 
@@ -61,29 +70,25 @@ public class BackupClientApplicationTest {
         return new Path[]{path1, path2, path3};
     }
 
-    private void invokePrivateRunMethod() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Method run = application.getClass().getDeclaredMethod("run");
-        run.setAccessible(true);
-        run.invoke(application);
+    @SneakyThrows
+    private void invokePrivateRunMethod() {
+        application.run();
     }
 
     @Test
-    public void whenRunThenFileChangeHandlerIsSetAtFileWatcher() throws NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException {
+    void whenRunThenFileChangeHandlerIsSetAtFileWatcher() {
         invokePrivateRunMethod();
         verify(fileWatcher).setOnChangeConsumer(fileChangeHandler);
     }
 
     @Test
-    public void whenRunThenFileWatcherIsStarted() throws NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException {
+    void whenRunThenFileWatcherIsStarted() {
         invokePrivateRunMethod();
         verify(fileWatcher).startWatching();
     }
 
     @Test
-    public void whenRunThenStartupBackuperIsInvoked() throws NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException {
+    void whenRunThenStartupBackuperIsInvoked() {
         Path[] paths = createPathsArray();
         when(applicationConfig.getBackupedDirs()).thenReturn(paths);
 
@@ -92,8 +97,7 @@ public class BackupClientApplicationTest {
     }
 
     @Test
-    public void whenRunThenHeartbeatReporterIsStarted() throws NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException {
+    void whenRunThenHeartbeatReporterIsStarted() {
         invokePrivateRunMethod();
         verify(heartBeatReporter).startHeartbeatReporting();
     }

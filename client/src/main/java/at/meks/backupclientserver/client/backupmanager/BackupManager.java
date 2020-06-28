@@ -2,33 +2,32 @@ package at.meks.backupclientserver.client.backupmanager;
 
 import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
 @Singleton
+@Slf4j
 public class BackupManager {
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     private BlockingDeque<TodoEntry> backupQueue = new LinkedBlockingDeque<>(100);
 
     private Thread queueReaderThread;
 
     @Inject
-    private BackupRemoteService backupRemoteService;
+    BackupService backupService;
 
     @Inject
-    private ErrorReporter errorReporter;
+    ErrorReporter errorReporter;
 
     @Inject
-    private FileExcludeService fileExcludeService;
+    FileExcludeService fileExcludeService;
 
-    @Inject
+    @PostConstruct
     private void start() {
         if (queueReaderThread == null || !queueReaderThread.isAlive()) {
             queueReaderThread = new Thread(this::backupQueueItems);
@@ -51,7 +50,7 @@ public class BackupManager {
     }
 
     private void backup(TodoEntry item) {
-        logger.debug("backup {}", item);
+        log.debug("backup {}", item);
         try {
             if (item.getChangedFile().toFile().isFile() &&
                     item.getType() != PathChangeType.DELETED &&
@@ -66,25 +65,25 @@ public class BackupManager {
     }
 
     private boolean isFileUpToDate(TodoEntry item) {
-        boolean fileUpToDate = backupRemoteService.isFileUpToDate(item.getWatchedPath(), item.getChangedFile());
-        logger.debug("the file {} is update2date: {}", item.getChangedFile(), fileUpToDate);
+        boolean fileUpToDate = backupService.isFileUpToDate(item.getChangedFile());
+        log.debug("the file {} is update2date: {}", item.getChangedFile(), fileUpToDate);
         return fileUpToDate;
     }
 
     private void backupFile(TodoEntry item) {
-        logger.info("backup file {}", item.getChangedFile());
-        backupRemoteService.backupFile(item.getWatchedPath(), item.getChangedFile());
+        log.debug("backup file {}", item.getChangedFile());
+        backupService.backupFile(item.getChangedFile());
     }
 
     private void deleteBackupedFile(TodoEntry item) {
-        logger.info("delete file {}", item.getChangedFile());
-        backupRemoteService.delete(item.getWatchedPath(), item.getChangedFile());
+        log.debug("delete file {}", item.getChangedFile());
+        backupService.delete(item.getChangedFile());
     }
 
     public void addForBackup(TodoEntry item) {
         if (!fileExcludeService.isFileExcludedFromBackup(item.getChangedFile())) {
-            if (logger.isInfoEnabled()) {
-                logger.info(String.format("adding for backup: %s", item.getChangedFile().toString()));
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("adding for backup: %s", item.getChangedFile().toString()));
             }
             try {
                 backupQueue.put(item);

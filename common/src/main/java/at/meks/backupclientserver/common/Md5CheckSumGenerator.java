@@ -15,7 +15,4 @@ public class Md5CheckSumGenerator {
         }
     }
 
-    public String md5HexFor(String text) {
-        return DigestUtils.md5Hex(text);
-    }
 }

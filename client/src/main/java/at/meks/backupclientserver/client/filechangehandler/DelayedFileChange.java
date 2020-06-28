@@ -1,8 +1,8 @@
 package at.meks.backupclientserver.client.filechangehandler;
 
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
-import com.google.common.primitives.Ints;
 
+import javax.validation.constraints.NotNull;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
@@ -25,8 +25,8 @@ class DelayedFileChange implements Delayed {
     }
 
     @Override
-    public int compareTo(Delayed o) {
-        return Ints.saturatedCast(readStartTime - ((DelayedFileChange) o).readStartTime);
+    public int compareTo(@NotNull Delayed o) {
+        return (int) (readStartTime - ((DelayedFileChange) o).readStartTime);
     }
 
     TodoEntry getTodoEntry() {

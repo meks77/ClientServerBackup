@@ -5,33 +5,25 @@ import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.PathChangeType;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentCaptor.forClass;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class StartupFileVisitorTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public TemporaryFolder folderRule = new TemporaryFolder();
 
     @Mock
     private BackupManager backupManager;
@@ -72,8 +64,7 @@ public class StartupFileVisitorTest {
     }
 
     @Test
-    public void givenExcludedDirWhenPreVisitDirectoryThenReturnsSkipSubtree() throws IOException {
-        Path visitedDir = folderRule.newFolder().toPath();
+    public void givenExcludedDirWhenPreVisitDirectoryThenReturnsSkipSubtree(@TempDir Path visitedDir) throws IOException {
         when(fileExcludeService.isFileExcludedFromBackup(visitedDir)).thenReturn(true);
 
         FileVisitResult result = visitor.preVisitDirectory(visitedDir, mock(BasicFileAttributes.class));
@@ -82,9 +73,7 @@ public class StartupFileVisitorTest {
     }
 
     @Test
-    public void givenIncludedDirWhenPreVisitDirectoryThenReturnsContinue() throws IOException {
-        Path visitedDir = folderRule.newFolder().toPath();
-
+    public void givenIncludedDirWhenPreVisitDirectoryThenReturnsContinue(@TempDir Path visitedDir) throws IOException {
         FileVisitResult result = visitor.preVisitDirectory(visitedDir, mock(BasicFileAttributes.class));
 
         assertThat(result).isEqualTo(FileVisitResult.CONTINUE);

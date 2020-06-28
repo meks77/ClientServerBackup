@@ -1,8 +1,8 @@
 package at.meks.backupclientserver.client;
 
-import com.google.inject.Singleton;
 import org.apache.commons.lang3.SystemUtils;
 
+import javax.inject.Singleton;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 

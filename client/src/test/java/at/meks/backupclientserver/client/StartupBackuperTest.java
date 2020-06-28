@@ -4,14 +4,13 @@ import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import at.meks.backupclientserver.client.startupbackuper.StartupBackuper;
-import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,16 +21,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.extractProperty;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 public class StartupBackuperTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private BackupManager backupManager;
@@ -39,19 +35,20 @@ public class StartupBackuperTest {
     @Mock
     private FileExcludeService fileExcludeService;
 
+    @TempDir
+    Path backupSetPath;
+
     @InjectMocks
     private StartupBackuper startupBackuper;
 
     @Test
     public void givenEmptyDirectoryWhenBackupIfNecessarThenEndsWithoutException() {
-        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
         startupBackuper.backupIfNecessary(new Path[]{backupSetPath});
         verify(backupManager, timeout(300).times(0)).addForBackup(any());
     }
 
     @Test
     public void givenDirectoryWithEmptyDirectoryWhenBackupIfNecessaryThenBackupManagerIsNotInvoked() throws IOException {
-        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
         createSubFolder(backupSetPath, "subFolder");
 
         startupBackuper.backupIfNecessary(new Path[]{backupSetPath});
@@ -60,8 +57,6 @@ public class StartupBackuperTest {
 
     @Test
     public void givenComplexDirectoryStructureWhenBackupIfNecessaryThenFilesAreAddedForBackup() throws IOException {
-        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
-
         createFile(backupSetPath);
         createDirectoryHierarchyWithEmptyFiles(backupSetPath, "subFolder1");
         createDirectoryHierarchyWithEmptyFiles(backupSetPath, "subFolder2");
@@ -79,7 +74,9 @@ public class StartupBackuperTest {
 
     private void verifyBackupManagerInvocationsForFolder(List<TodoEntry> actualEntries,  Path backupSetPath) {
         List<Path> expectedFileBackupInvocations = getAllFileRecursive(backupSetPath.toFile());
-        assertThat(extractProperty("changedFile").from(actualEntries)).containsOnly(expectedFileBackupInvocations.toArray());
+        assertThat(actualEntries)
+                .extracting(TodoEntry::getChangedFile)
+                .containsExactlyInAnyOrder(expectedFileBackupInvocations.toArray(new Path[0]));
     }
 
     private List<Path> getAllFileRecursive(File file) {
@@ -117,7 +114,6 @@ public class StartupBackuperTest {
 
     @Test
     public void givenHugeNumberOfNewFilesWhenBackupIfNecessaryThenBackupFinishesWithinTimeout() throws IOException {
-        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
         int nrOfFiles = 5000;
         for (int i = 0; i < nrOfFiles; i++) {
             createFile(backupSetPath);

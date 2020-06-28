@@ -1,6 +1,5 @@
 package at.meks.backupclientserver.common.service.fileup2date;
 
-import at.meks.backupclientserver.api.ClientId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

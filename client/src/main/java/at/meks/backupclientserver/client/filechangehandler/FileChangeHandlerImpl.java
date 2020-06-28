@@ -6,11 +6,11 @@ import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.PathChangeType;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.DirectoryStream;
@@ -42,13 +42,13 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
     private ReentrantLock queueReadThreadStartLock = new ReentrantLock();
 
     @Inject
-    private BackupManager backupManager;
+    BackupManager backupManager;
 
     @Inject
-    private ErrorReporter errorReporter;
+    ErrorReporter errorReporter;
 
     @Inject
-    private FileExcludeService excludeService;
+    FileExcludeService excludeService;
 
     @Override
     public void fileChanged(Path watchedRootPath, WatchEvent.Kind kind, Path changedFile) {

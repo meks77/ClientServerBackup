@@ -1,8 +1,0 @@
-plugins {
-    id "org.jetbrains.kotlin.jvm"
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    implementation 'org.axonframework:axon-modelling:4.2.1'
-}

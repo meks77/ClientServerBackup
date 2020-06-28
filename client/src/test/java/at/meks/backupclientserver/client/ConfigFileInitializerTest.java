@@ -1,17 +1,14 @@
 package at.meks.backupclientserver.client;
 
-import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;
-import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,33 +17,31 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ConfigFileInitializerTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Mock
     private SystemService systemService;
 
     @InjectMocks
     private ConfigFileInitializer initializer = new ConfigFileInitializer();
-    private Path tempDirectory;
+
+    @TempDir
+    Path tempDirectory;
+
     private Path configFile;
 
-    @Before
+    @BeforeEach
     public void createTempDir() throws IOException {
-        tempDirectory = TestDirectoryProvider.createTempDirectory();
         configFile = Files.createFile(tempDirectory.resolve("configFile.txt"));
 
     }
 
-    @After
+    @AfterEach
     public void deleteTempDir() throws IOException {
         FileUtils.forceDeleteOnExit(tempDirectory.toFile());
     }
@@ -92,9 +87,9 @@ public class ConfigFileInitializerTest {
 
     @Test
     public void givenNotExistingFileWhenInitializeConfigFileThenClientBackupExceptionIsThrown() {
-        expectedException.expect(ClientBackupException.class);
-        expectedException.expectCause(CoreMatchers.instanceOf(NoSuchFileException.class));
-        initializer.initializeConfigFile(tempDirectory.resolve("notExistingFile.txt"));
+        assertThatThrownBy(() -> initializer.initializeConfigFile(tempDirectory.resolve("notExistingFile.txt")))
+            .isInstanceOf(ClientBackupException.class)
+            .hasCauseInstanceOf(NoSuchFileException.class);
     }
 
 }

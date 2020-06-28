@@ -1,35 +1,22 @@
 package at.meks.backupclientserver.client;
 
-import at.meks.backupclientserver.client.http.HttpUrlResolver;
-import at.meks.backupclientserver.client.http.JsonHttpClient;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Singleton
+@Slf4j
 class HeartBeatReporter {
 
     @Inject
-    private HttpUrlResolver urlResolver;
+    ErrorReporter errorReporter;
 
     @Inject
-    private JsonHttpClient jsonHttpClient;
-
-    @Inject
-    private SystemService systemService;
-
-    @Inject
-    private ErrorReporter errorReporter;
-
-    @Inject
-    private ServerStatusService serverStatusService;
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    ServerStatusService serverStatusService;
 
     /* for faster testing purpose this field is defined to be able to set it from the test. */
     @SuppressWarnings("FieldCanBeLocal")
@@ -42,9 +29,9 @@ class HeartBeatReporter {
 
     private void reportHeartbeat() {
         try {
-            logger.debug("start sending heartbeat");
-            String heartbeatUrl = urlResolver.getWebserviceUrl("health", "heartbeat/" + systemService.getHostname());
-            jsonHttpClient.put(heartbeatUrl, null, Void.TYPE, false);
+            log.debug("start sending heartbeat");
+            // TODO use remote service class to to heartbeat, if necessary
+//            jsonHttpClient.put(heartbeatUrl, null, Void.TYPE, false);
             serverStatusService.setServerAvailable(true);
         } catch (Exception e) {
             errorReporter.reportError("couldn't send heartbeat", e);

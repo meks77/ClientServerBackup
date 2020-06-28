@@ -3,11 +3,11 @@ package at.meks.backupclientserver.client.startupbackuper;
 import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -18,13 +18,13 @@ public class StartupBackuper {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Inject
-    private BackupManager backupManager;
+    BackupManager backupManager;
 
     @Inject
-    private ErrorReporter errorReporter;
+    ErrorReporter errorReporter;
 
     @Inject
-    private FileExcludeService excludeService;
+    FileExcludeService excludeService;
 
     public void backupIfNecessary(Path[] paths) {
         Thread initialBackupThread = new Thread(() ->

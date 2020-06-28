@@ -1,24 +1,27 @@
 package at.meks.backupclientserver.client.excludes;
 
 import at.meks.backupclientserver.client.ApplicationConfig;
-import com.google.inject.Inject;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.TreeSet;
 
+@Singleton
 public class FileExcludeService {
 
     @Inject
-    private ApplicationConfig applicationConfig;
+    ApplicationConfig applicationConfig;
 
     @Inject
-    private SearchStringPathMatcher searchStringPathMatcher;
+    SearchStringPathMatcher searchStringPathMatcher;
 
     private Set<String> excludedExtensions;
     private Set<String> excludes;
 
-    @Inject
+    @PostConstruct
     void initExcludedExtensions() {
         Set<String> newExtensionsSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         newExtensionsSet.addAll(applicationConfig.getExcludedFileExtensions());

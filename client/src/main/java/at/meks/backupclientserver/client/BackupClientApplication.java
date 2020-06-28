@@ -4,39 +4,35 @@ import at.meks.backupclientserver.client.filechangehandler.FileChangeHandlerImpl
 import at.meks.backupclientserver.client.filewatcher.FileWatcher;
 import at.meks.backupclientserver.client.startupbackuper.StartupBackuper;
 import at.meks.validation.result.ValidationException;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.annotations.QuarkusMain;
 
+
+import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.logging.Level;
 
-public class BackupClientApplication {
+@QuarkusMain
+public class BackupClientApplication implements QuarkusApplication {
 
     @Inject
-    private ApplicationConfig config;
+    ApplicationConfig config;
 
     @Inject
-    private FileWatcher fileWatcher;
+    FileWatcher fileWatcher;
 
     @Inject
-    private FileChangeHandlerImpl fileChangeHandler;
+    FileChangeHandlerImpl fileChangeHandler;
 
     @Inject
-    private HeartBeatReporter heartBeatReporter;
-
+    HeartBeatReporter heartBeatReporter;
 
     @Inject
-    private StartupBackuper startupBackuper;
+    StartupBackuper startupBackuper;
 
-    public static void main(String[] args) throws ValidationException {
-        java.util.logging.Logger.getGlobal().setLevel(Level.INFO);
-        Injector injector = Guice.createInjector();
-        BackupClientApplication application = injector.getInstance(BackupClientApplication.class);
-        application.run();
-    }
-
-    private void run() throws ValidationException {
+    @Override
+    public int run(String... args) throws Exception {
         config.validate();
         heartBeatReporter.startHeartbeatReporting();
         Path[] pathesToWatch = config.getBackupedDirs();
@@ -44,6 +40,8 @@ public class BackupClientApplication {
         fileWatcher.setPathsToWatch(pathesToWatch);
         fileWatcher.startWatching();
         startupBackuper.backupIfNecessary(pathesToWatch);
+        Quarkus.waitForExit();
+        return 0;
     }
 
 }

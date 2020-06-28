@@ -1,8 +1,7 @@
 package at.meks.backupclientserver.client;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +17,7 @@ import static java.util.Optional.ofNullable;
 class ConfigFileInitializer {
 
     @Inject
-    private SystemService systemService;
+    SystemService systemService;
 
     private NumberFormat nf = NumberFormat.getIntegerInstance();
 

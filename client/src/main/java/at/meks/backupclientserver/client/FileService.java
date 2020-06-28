@@ -1,8 +1,7 @@
 package at.meks.backupclientserver.client;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,7 +22,7 @@ public class FileService {
     private ReentrantLock configInitLock = new ReentrantLock();
 
     @Inject
-    private ConfigFileInitializer configFileInitializer;
+    ConfigFileInitializer configFileInitializer;
 
     Path getConfigFile() {
         return rethrowException(() -> {

@@ -6,19 +6,16 @@ import at.meks.backupclientserver.client.backupmanager.BackupManager;
 import at.meks.backupclientserver.client.backupmanager.PathChangeType;
 import at.meks.backupclientserver.client.backupmanager.TodoEntry;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
-import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import org.apache.commons.io.FileUtils;
 import org.awaitility.Awaitility;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,22 +30,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class FileChangeHandlerImplTest {
 
-    @Spy
-    private Logger logger = LoggerFactory.getLogger(FileChangeHandlerImpl.class);
+    @TempDir
+    Path tempDir;
+
+    @Mock
+    private Logger logger;
 
     @Mock
     private ErrorReporter errorReporter;
@@ -87,13 +82,13 @@ public class FileChangeHandlerImplTest {
     }
 
     private Path createTemporaryFile() throws IOException {
-        return Files.createTempFile(TestDirectoryProvider.createTempDirectory(), "unitTest", ".txt");
+        return Files.createTempFile(tempDir, "unitTest", ".txt");
     }
 
     private void verifyBackupManagerInvocation(TodoEntry expectedTodoEntry) {
         ArgumentCaptor<TodoEntry> argumentCaptor = ArgumentCaptor.forClass(TodoEntry.class);
         verify(backupManager, timeout(1200)).addForBackup(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue()).isEqualsToByComparingFields(expectedTodoEntry);
+        assertThat(argumentCaptor.getValue()).isEqualToComparingFieldByField(expectedTodoEntry);
     }
 
     @Test
@@ -106,7 +101,7 @@ public class FileChangeHandlerImplTest {
 
         handler.fileChanged(watchedPath, StandardWatchEventKinds.OVERFLOW, changedFilePath);
 
-        verifyZeroInteractions(backupManager);
+        verifyNoInteractions(backupManager);
         String message = "unknown WatchEvent.Kind " + StandardWatchEventKinds.OVERFLOW ;
         ArgumentCaptor<ClientBackupException> captor = ArgumentCaptor.forClass(ClientBackupException.class);
         verify(errorReporter).reportError(eq(message), captor.capture());
@@ -114,8 +109,8 @@ public class FileChangeHandlerImplTest {
     }
 
     @Test
-    public void givenWritingAFileWhileAddForBackupThenBackupOfFileIsDoneAfterWritingFinished() throws IOException {
-        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+    public void givenWritingAFileWhileAddForBackupThenBackupOfFileIsDoneAfterWritingFinished(@TempDir Path backupSetPath)
+            throws IOException {
         Path hugeFile = Files.createTempFile(backupSetPath, "hugeFile", ".txt");
 
         ExecutorService executorService = Executors.newFixedThreadPool(1);
@@ -129,7 +124,7 @@ public class FileChangeHandlerImplTest {
                     Thread.sleep(100);
                 } catch (Exception e) {
                     logger.error("error while writing file for test", e);
-                    Assert.fail("couldn't write file. Excepion occured: " + e.getMessage());
+                    fail("couldn't write file. Excepion occured: " + e.getMessage());
                 }
             }
         });
@@ -140,8 +135,7 @@ public class FileChangeHandlerImplTest {
     }
 
     @Test
-    public void givenRenamedDirectoryWhenFileChangedThenAllFilesOfDirAreBackuped() throws IOException {
-        Path backupSetPath = TestDirectoryProvider.createTempDirectory();
+    public void givenRenamedDirectoryWhenFileChangedThenAllFilesOfDirAreBackuped(@TempDir Path backupSetPath) throws IOException {
         Path renamedFolder = backupSetPath.resolve("folder1");
         Files.createDirectories(renamedFolder);
         Path file1 = Files.createFile(renamedFolder.resolve("file1.txt"));

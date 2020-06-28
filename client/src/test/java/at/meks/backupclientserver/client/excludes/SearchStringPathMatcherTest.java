@@ -1,12 +1,11 @@
 package at.meks.backupclientserver.client.excludes;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SearchStringPathMatcherTest {
 

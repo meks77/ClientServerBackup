@@ -2,13 +2,12 @@ package at.meks.backupclientserver.client.filewatcher;
 
 import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -17,19 +16,11 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.Consumer;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class FileVisitorTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public TemporaryFolder folderRule = new TemporaryFolder();
 
     @Mock
     private ErrorReporter errorReporter;
@@ -44,28 +35,25 @@ public class FileVisitorTest {
     private FileVisitor visitor;
 
     @Test
-    public void givenExcludedDirWhenPreVisitDirectoryThenReturnsSkipSubtree() {
-        Path visitedPath = Paths.get("whatever");
-        when(fileExcludeService.isFileExcludedFromBackup(visitedPath)).thenReturn(true);
+    public void givenExcludedDirWhenPreVisitDirectoryThenReturnsSkipSubtree(@TempDir Path ignoredPath) {
+        when(fileExcludeService.isFileExcludedFromBackup(ignoredPath)).thenReturn(true);
 
-        FileVisitResult result = visitor.preVisitDirectory(visitedPath, mock(BasicFileAttributes.class));
+        FileVisitResult result = visitor.preVisitDirectory(ignoredPath, mock(BasicFileAttributes.class));
 
         assertThat(result).isEqualTo(FileVisitResult.SKIP_SUBTREE);
     }
 
     @Test
-    public void givenExcludedDirWhenPreVisitDirectoryThenDirConsumerIsNotInvoked() {
-        Path visitedPath = Paths.get("whatever");
-        when(fileExcludeService.isFileExcludedFromBackup(visitedPath)).thenReturn(true);
+    public void givenExcludedDirWhenPreVisitDirectoryThenDirConsumerIsNotInvoked(@TempDir Path excludedPath) {
+        when(fileExcludeService.isFileExcludedFromBackup(excludedPath)).thenReturn(true);
 
-        visitor.preVisitDirectory(visitedPath, mock(BasicFileAttributes.class));
+        visitor.preVisitDirectory(excludedPath, mock(BasicFileAttributes.class));
 
-        verifyZeroInteractions(directoryConsumer);
+        verifyNoInteractions(directoryConsumer);
     }
 
     @Test
-    public void givenIncludedDirWhenPreVisitDirectoryThenReturnsContinue() throws IOException {
-        Path visitedPath = folderRule.newFolder().toPath();
+    public void givenIncludedDirWhenPreVisitDirectoryThenReturnsContinue(@TempDir Path visitedPath) {
         when(fileExcludeService.isFileExcludedFromBackup(visitedPath)).thenReturn(false);
 
         FileVisitResult result = visitor.preVisitDirectory(visitedPath, mock(BasicFileAttributes.class));
@@ -74,8 +62,7 @@ public class FileVisitorTest {
     }
 
     @Test
-    public void givenIncludedDirWhenPreVisitDirectoryThenDirConsumerIsInvoked() throws IOException {
-        Path visitedPath = folderRule.newFolder().toPath();
+    public void givenIncludedDirWhenPreVisitDirectoryThenDirConsumerIsInvoked(@TempDir Path visitedPath) {
         when(fileExcludeService.isFileExcludedFromBackup(visitedPath)).thenReturn(false);
 
         visitor.preVisitDirectory(visitedPath, mock(BasicFileAttributes.class));

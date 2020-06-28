@@ -1,17 +1,14 @@
 package at.meks.backupclientserver.client;
 
-import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import at.meks.validation.result.ValidationException;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,19 +23,15 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.io.FileUtils.writeLines;
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.startsWith;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ApplicationConfigTest {
 
     private static final String DEFAULT_HOST_ENTRY = "server.host=theServerHostName";
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private FileService fileService;
@@ -48,17 +41,13 @@ public class ApplicationConfigTest {
     @InjectMocks
     private ApplicationConfig config = new ApplicationConfig();
 
+    @TempDir
+    Path applicationRoot;
 
-    @Before
+    @BeforeEach
     public void createConfigDirAndFile() throws IOException {
-        Path applicationRoot = TestDirectoryProvider.createTempDirectory();
         configFile = Files.createFile(applicationRoot.resolve(".config")).toFile();
         when(fileService.getConfigFile()).thenReturn(configFile.toPath());
-    }
-
-    @After
-    public void deleteConfigDirAndFiles() throws IOException {
-        FileUtils.forceDeleteOnExit(configFile.getParentFile());
     }
 
     @Test
@@ -80,10 +69,11 @@ public class ApplicationConfigTest {
                 Paths.get("D:\\dir\\dir3"));
     }
 
-    @Test(expected = ClientBackupException.class)
+    @Test
     public void givenNoConfigFileWhenGetBackupedDirsReturnsEmptyArray() throws IOException {
         Files.deleteIfExists(configFile.toPath());
-        config.getBackupedDirs();
+        assertThrows(ClientBackupException.class, () -> config.getBackupedDirs());
+
     }
 
     @Test
@@ -103,46 +93,42 @@ public class ApplicationConfigTest {
     }
 
     @Test
-    public void givenFileWithoutHostNameWhenValidateThenExceptionIsThrown() throws IOException, ValidationException {
+    public void givenFileWithoutHostNameWhenValidateThenExceptionIsThrown() throws IOException {
         writeLines(configFile, singletonList(getBackupsetConfigEntryFor("C:/whatever", 0)));
 
-        expectedException.expect(ValidationException.class);
-        expectedException.expectMessage(startsWith("Config property server.host"));
-
-        config.validate();
+        assertThatThrownBy(() -> config.validate())
+                .isInstanceOf(ValidationException.class)
+                .hasMessageStartingWith("Config property server.host");
     }
 
     @Test
-    public void givenFileWithoutBackupsetWhenValidateThenExceptionIsThrown() throws IOException, ValidationException {
+    public void givenFileWithoutBackupsetWhenValidateThenExceptionIsThrown() throws IOException {
         writeLines(configFile, singleton(DEFAULT_HOST_ENTRY));
 
-        expectedException.expect(ValidationException.class);
-        expectedException.expectMessage(startsWith("Configured directories for backup"));
-
-        config.validate();
+        assertThatThrownBy(() -> config.validate())
+                .isInstanceOf(ValidationException.class)
+                .hasMessageStartingWith("Configured directories for backup");
     }
 
     @Test
-    public void givenFileWithNotExistingBackupsetWhenValidateThenExceptionIsThrown() throws IOException, ValidationException {
+    public void givenFileWithNotExistingBackupsetWhenValidateThenExceptionIsThrown() throws IOException {
         writeLines(configFile, asList(DEFAULT_HOST_ENTRY, getBackupsetConfigEntryFor("C:/whatever", 0)));
 
-        expectedException.expect(ValidationException.class);
-        expectedException.expectMessage(startsWith("Configured directory C:" + File.separator + "whatever must exist"));
-
-        config.validate();
+        assertThatThrownBy(() -> config.validate())
+                .isInstanceOf(ValidationException.class)
+                .hasMessageStartingWith("Configured directory C:" + File.separator + "whatever must exist");
     }
 
     @Test
-    public void givenBackupsetIsAFileWhenValidateThenExceptionIsThrown() throws IOException, ValidationException {
-        Path backupSetFile = TestDirectoryProvider.createTempDirectory().resolve("testFile.txt");
+    public void givenBackupsetIsAFileWhenValidateThenExceptionIsThrown(@TempDir Path tempDir) throws IOException {
+        Path backupSetFile = tempDir.resolve("testFile.txt");
         Files.createFile(backupSetFile);
         writeLines(configFile, asList(DEFAULT_HOST_ENTRY,
                 getBackupsetConfigEntryFor(backupSetFile.toString().replace("\\", "\\\\"), 0)));
 
-        expectedException.expect(ValidationException.class);
-        expectedException.expectMessage(startsWith(format("Path %s must be a directory", backupSetFile)));
-
-        config.validate();
+        assertThatThrownBy(() -> config.validate())
+                .isInstanceOf(ValidationException.class)
+                .hasMessageStartingWith(format("Path %s must be a directory", backupSetFile));
     }
 
     @Test

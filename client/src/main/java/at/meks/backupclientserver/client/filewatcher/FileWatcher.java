@@ -5,11 +5,12 @@ import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.FileService;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import at.meks.backupclientserver.client.filechangehandler.FileChangeHandler;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -28,19 +29,20 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
+@Named
 @Singleton
 public class FileWatcher {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Inject
-    private ErrorReporter errorReporter;
+    ErrorReporter errorReporter;
 
     @Inject
-    private FileService fileService;
+    FileService fileService;
 
     @Inject
-    private FileExcludeService fileExcludeService;
+    FileExcludeService fileExcludeService;
 
     private Path[] pathsToWatch;
     private FileChangeHandler onChangeConsumer;
@@ -117,7 +119,7 @@ public class FileWatcher {
                         registerDirectory(watchService, absoluteChangedPath);
                     }
                     Optional<Path> first = Stream.of(pathsToWatch).filter(watchedPath::startsWith).findFirst();
-                    if (!first.isPresent()) {
+                    if (first.isEmpty()) {
                         throw new ClientBackupException(
                                 format("couldn't find root backuped path. Watched path: %s;%npathsToWatch: %s",
                                         watchedPath, Arrays.toString(pathsToWatch)));

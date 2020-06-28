@@ -1,31 +1,29 @@
 package at.meks.backupclientserver.client.excludes;
 
 import at.meks.backupclientserver.client.ApplicationConfig;
-import at.meks.clientserverbackup.testutils.TestDirectoryProvider;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class FileExcludeServiceTest {
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @TempDir
+    Path tempDirectory;
 
     @Mock
     private ApplicationConfig applicationConfig;
@@ -36,7 +34,7 @@ public class FileExcludeServiceTest {
     @InjectMocks
     private FileExcludeService service = new FileExcludeService();
 
-    @Before
+    @BeforeEach
     public void init() {
         when(applicationConfig.getExcludedFileExtensions()).thenReturn(Sets.newHashSet("tmp", "dmp", "lock"));
         service.initExcludedExtensions();
@@ -44,8 +42,10 @@ public class FileExcludeServiceTest {
 
     @Test
     public void verifyThatExcludedExtensionsAreIntialized() throws NoSuchMethodException {
-        assertThat(FileExcludeService.class.getDeclaredMethod("initExcludedExtensions").isAnnotationPresent(Inject.class))
-                .as("is annotation for initialization").isTrue();
+        assertThat(FileExcludeService.class.getDeclaredMethod("initExcludedExtensions")
+                    .isAnnotationPresent(PostConstruct.class))
+                .as("is annotation for initialization")
+                .isTrue();
     }
 
     @Test
@@ -55,7 +55,6 @@ public class FileExcludeServiceTest {
     }
 
     private Path createTestFile(String fileName) throws IOException {
-        Path tempDirectory = TestDirectoryProvider.createTempDirectory();
         return Files.createFile(tempDirectory.resolve(fileName));
     }
 
@@ -83,7 +82,7 @@ public class FileExcludeServiceTest {
 
         service.initExcludedExtensions();
         assertThat(service.isFileExcludedFromBackup(file)).isFalse();
-        verifyZeroInteractions(searchStringPathMatcher);
+        verifyNoInteractions(searchStringPathMatcher);
     }
 
     @Test

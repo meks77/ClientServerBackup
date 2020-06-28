@@ -1,21 +1,23 @@
 package at.meks.backupclientserver.client.backupmanager;
 
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -26,21 +28,16 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class BackupManagerTest {
 
     private static final String FILE_NAME_IN_TEST_SOURCE_FOR_BACKUP = "fileToBackup.txt";
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Spy
     private LinkedBlockingDeque<TodoEntry> backupQueue = new LinkedBlockingDeque<>();
 
     @Mock
-    private BackupRemoteService backupRemoteService;
+    private BackupService backupService;
 
     @Mock
     private FileExcludeService fileExcludeService;
@@ -48,7 +45,7 @@ public class BackupManagerTest {
     @InjectMocks
     private BackupManager manager = new BackupManager();
 
-    @Before
+    @BeforeEach
     public void mockConfig() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Method startMethod = BackupManager.class.getDeclaredMethod("start");
         startMethod.setAccessible(true);
@@ -63,7 +60,7 @@ public class BackupManagerTest {
                 uplodedFilePath,
                 backupSetPath));
         waitForQueueItemIsProcessed();
-        verify(backupRemoteService).backupFile(backupSetPath, uplodedFilePath);
+        verify(backupService).backupFile(uplodedFilePath);
     }
 
     private void waitForQueueItemIsProcessed() throws InterruptedException {
@@ -75,15 +72,15 @@ public class BackupManagerTest {
             URISyntaxException {
         Path uplodedFilePath = Paths.get(getClass().getResource(FILE_NAME_IN_TEST_SOURCE_FOR_BACKUP).toURI());
         Path backupSetPath = Paths.get(getClass().getResource("/").toURI());
-        when(backupRemoteService.isFileUpToDate(any(), any())).thenReturn(true);
+        when(backupService.isFileUpToDate(any())).thenReturn(true);
 
         manager.addForBackup(new TodoEntry(PathChangeType.MODIFIED,
                 uplodedFilePath,
                 backupSetPath));
         waitForQueueItemIsProcessed();
 
-        verify(backupRemoteService).isFileUpToDate(backupSetPath, uplodedFilePath);
-        verify(backupRemoteService, never()).backupFile(any(), any());
+        verify(backupService).isFileUpToDate(uplodedFilePath);
+        verify(backupService, never()).backupFile(any());
     }
 
     @Test
@@ -91,15 +88,15 @@ public class BackupManagerTest {
             URISyntaxException {
         Path uplodedFilePath = Paths.get(getClass().getResource(FILE_NAME_IN_TEST_SOURCE_FOR_BACKUP).toURI());
         Path backupSetPath = Paths.get(getClass().getResource("/").toURI());
-        when(backupRemoteService.isFileUpToDate(any(), any())).thenReturn(false);
+        when(backupService.isFileUpToDate(any())).thenReturn(false);
 
         manager.addForBackup(new TodoEntry(PathChangeType.MODIFIED,
                 uplodedFilePath,
                 backupSetPath));
         waitForQueueItemIsProcessed();
 
-        verify(backupRemoteService).isFileUpToDate(backupSetPath, uplodedFilePath);
-        verify(backupRemoteService).backupFile(backupSetPath, uplodedFilePath);
+        verify(backupService).isFileUpToDate(uplodedFilePath);
+        verify(backupService).backupFile(uplodedFilePath);
     }
 
     @Test
@@ -109,19 +106,19 @@ public class BackupManagerTest {
 
         manager.addForBackup(new TodoEntry(PathChangeType.DELETED, file, backupSet));
 
-        verify(backupRemoteService, timeout(1000)).delete(backupSet, file);
+        verify(backupService, timeout(1000)).delete(file);
     }
 
     @Test
-    public void givenExcludedFileWhenAddForBackupThenItemIsNotScheduledForBackup() throws IOException {
-        Path backupSet = temporaryFolder.newFolder("backupSet").toPath();
-        Path fileForBackup = temporaryFolder.newFile("whatever.lock").toPath();
+    public void givenExcludedFileWhenAddForBackupThenItemIsNotScheduledForBackup(@TempDir Path temporaryFolder) throws IOException {
+        Path backupSet = Files.createDirectories(temporaryFolder.resolve("backupSet"));
+        Path fileForBackup = Files.createFile(temporaryFolder.resolve("whatever.lock"));
 
         when(fileExcludeService.isFileExcludedFromBackup(fileForBackup)).thenReturn(true);
 
         manager.addForBackup(new TodoEntry(PathChangeType.CREATED, fileForBackup, backupSet));
 
-        verify(backupRemoteService, Mockito.after(1000).never()).isFileUpToDate(any(), any());
+        verify(backupService, Mockito.after(1000).never()).isFileUpToDate(any());
     }
 
 }
