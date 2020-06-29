@@ -1,6 +1,7 @@
 package at.meks.backupclientserver.client.backupmanager;
 
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,10 +47,8 @@ public class BackupManagerTest {
     private BackupManager manager = new BackupManager();
 
     @BeforeEach
-    public void mockConfig() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method startMethod = BackupManager.class.getDeclaredMethod("start");
-        startMethod.setAccessible(true);
-        startMethod.invoke(manager);
+    public void mockConfig() {
+        manager.start();
     }
 
     @Test
@@ -99,10 +98,11 @@ public class BackupManagerTest {
         verify(backupService).backupFile(uplodedFilePath);
     }
 
+    @SneakyThrows
     @Test
-    public void givenDeletedEntryWhenBackupThenBackupRemoteServiceDeleteIsInvoked() {
-        Path file = Paths.get("deletedFile.txt");
-        Path backupSet = Paths.get("backupSet");
+    public void givenDeletedEntryWhenBackupThenBackupRemoteServiceDeleteIsInvoked(@TempDir Path tempDir) {
+        Path file = Files.createFile(tempDir.resolve("deletedFile.txt"));
+        Path backupSet = tempDir.resolve("backupSet");
 
         manager.addForBackup(new TodoEntry(PathChangeType.DELETED, file, backupSet));
 

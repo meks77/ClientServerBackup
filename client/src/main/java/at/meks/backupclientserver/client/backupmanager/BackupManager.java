@@ -2,11 +2,13 @@ package at.meks.backupclientserver.client.backupmanager;
 
 import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.nio.file.Files;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -28,7 +30,7 @@ public class BackupManager {
     FileExcludeService fileExcludeService;
 
     @PostConstruct
-    private void start() {
+    void start() {
         if (queueReaderThread == null || !queueReaderThread.isAlive()) {
             queueReaderThread = new Thread(this::backupQueueItems);
             queueReaderThread.setName("backupQueueReader");
@@ -54,6 +56,7 @@ public class BackupManager {
         try {
             if (item.getChangedFile().toFile().isFile() &&
                     item.getType() != PathChangeType.DELETED &&
+                    Files.size(item.getChangedFile()) > 0 &&
                     !isFileUpToDate(item)) {
                 backupFile(item);
             } else if (item.getType() == PathChangeType.DELETED) {
@@ -80,6 +83,7 @@ public class BackupManager {
         backupService.delete(item.getChangedFile());
     }
 
+    @SneakyThrows
     public void addForBackup(TodoEntry item) {
         if (!fileExcludeService.isFileExcludedFromBackup(item.getChangedFile())) {
             if (log.isDebugEnabled()) {

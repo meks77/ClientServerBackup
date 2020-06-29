@@ -9,13 +9,16 @@ import at.meks.backupclientserver.context.backup.model.FileSystem;
 import at.meks.backupclientserver.context.infrastructure.Configuration;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.annotation.Counted;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -45,6 +48,9 @@ public class BackupWebService {
 
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Transactional
+    @Counted(name = "performedBackups", description = "How many file backups have been performed.")
+    @Timed(name = "backupsTimer", description = "A measure of how long it takes to perform the file backup.", unit = MetricUnits.MILLISECONDS)
     public Response backupFile(@PathParam("clientId") String clientId, @PathParam("directory") String encodedDirectory,
                            @PathParam("filename") String encodedFilename, InputStream fileContent) {
         String filename = decode(encodedFilename);
@@ -59,7 +65,8 @@ public class BackupWebService {
             }
             return Response.noContent().build();
         } catch (IllegalArgumentException e) {
-            return Response.status(HttpResponseStatus.BAD_REQUEST.code()).type(MediaType.TEXT_PLAIN_TYPE)
+            log.warn(e.getMessage(), e);
+            return Response.status(HttpResponseStatus.BAD_REQUEST.code(), e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE)
                     .entity(e.getMessage()).build();
         } finally {
             log.info("backup completed");
@@ -95,6 +102,8 @@ public class BackupWebService {
 
     @GET
     @javax.ws.rs.Path("/isFileUpToDate")
+    @Counted(name = "performedIsFileUp2date", description = "How many file status checks have been performed.")
+    @Timed(name = "isFileUp2dateTimer", description = "A measure of how long it takes to perform a file status check.", unit = MetricUnits.MILLISECONDS)
     public FileUp2dateResult isFileUp2date(@PathParam("clientId") String clientId, @PathParam("directory") String directory,
                                            @PathParam("filename") String filename, @HeaderParam("md5Checksum") String md5Checksum) {
         Optional<BackupedFile> backupedFile = findBackupedFile(clientId, decode(directory), decode(filename));
@@ -113,6 +122,7 @@ public class BackupWebService {
     }
 
     @DELETE
+    @Transactional
     public void deletePath(@PathParam("clientId") String clientId, @PathParam("directory") String directory,
                            @PathParam("filename") String filename) {
         log.info("delete file {}/{} of client {}", directory, filename, clientId);

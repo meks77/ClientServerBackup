@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet  id="1" author="meks77" >
+        <createSequence sequenceName="HIBERNATE_SEQUENCE" />
+        <createTable  tableName="BACKUPED_FILE">
+            <column  name="id"  type="varchar(150)">
+                <constraints  primaryKey="true"  nullable="false"/>
+            </column>
+            <column  name="clientId"  type="varchar(150)">
+                <constraints  nullable="false"/>
+            </column>
+            <column  name="containingDirectory"  type="varchar(1024)">
+                <constraints  nullable="false"/>
+            </column>
+            <column  name="fileName"  type="varchar(256)">
+                <constraints  nullable="false"/>
+            </column>
+        </createTable>
+        <createTable  tableName="BACKUPED_FILE_VERSION">
+            <column  name="id"  type="BIGINT">
+                <constraints  primaryKey="true"  nullable="false"/>
+            </column>
+            <column  name="backupedFileId"  type="varchar(150)">
+                <constraints  nullable="false"/>
+            </column>
+            <column  name="version"  type="int">
+                <constraints  nullable="false"/>
+            </column>
+            <column  name="timestampOfBackup"  type="timestamp">
+                <constraints  nullable="false"/>
+            </column>
+            <column  name="relativePathToContent"  type="varchar(1024)">
+                <constraints  nullable="false"/>
+            </column>
+            <column  name="checkSum"  type="varchar(256)">
+                <constraints  nullable="false"/>
+            </column>
+        </createTable>
+        <createTable  tableName="BACKUPED_FILE_DELETIONS">
+            <column  name="id"  type="BIGINT">
+                <constraints  primaryKey="true"  nullable="false"/>
+            </column>
+            <column  name="backupedFileId"  type="varchar(150)">
+                <constraints  nullable="false"/>
+            </column>
+            <column  name="deletionTime"  type="timestamp">
+                <constraints  nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
+

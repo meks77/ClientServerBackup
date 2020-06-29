@@ -1,5 +1,3 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 plugins {
 	id 'java'
 	id 'io.quarkus' version '1.5.2.Final'
@@ -15,8 +13,11 @@ sourceCompatibility = 11
 
 dependencies {
 	implementation enforcedPlatform('io.quarkus:quarkus-bom:1.5.2.Final')
+	implementation 'io.quarkus:quarkus-smallrye-metrics'
 	implementation 'io.quarkus:quarkus-agroal'
 	implementation 'io.quarkus:quarkus-jdbc-h2'
+	implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+	implementation 'io.quarkus:quarkus-liquibase'
 	implementation 'io.quarkus:quarkus-resteasy-jackson'
 	implementation 'io.quarkus:quarkus-resteasy'
 
@@ -112,7 +113,3 @@ processResources {
 //		commandLine "npm", "install"
 //	}
 //}
-
-compileJava {
-	options.compilerArgs << '-parameters'
-}

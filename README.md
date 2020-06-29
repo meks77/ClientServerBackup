@@ -50,3 +50,18 @@ Finnally, when those problems are solved, I will create the first stable release
 * automatic client update
 * manage that some of reported errors are ignored
  
+# Installation
+## Client
+On Linux the following error can occur: Caused by: java.io.IOException: User limit of inotify watches reached
+
+This means that the system is restricted to a very low number of file watches. This causes that the files can't be monitored for changes.
+To fix this:
+
+* Add the following line to either /etc/sysctl.conf file or a new *.conf file (e.g. idea.conf) under /etc/sysctl.d/ directory:
+````
+fs.inotify.max_user_watches = 524288
+````
+* Then run this command to apply the change:
+````shell script
+sudo sysctl -p --system
+````

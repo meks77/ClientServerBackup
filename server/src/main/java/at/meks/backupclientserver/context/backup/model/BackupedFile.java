@@ -1,5 +1,8 @@
 package at.meks.backupclientserver.context.backup.model;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -16,7 +19,8 @@ import java.util.LinkedList;
 import static at.meks.validation.args.ArgValidator.validate;
 import static java.lang.String.join;
 import static java.lang.String.valueOf;
-
+@Builder(builderMethodName = "aPersistedEntity")
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class BackupedFile {
 
     private String id;
@@ -27,12 +31,13 @@ public class BackupedFile {
 
     private String fileName;
 
-    private final LinkedList<Version> versions = new LinkedList<>();
+    private final LinkedList<Version> versions;
 
-    private final LinkedList<ZonedDateTime> deletedTimestamps = new LinkedList<>();
+    private final LinkedList<ZonedDateTime> deletedTimestamps;
 
     private BackupedFile() {
-
+        versions = new LinkedList<>();
+        deletedTimestamps = new LinkedList<>();
     }
 
     public static String getIdFor(Client client, Directory containingDirectory, String fileName) {
@@ -113,5 +118,25 @@ public class BackupedFile {
 
     public String id() {
         return id;
+    }
+
+    public Client client() {
+        return client;
+    }
+
+    public Directory containingDirectory() {
+        return containingDirectory;
+    }
+
+    public String fileName() {
+        return fileName;
+    }
+
+    public LinkedList<Version> versions() {
+        return versions;
+    }
+
+    public LinkedList<ZonedDateTime> deletedTimestamps() {
+        return deletedTimestamps;
     }
 }
