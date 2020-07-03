@@ -69,11 +69,6 @@ public class BackupedFile {
     @SneakyThrows(IOException.class)
     private void addVersion(DirectoryConfig directoryConfig, FileSystem fileSystem, ZonedDateTime backupTime, InputStream fileContent) {
         Path pathToContent = getPathToContentFile(directoryConfig, backupTime);
-        if (versions.isEmpty()) {
-            validate().that(pathToContent.getParent())
-                    .withMessage(() -> "directory " + pathToContent.getParent() + " mustn't exist.")
-                    .matches(value -> !fileSystem.exists(value));
-        }
         try {
             fileSystem.writeToFile(pathToContent, fileContent);
             if (!versions.isEmpty() && !isDeleted()) {
