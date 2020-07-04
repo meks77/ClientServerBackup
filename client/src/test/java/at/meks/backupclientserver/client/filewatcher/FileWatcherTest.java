@@ -74,7 +74,7 @@ public class FileWatcherTest {
         FileUtils.writeLines(testFile, Collections.singleton("x"));
         waitForConsumerInvocation();
         // I have no idea why it is invoked 2 times, it should only be once
-        verify(consumer, atLeastOnce()).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_MODIFY, testFile.toPath());
+        verify(consumer, atLeastOnce()).fileChanged(StandardWatchEventKinds.ENTRY_MODIFY, testFile.toPath());
     }
 
     private void waitForConsumerInvocation() {
@@ -93,7 +93,7 @@ public class FileWatcherTest {
             logger.info("consumer was invoked");
             mockInvoked = true;
             return Void.TYPE;
-        }).when(consumer).fileChanged(any(), any(), any());
+        }).when(consumer).fileChanged(any(), any());
         return consumer;
     }
 
@@ -105,7 +105,7 @@ public class FileWatcherTest {
 
         assertTrue(testFile.createNewFile());
         waitForConsumerInvocation();
-        verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, testFile.toPath());
+        verify(consumer).fileChanged(StandardWatchEventKinds.ENTRY_CREATE, testFile.toPath());
     }
 
     @Test
@@ -116,7 +116,7 @@ public class FileWatcherTest {
 
         assertTrue(subDir.mkdirs());
         waitForConsumerInvocation();
-        verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, subDir.toPath());
+        verify(consumer).fileChanged(StandardWatchEventKinds.ENTRY_CREATE, subDir.toPath());
     }
 
     @Test
@@ -129,7 +129,7 @@ public class FileWatcherTest {
 
         Files.delete(testFile.toPath());
         waitForConsumerInvocation();
-        verify(consumer, timeout(50)).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_DELETE, testFile.toPath());
+        verify(consumer, timeout(50)).fileChanged(StandardWatchEventKinds.ENTRY_DELETE, testFile.toPath());
     }
 
     @Test
@@ -142,7 +142,7 @@ public class FileWatcherTest {
 
         Files.delete(subDir.toPath());
         waitForConsumerInvocation();
-        verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_DELETE, subDir.toPath());
+        verify(consumer).fileChanged(StandardWatchEventKinds.ENTRY_DELETE, subDir.toPath());
     }
 
     @Test
@@ -157,8 +157,8 @@ public class FileWatcherTest {
         assertTrue(newFileInSubdir.createNewFile());
 
         waitForConsumerInvocation();
-        verify(consumer, timeout(50)).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, subDir.toPath());
-        verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, newFileInSubdir.toPath());
+        verify(consumer, timeout(50)).fileChanged(StandardWatchEventKinds.ENTRY_CREATE, subDir.toPath());
+        verify(consumer).fileChanged(StandardWatchEventKinds.ENTRY_CREATE, newFileInSubdir.toPath());
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -173,7 +173,7 @@ public class FileWatcherTest {
         File newFileInSubdir = new File(subDir, "newFileInSubdir.txt");
         assertTrue(newFileInSubdir.createNewFile());
         waitForConsumerInvocation();
-        verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, newFileInSubdir.toPath());
+        verify(consumer).fileChanged(StandardWatchEventKinds.ENTRY_CREATE, newFileInSubdir.toPath());
     }
 
     @Test
@@ -188,7 +188,7 @@ public class FileWatcherTest {
         File subSubDir = new File(subDir, "subSubDir");
         assertTrue(subSubDir.mkdir());
         waitForConsumerInvocation();
-        verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, subSubDir.toPath());
+        verify(consumer).fileChanged(StandardWatchEventKinds.ENTRY_CREATE, subSubDir.toPath());
     }
 
     @Test
@@ -202,8 +202,8 @@ public class FileWatcherTest {
         File renamedFile = new File(testDir, "whenFileIsRenamed-RenamedFile.txt");
         assertTrue(originFile.renameTo(renamedFile));
         waitForConsumerInvocation();
-        verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_DELETE, originFile.toPath());
-        verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, renamedFile.toPath());
+        verify(consumer).fileChanged(StandardWatchEventKinds.ENTRY_DELETE, originFile.toPath());
+        verify(consumer).fileChanged(StandardWatchEventKinds.ENTRY_CREATE, renamedFile.toPath());
     }
 
     @Test
@@ -218,8 +218,8 @@ public class FileWatcherTest {
         File renamedDir = new File(testDir, "whenDirectoryIsRenamed-RenamedDir");
         assertTrue(originDir.renameTo(renamedDir));
         waitForConsumerInvocation();
-        verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_DELETE, originDir.toPath());
-        verify(consumer).fileChanged(testDir.toPath(), StandardWatchEventKinds.ENTRY_CREATE, renamedDir.toPath());
+        verify(consumer).fileChanged(StandardWatchEventKinds.ENTRY_DELETE, originDir.toPath());
+        verify(consumer).fileChanged(StandardWatchEventKinds.ENTRY_CREATE, renamedDir.toPath());
         verifyNoInteractions(errorReporter);
     }
 

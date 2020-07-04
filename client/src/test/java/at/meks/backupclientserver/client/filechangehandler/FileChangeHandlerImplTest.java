@@ -60,10 +60,9 @@ public class FileChangeHandlerImplTest {
     @Test
     public void givenEntryCreatedWhenFileChangedThenBackupManagerCreatedIsInvoked() throws IOException {
         Path changedFile = createTemporaryFile();
-        Path watchedPath = mock(Path.class);
-        TodoEntry expectedTodoEntry = new TodoEntry(PathChangeType.CREATED, changedFile, watchedPath);
+        TodoEntry expectedTodoEntry = new TodoEntry(PathChangeType.CREATED, changedFile);
 
-        handler.fileChanged(watchedPath, StandardWatchEventKinds.ENTRY_CREATE, changedFile);
+        handler.fileChanged(StandardWatchEventKinds.ENTRY_CREATE, changedFile);
 
         verifyBackupManagerInvocation(expectedTodoEntry);
         verifyNoMoreInteractions(backupManager);
@@ -72,10 +71,9 @@ public class FileChangeHandlerImplTest {
     @Test
     public void givenEntryModifiedWhenFileChangedThenBackupManagerMoodifiedIsInvoked() throws IOException {
         Path changedFile = createTemporaryFile();
-        Path watchedPath = mock(Path.class);
-        TodoEntry expectedTodoEntry = new TodoEntry(PathChangeType.MODIFIED, changedFile, watchedPath);
+        TodoEntry expectedTodoEntry = new TodoEntry(PathChangeType.MODIFIED, changedFile);
 
-        handler.fileChanged(watchedPath, StandardWatchEventKinds.ENTRY_MODIFY, changedFile);
+        handler.fileChanged(StandardWatchEventKinds.ENTRY_MODIFY, changedFile);
 
         verifyBackupManagerInvocation(expectedTodoEntry);
         verifyNoMoreInteractions(backupManager);
@@ -97,9 +95,8 @@ public class FileChangeHandlerImplTest {
         File changedFile = mock(File.class);
         when(changedFilePath.toFile()).thenReturn(changedFile);
         when(changedFile.isFile()).thenReturn(true);
-        Path watchedPath = mock(Path.class);
 
-        handler.fileChanged(watchedPath, StandardWatchEventKinds.OVERFLOW, changedFilePath);
+        handler.fileChanged(StandardWatchEventKinds.OVERFLOW, changedFilePath);
 
         verifyNoInteractions(backupManager);
         String message = "unknown WatchEvent.Kind " + StandardWatchEventKinds.OVERFLOW ;
@@ -120,7 +117,7 @@ public class FileChangeHandlerImplTest {
             while (System.currentTimeMillis() < startTime + writeTimeDurationInMs) {
                 try {
                     FileUtils.write(hugeFile.toFile(), "s", "utf8");
-                    handler.fileChanged(backupSetPath, StandardWatchEventKinds.ENTRY_MODIFY, hugeFile);
+                    handler.fileChanged(StandardWatchEventKinds.ENTRY_MODIFY, hugeFile);
                     Thread.sleep(100);
                 } catch (Exception e) {
                     logger.error("error while writing file for test", e);
@@ -142,27 +139,26 @@ public class FileChangeHandlerImplTest {
         Path file2 = Files.createFile(renamedFolder.resolve("file2.txt"));
         Path file3 = Files.createFile(renamedFolder.resolve("file3.txt"));
 
-        handler.fileChanged(backupSetPath, StandardWatchEventKinds.ENTRY_CREATE, renamedFolder);
+        handler.fileChanged(StandardWatchEventKinds.ENTRY_CREATE, renamedFolder);
 
         ArgumentCaptor<TodoEntry> captor = ArgumentCaptor.forClass(TodoEntry.class);
         verify(backupManager, timeout(2000).times(3)).addForBackup(captor.capture());
         List<TodoEntry> entries = captor.getAllValues();
         assertThat(entries).usingElementComparator(this::compareTodoEntries)
-                .containsOnly(new TodoEntry(PathChangeType.CREATED, file1, backupSetPath),
-                        new TodoEntry(PathChangeType.CREATED, file2, backupSetPath),
-                        new TodoEntry(PathChangeType.CREATED, file3, backupSetPath));
+                .containsOnly(new TodoEntry(PathChangeType.CREATED, file1),
+                        new TodoEntry(PathChangeType.CREATED, file2),
+                        new TodoEntry(PathChangeType.CREATED, file3));
     }
 
     private int compareTodoEntries(TodoEntry o1, TodoEntry o2) {
         boolean entriesAreEqual = Objects.equals(o1.getChangedFile(), o2.getChangedFile()) &&
-                o1.getType() == o2.getType() &&
-                Objects.equals(o1.getWatchedPath(), o2.getWatchedPath());
+                o1.getType() == o2.getType();
         return Boolean.compare(entriesAreEqual, true);
     }
 
     @Test
     public void givenKindDeltedWhenFileChangedThenPathChangeTypeDeletedIsPutToBackupManager() {
-        handler.fileChanged(Paths.get("whatever"), StandardWatchEventKinds.ENTRY_DELETE, Paths.get("notExistingFile.txt"));
+        handler.fileChanged(StandardWatchEventKinds.ENTRY_DELETE, Paths.get("notExistingFile.txt"));
         ArgumentCaptor<TodoEntry> captor = ArgumentCaptor.forClass(TodoEntry.class);
         verify(backupManager, timeout(2000)).addForBackup(captor.capture());
         assertThat(captor.getValue().getType()).isEqualTo(PathChangeType.DELETED);

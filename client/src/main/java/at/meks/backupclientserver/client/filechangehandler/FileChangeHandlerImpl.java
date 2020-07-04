@@ -29,17 +29,17 @@ import java.util.function.Consumer;
 @Singleton
 public class FileChangeHandlerImpl implements FileChangeHandler {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private Set<Path> changedPathSet = new HashSet<>();
+    private final Set<Path> changedPathSet = new HashSet<>();
 
-    private ReentrantLock changedPathSetLock = new ReentrantLock();
+    private final ReentrantLock changedPathSetLock = new ReentrantLock();
 
-    private DelayQueue<DelayedFileChange> delyedQueue = new DelayQueue<>();
+    private final DelayQueue<DelayedFileChange> delyedQueue = new DelayQueue<>();
 
     private Thread queueReadThread;
 
-    private ReentrantLock queueReadThreadStartLock = new ReentrantLock();
+    private final ReentrantLock queueReadThreadStartLock = new ReentrantLock();
 
     @Inject
     BackupManager backupManager;
@@ -51,43 +51,43 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
     FileExcludeService excludeService;
 
     @Override
-    public void fileChanged(Path watchedRootPath, WatchEvent.Kind kind, Path changedFile) {
+    public void fileChanged(WatchEvent.Kind<?> kind, Path changedFile) {
         startQueueReaderIfNecessary();
         try {
             if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                delyedQueue.put(createDelayedFileChange(watchedRootPath, changedFile, PathChangeType.DELETED));
+                delyedQueue.put(createDelayedFileChange(changedFile, PathChangeType.DELETED));
             } else if (changedFile.toFile().isFile()) {
-                addFileToQueue(watchedRootPath, kind, changedFile);
+                addFileToQueue(kind, changedFile);
             } else if (changedFile.toFile().isDirectory()) {
-                addDirectoryToQueue(watchedRootPath, kind, changedFile);
+                addDirectoryToQueue(kind, changedFile);
             }
         } catch (Exception e) {
-            String message = "error while adding file change to queue. backupSetPath: " + watchedRootPath + " kind: " +
+            String message = "error while adding file change to queue. kind: " +
                     kind + " changedFile: " + changedFile;
             errorReporter.reportError(message, e);
         }
     }
 
-    private void addDirectoryToQueue(Path watchedRootPath, WatchEvent.Kind kind, Path changedDirectory) throws IOException {
+    private void addDirectoryToQueue(WatchEvent.Kind<?> kind, Path changedDirectory) throws IOException {
         if (!kind.equals(StandardWatchEventKinds.ENTRY_DELETE)) {
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(changedDirectory)) {
-                directoryStream.forEach(path -> fileChanged(watchedRootPath, kind, path));
+                directoryStream.forEach(path -> fileChanged(kind, path));
             }
         }
     }
 
-    private void addFileToQueue(Path watchedRootPath, WatchEvent.Kind kind, Path changedFile) {
+    private void addFileToQueue(WatchEvent.Kind<?> kind, Path changedFile) {
         if (!isFileAlreadyInQueue(changedFile)) {
             forKind(kind,
-                    pathChangeType -> delyedQueue.put(createDelayedFileChange(watchedRootPath, changedFile, pathChangeType)));
+                    pathChangeType -> delyedQueue.put(createDelayedFileChange(changedFile, pathChangeType)));
         }
     }
 
-    private DelayedFileChange createDelayedFileChange(Path watchedRootPath, Path changedFile, PathChangeType pathChangeType) {
-        return new DelayedFileChange(new TodoEntry(pathChangeType, changedFile, watchedRootPath));
+    private DelayedFileChange createDelayedFileChange(Path changedFile, PathChangeType pathChangeType) {
+        return new DelayedFileChange(new TodoEntry(pathChangeType, changedFile));
     }
 
-    private void forKind(WatchEvent.Kind kind, Consumer<PathChangeType> consumer) {
+    private void forKind(WatchEvent.Kind<?> kind, Consumer<PathChangeType> consumer) {
         PathChangeType pathChangeType = PathChangeType.from(kind);
         if (pathChangeType == null) {
             errorReporter.reportError("unknown WatchEvent.Kind " + kind,
@@ -154,7 +154,7 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
                         } else {
                             logger.info("addForBackup {}", todoEntry.getChangedFile());
                             removeFromChangedPathSet(todoEntry);
-                            backupManager.addForBackup(new TodoEntry(todoEntry.getType(), todoEntry.getChangedFile(), todoEntry.getWatchedPath()));
+                            backupManager.addForBackup(new TodoEntry(todoEntry.getType(), todoEntry.getChangedFile()));
                         }
                     }
                 } else {

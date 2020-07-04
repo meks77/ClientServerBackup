@@ -37,7 +37,7 @@ public class StartupBackuper {
 
     private void walkThroughDirectoryAndBackupFiles(Path backupSetPath) {
         logger.debug("check directory {} for backup", backupSetPath);
-        StartupFileVisitor visitor = new StartupFileVisitor(backupManager, backupSetPath, errorReporter, excludeService);
+        StartupFileVisitor visitor = new StartupFileVisitor(backupManager, errorReporter, excludeService);
         try {
             Files.walkFileTree(backupSetPath, visitor);
         } catch (Exception e) {

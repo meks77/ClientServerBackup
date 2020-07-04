@@ -15,14 +15,10 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -112,19 +108,12 @@ public class FileWatcher {
                     logger.info("event context {}", event.context());
                     Path changedPath = (Path) event.context();
                     logger.info("event {} happened for {}", kind, changedPath.getFileName());
-                    Path watchedPath = pathMap.get(key);
-                    Path absoluteChangedPath = Paths.get(watchedPath.toString(), changedPath.toString());
+                    Path absoluteChangedPath = pathMap.get(key).resolve(changedPath);
                     if (absoluteChangedPath.toFile().isDirectory() && kind == ENTRY_CREATE) {
                         logger.info("register for changes for new directory {}", changedPath);
                         registerDirectory(watchService, absoluteChangedPath);
                     }
-                    Optional<Path> first = Stream.of(pathsToWatch).filter(watchedPath::startsWith).findFirst();
-                    if (first.isEmpty()) {
-                        throw new ClientBackupException(
-                                format("couldn't find root backuped path. Watched path: %s;%npathsToWatch: %s",
-                                        watchedPath, Arrays.toString(pathsToWatch)));
-                    }
-                    onChangeConsumer.fileChanged(first.get(), kind, absoluteChangedPath);
+                    onChangeConsumer.fileChanged(kind, absoluteChangedPath);
                 }
                 key.reset();
             }

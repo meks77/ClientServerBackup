@@ -32,9 +32,6 @@ public class StartupFileVisitorTest {
     private ErrorReporter errorReporter;
 
     @Mock
-    private Path backupSet;
-
-    @Mock
     private FileExcludeService fileExcludeService;
 
     @InjectMocks
@@ -50,7 +47,6 @@ public class StartupFileVisitorTest {
         TodoEntry todoEntry = captor.getValue();
         assertThat(todoEntry.getChangedFile()).isEqualTo(expectedPath);
         assertThat(todoEntry.getType()).isEqualTo(PathChangeType.MODIFIED);
-        assertThat(todoEntry.getWatchedPath()).isEqualTo(backupSet);
     }
 
     @Test

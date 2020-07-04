@@ -1,12 +1,13 @@
 package at.meks.backupclientserver.client;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Singleton;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Singleton
+@ApplicationScoped
 public class ServerStatusService {
 
     private AtomicBoolean serverAvailable = new AtomicBoolean(false);

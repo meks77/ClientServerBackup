@@ -9,6 +9,5 @@ public class TodoEntry {
 
     PathChangeType type;
     Path changedFile;
-    Path watchedPath;
 
 }
