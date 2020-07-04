@@ -9,6 +9,7 @@ dependencies {
 
     implementation enforcedPlatform('io.quarkus:quarkus-bom:1.5.2.Final')
     implementation 'io.quarkus:quarkus-rest-client-jackson'
+    implementation 'io.quarkus:quarkus-scheduler'
 
     implementation project (':common')
     implementation('commons-io:commons-io:2.6')
@@ -17,6 +18,7 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.4'
     testCompile 'org.projectlombok:lombok:1.18.4'
     testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.quarkus:quarkus-junit5-mockito'
     testImplementation('org.mockito:mockito-core:3.2.4')
     testImplementation('org.mockito:mockito-junit-jupiter:3.2.4')
     testImplementation 'org.jmockit:jmockit:1.49'

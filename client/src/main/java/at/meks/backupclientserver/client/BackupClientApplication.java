@@ -26,15 +26,11 @@ public class BackupClientApplication implements QuarkusApplication {
     FileChangeHandlerImpl fileChangeHandler;
 
     @Inject
-    HeartBeatReporter heartBeatReporter;
-
-    @Inject
     StartupBackuper startupBackuper;
 
     @Override
     public int run(String... args) throws Exception {
         config.validate();
-        heartBeatReporter.startHeartbeatReporting();
         Path[] pathesToWatch = config.getBackupedDirs();
         fileWatcher.setOnChangeConsumer(fileChangeHandler);
         fileWatcher.setPathsToWatch(pathesToWatch);

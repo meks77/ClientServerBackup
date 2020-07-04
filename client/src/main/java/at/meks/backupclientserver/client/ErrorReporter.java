@@ -2,7 +2,6 @@ package at.meks.backupclientserver.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
 
 import javax.inject.Singleton;
 import java.net.ConnectException;
