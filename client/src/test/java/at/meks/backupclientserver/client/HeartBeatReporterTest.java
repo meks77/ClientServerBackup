@@ -1,43 +1,43 @@
 package at.meks.backupclientserver.client;
 
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
-@QuarkusTest
-public class HeartBeatReporterTest {
+@ExtendWith(MockitoExtension.class)
+class HeartBeatReporterTest {
 
-    @InjectMock
-    ErrorReporter errorReporter;
+    @Mock
+    private ErrorReporter errorReporter;
 
-    @InjectMock
-    ServerStatusService serverStatusService;
+    @Mock
+    private ServerStatusService serverStatusService;
 
-    @Inject
-    HeartBeatReporter heartBeatReporter = new HeartBeatReporter();
+    @InjectMocks
+    private HeartBeatReporter heartBeatReporter = new HeartBeatReporter();
 
     @Test
-    public void whenStartHearbeatThenUrlIsResolvedCorrect () {
+    void whenStartHearbeatThenUrlIsResolvedCorrect () {
         String expectedClientName = "exptectedUtHostN}ame";
         heartBeatReporter.reportHeartbeat();
     }
 
     @Test
-    public void whenStartHearbeatThenHeartbeatIsSentUsingDefinedIntervalSeconds() {
+    void whenStartHearbeatThenHeartbeatIsSentUsingDefinedIntervalSeconds() {
         // TODO verify remote service call
 //        verify(jsonHttpClient, timeout(5000).times(3)).put(any(), any(), any(), eq(false));
     }
 
     @Test
-    public void whenStartHeartbeatReportingThenJsonHttpClientIsInvokedWithExpectedArgs() {
+    void whenStartHeartbeatReportingThenJsonHttpClientIsInvokedWithExpectedArgs() {
         heartBeatReporter.reportHeartbeat();
         // TODO verify remote service call
 //        verify(jsonHttpClient, timeout(1000)).put(expectedUrl, null, Void.TYPE, false);
@@ -45,7 +45,7 @@ public class HeartBeatReporterTest {
 
     @Test
     @Disabled("the remote service call must be implemented")
-    public void whenExceptionIsThrownThenExceptionIsLogged() {
+    void whenExceptionIsThrownThenExceptionIsLogged() {
         IllegalArgumentException expectedException = new IllegalArgumentException();
         // TODO mock remote service call
         //        when(jsonHttpClient.put(any(), any(), any(), eq(false))).thenThrow(expectedException);
@@ -56,10 +56,9 @@ public class HeartBeatReporterTest {
     }
 
     @Test
-    public void whenHearbeatIsReportedSuccessfullyThenServerStatusIsSetToAvailable() {
+    void whenHearbeatIsReportedSuccessfullyThenServerStatusIsSetToAvailable() {
         heartBeatReporter.reportHeartbeat();
         verify(serverStatusService, timeout(1000)).setServerAvailable(true);
     }
-
 
 }

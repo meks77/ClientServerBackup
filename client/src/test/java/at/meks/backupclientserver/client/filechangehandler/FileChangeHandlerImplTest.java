@@ -2,21 +2,22 @@ package at.meks.backupclientserver.client.filechangehandler;
 
 import at.meks.backupclientserver.client.ClientBackupException;
 import at.meks.backupclientserver.client.ErrorReporter;
-import at.meks.backupclientserver.client.backupmanager.BackupManager;
-import at.meks.backupclientserver.client.backupmanager.PathChangeType;
-import at.meks.backupclientserver.client.backupmanager.TodoEntry;
-import at.meks.backupclientserver.client.excludes.FileExcludeService;
-import org.apache.commons.io.FileUtils;
+import at.meks.backupclientserver.client.SystemService;
+import at.meks.backupclientserver.client.backup.model.BackupCandidateService;
+import at.meks.backupclientserver.client.backup.model.Client;
+import at.meks.backupclientserver.client.backup.model.EventType;
+import at.meks.backupclientserver.client.backup.model.FileChangedEvent;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,73 +25,77 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class FileChangeHandlerImplTest {
+@QuarkusTest
+@Slf4j
+class FileChangeHandlerImplTest {
 
-    @TempDir
-    Path tempDir;
+    @InjectMock
+    ErrorReporter errorReporter;
 
-    @Mock
-    private Logger logger;
+    @InjectMock
+    SystemService systemService;
 
-    @Mock
-    private ErrorReporter errorReporter;
+    @InjectMock
+    BackupCandidateService backupCandidateService;
 
-    @Mock
-    private BackupManager backupManager;
+    @Inject
+    FileChangeHandlerImpl handler;
 
-    @Mock
-    private FileExcludeService fileExcludeService;
+    private Path tempFile;
 
-    @InjectMocks
-    private FileChangeHandlerImpl handler = new FileChangeHandlerImpl();
+    @SneakyThrows
+    @AfterEach
+    void deleteTempFile() {
+        if (tempFile != null) {
+            Files.delete(tempFile);
+        }
+    }
 
     @Test
-    public void givenEntryCreatedWhenFileChangedThenBackupManagerCreatedIsInvoked() throws IOException {
+    void givenEntryCreatedWhenFileChangedThenBackupManagerCreatedIsInvoked() throws IOException {
         Path changedFile = createTemporaryFile();
-        TodoEntry expectedTodoEntry = new TodoEntry(PathChangeType.CREATED, changedFile);
+        String expectedClientId = UUID.randomUUID().toString();
+        when(systemService.getHostname()).thenReturn(expectedClientId);
+        FileChangedEvent expectedTodoEntry = new FileChangedEvent(new Client(expectedClientId), changedFile, EventType.CREATED);
 
         handler.fileChanged(StandardWatchEventKinds.ENTRY_CREATE, changedFile);
 
         verifyBackupManagerInvocation(expectedTodoEntry);
-        verifyNoMoreInteractions(backupManager);
+        verifyNoMoreInteractions(backupCandidateService);
     }
 
     @Test
-    public void givenEntryModifiedWhenFileChangedThenBackupManagerMoodifiedIsInvoked() throws IOException {
+    void givenEntryModifiedWhenFileChangedThenBackupManagerMoodifiedIsInvoked() throws IOException {
         Path changedFile = createTemporaryFile();
-        TodoEntry expectedTodoEntry = new TodoEntry(PathChangeType.MODIFIED, changedFile);
+        String expectedClientId = UUID.randomUUID().toString();
+        when(systemService.getHostname()).thenReturn(expectedClientId);
+        FileChangedEvent expectedTodoEntry = new FileChangedEvent(new Client(expectedClientId), changedFile, EventType.MODIFIED);
 
         handler.fileChanged(StandardWatchEventKinds.ENTRY_MODIFY, changedFile);
 
         verifyBackupManagerInvocation(expectedTodoEntry);
-        verifyNoMoreInteractions(backupManager);
+        verifyNoMoreInteractions(backupCandidateService);
     }
 
     private Path createTemporaryFile() throws IOException {
-        return Files.createTempFile(tempDir, "unitTest", ".txt");
+        tempFile = Files.createTempFile("unitTest", ".txt");
+        return tempFile;
     }
 
-    private void verifyBackupManagerInvocation(TodoEntry expectedTodoEntry) {
-        ArgumentCaptor<TodoEntry> argumentCaptor = ArgumentCaptor.forClass(TodoEntry.class);
-        verify(backupManager, timeout(1200)).addForBackup(argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue()).isEqualToComparingFieldByField(expectedTodoEntry);
+    private void verifyBackupManagerInvocation(FileChangedEvent expectedEvent) {
+        verify(backupCandidateService, timeout(600)).fileRegisteredForBackup(expectedEvent);
     }
 
     @Test
-    public void givenUnexpectedEntryWhenFileChangedThenLogIsWritten() {
+    void givenUnexpectedEntryWhenFileChangedThenLogIsWritten() {
         Path changedFilePath = mock(Path.class);
         File changedFile = mock(File.class);
         when(changedFilePath.toFile()).thenReturn(changedFile);
@@ -98,7 +103,7 @@ public class FileChangeHandlerImplTest {
 
         handler.fileChanged(StandardWatchEventKinds.OVERFLOW, changedFilePath);
 
-        verifyNoInteractions(backupManager);
+        verifyNoInteractions(backupCandidateService);
         String message = "unknown WatchEvent.Kind " + StandardWatchEventKinds.OVERFLOW ;
         ArgumentCaptor<ClientBackupException> captor = ArgumentCaptor.forClass(ClientBackupException.class);
         verify(errorReporter).reportError(eq(message), captor.capture());
@@ -106,33 +111,20 @@ public class FileChangeHandlerImplTest {
     }
 
     @Test
-    public void givenWritingAFileWhileAddForBackupThenBackupOfFileIsDoneAfterWritingFinished(@TempDir Path backupSetPath)
+    void givenWritingAFileWhileAddForBackupThenBackupOfFileIsDoneAfterWritingFinished(@TempDir Path backupSetPath)
             throws IOException {
-        Path hugeFile = Files.createTempFile(backupSetPath, "hugeFile", ".txt");
-
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
-        Future<?> writerFuture = executorService.submit(() -> {
-            long startTime = System.currentTimeMillis();
-            long writeTimeDurationInMs = 3000;
-            while (System.currentTimeMillis() < startTime + writeTimeDurationInMs) {
-                try {
-                    FileUtils.write(hugeFile.toFile(), "s", "utf8");
-                    handler.fileChanged(StandardWatchEventKinds.ENTRY_MODIFY, hugeFile);
-                    Thread.sleep(100);
-                } catch (Exception e) {
-                    logger.error("error while writing file for test", e);
-                    fail("couldn't write file. Excepion occured: " + e.getMessage());
-                }
-            }
-        });
-        Awaitility.await().pollDelay(1, TimeUnit.SECONDS).until(() -> !writerFuture.isDone());
-        verify(backupManager, never()).addForBackup(any());
-        verify(backupManager, timeout(5000).times(1)).addForBackup(any());
-        assertThat(writerFuture.isDone()).isTrue();
+        final Path file = Files.createTempFile(backupSetPath, "hugeFile", ".txt");
+        handler.fileChanged(StandardWatchEventKinds.ENTRY_MODIFY, file);
+        Awaitility.await().pollDelay(100, TimeUnit.MILLISECONDS).until(() -> true);
+        verify(backupCandidateService, never()).fileRegisteredForBackup(any());
+        verify(backupCandidateService, timeout(5000).times(1)).fileRegisteredForBackup(any());
     }
 
     @Test
-    public void givenRenamedDirectoryWhenFileChangedThenAllFilesOfDirAreBackuped(@TempDir Path backupSetPath) throws IOException {
+    void givenRenamedDirectoryWhenFileChangedThenAllFilesOfDirAreBackuped(@TempDir Path backupSetPath) throws IOException {
+        String expectedClientId = UUID.randomUUID().toString();
+        when(systemService.getHostname()).thenReturn(expectedClientId);
+
         Path renamedFolder = backupSetPath.resolve("folder1");
         Files.createDirectories(renamedFolder);
         Path file1 = Files.createFile(renamedFolder.resolve("file1.txt"));
@@ -141,26 +133,21 @@ public class FileChangeHandlerImplTest {
 
         handler.fileChanged(StandardWatchEventKinds.ENTRY_CREATE, renamedFolder);
 
-        ArgumentCaptor<TodoEntry> captor = ArgumentCaptor.forClass(TodoEntry.class);
-        verify(backupManager, timeout(2000).times(3)).addForBackup(captor.capture());
-        List<TodoEntry> entries = captor.getAllValues();
-        assertThat(entries).usingElementComparator(this::compareTodoEntries)
-                .containsOnly(new TodoEntry(PathChangeType.CREATED, file1),
-                        new TodoEntry(PathChangeType.CREATED, file2),
-                        new TodoEntry(PathChangeType.CREATED, file3));
-    }
-
-    private int compareTodoEntries(TodoEntry o1, TodoEntry o2) {
-        boolean entriesAreEqual = Objects.equals(o1.getChangedFile(), o2.getChangedFile()) &&
-                o1.getType() == o2.getType();
-        return Boolean.compare(entriesAreEqual, true);
+        ArgumentCaptor<FileChangedEvent> captor = ArgumentCaptor.forClass(FileChangedEvent.class);
+        verify(backupCandidateService, timeout(2000).times(3)).fileRegisteredForBackup(captor.capture());
+        List<FileChangedEvent> entries = captor.getAllValues();
+        Client expectedClient = new Client(expectedClientId);
+        assertThat(entries)
+                .containsOnly(new FileChangedEvent(expectedClient, file1, EventType.CREATED),
+                        new FileChangedEvent(expectedClient, file2, EventType.CREATED),
+                        new FileChangedEvent(expectedClient, file3, EventType.CREATED));
     }
 
     @Test
-    public void givenKindDeltedWhenFileChangedThenPathChangeTypeDeletedIsPutToBackupManager() {
+    void givenKindDeltedWhenFileChangedThenPathChangeTypeDeletedIsPutToBackupManager() {
         handler.fileChanged(StandardWatchEventKinds.ENTRY_DELETE, Paths.get("notExistingFile.txt"));
-        ArgumentCaptor<TodoEntry> captor = ArgumentCaptor.forClass(TodoEntry.class);
-        verify(backupManager, timeout(2000)).addForBackup(captor.capture());
-        assertThat(captor.getValue().getType()).isEqualTo(PathChangeType.DELETED);
+        ArgumentCaptor<FileChangedEvent> captor = ArgumentCaptor.forClass(FileChangedEvent.class);
+        verify(backupCandidateService, timeout(2000)).fileRegisteredForBackup(captor.capture());
+        assertThat(captor.getValue().eventType()).isEqualTo(EventType.DELETED);
     }
 }

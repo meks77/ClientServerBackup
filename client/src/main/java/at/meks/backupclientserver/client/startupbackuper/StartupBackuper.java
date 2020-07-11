@@ -1,8 +1,9 @@
 package at.meks.backupclientserver.client.startupbackuper;
 
 import at.meks.backupclientserver.client.ErrorReporter;
-import at.meks.backupclientserver.client.backupmanager.BackupManager;
+import at.meks.backupclientserver.client.SystemService;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
+import io.vertx.core.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ public class StartupBackuper {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Inject
-    BackupManager backupManager;
+    SystemService systemService;
 
     @Inject
     ErrorReporter errorReporter;
@@ -26,18 +27,16 @@ public class StartupBackuper {
     @Inject
     FileExcludeService excludeService;
 
+    @Inject
+    EventBus eventBus;
+
     public void backupIfNecessary(Path[] paths) {
-        Thread initialBackupThread = new Thread(() ->
-                Stream.of(paths).forEach(this::walkThroughDirectoryAndBackupFiles));
-        initialBackupThread.setDaemon(true);
-        initialBackupThread.setName("starupBackuperThread");
-        initialBackupThread.setPriority(Thread.MIN_PRIORITY);
-        initialBackupThread.start();
+        Stream.of(paths).forEach(this::walkThroughDirectoryAndBackupFiles);
     }
 
     private void walkThroughDirectoryAndBackupFiles(Path backupSetPath) {
         logger.debug("check directory {} for backup", backupSetPath);
-        StartupFileVisitor visitor = new StartupFileVisitor(backupManager, errorReporter, excludeService);
+        StartupFileVisitor visitor = new StartupFileVisitor(systemService.getHostname(), eventBus, errorReporter, excludeService);
         try {
             Files.walkFileTree(backupSetPath, visitor);
         } catch (Exception e) {

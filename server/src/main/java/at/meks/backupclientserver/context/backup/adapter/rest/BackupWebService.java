@@ -112,6 +112,17 @@ public class BackupWebService {
         return new FileUp2dateResult(upToDate);
     }
 
+    @GET
+    @javax.ws.rs.Path("/md5Hex")
+    @Counted(name = "performedMd5Hex", description = "How many file md5hex have been requested")
+    @Timed(name = "md5Hex", description = "A measure how long it takes to get the md5Hex from a file", unit = MetricUnits.MILLISECONDS)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getMd5Hex(@PathParam("clientId") String clientId, @PathParam("directory") String directory,
+                             @PathParam("filename") String filename) {
+        Optional<BackupedFile> backupedFile = findBackupedFile(clientId, decode(directory), decode(filename));
+        return backupedFile.map(BackupedFile::latestMd5Hex).orElse("");
+    }
+
     private Optional<BackupedFile> findBackupedFile(String clientId, String directory, String filename) {
         return repository.findById(
                 getBackupedFileId(clientId, directory, filename));

@@ -1,10 +1,12 @@
 package at.meks.backupclientserver.client.startupbackuper;
 
 import at.meks.backupclientserver.client.ErrorReporter;
-import at.meks.backupclientserver.client.backupmanager.BackupManager;
-import at.meks.backupclientserver.client.backupmanager.PathChangeType;
-import at.meks.backupclientserver.client.backupmanager.TodoEntry;
+import at.meks.backupclientserver.client.backup.model.Client;
+import at.meks.backupclientserver.client.backup.model.EventType;
+import at.meks.backupclientserver.client.backup.model.FileChangedEvent;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
+import io.vertx.core.eventbus.EventBus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -26,27 +28,30 @@ import static org.mockito.Mockito.*;
 public class StartupFileVisitorTest {
 
     @Mock
-    private BackupManager backupManager;
-
-    @Mock
     private ErrorReporter errorReporter;
 
     @Mock
     private FileExcludeService fileExcludeService;
 
-    @InjectMocks
+    @Mock
+    private EventBus eventBus;
+
+    private final String expectedClient = "expectedClient";
+
     private StartupFileVisitor visitor;
 
+    @BeforeEach
+    void initializeVisitor() {
+        visitor = new StartupFileVisitor(expectedClient, eventBus , errorReporter, fileExcludeService);
+    }
+
     @Test
-    public void whenVisitFileThenCallIsDelegatedToBackupManager() {
+    void whenVisitFileThenCallIsDelegatedToBackupManager() {
         Path expectedPath = mock(Path.class);
         visitor.visitFile(expectedPath, mock(BasicFileAttributes.class));
 
-        ArgumentCaptor<TodoEntry> captor = forClass(TodoEntry.class);
-        verify(backupManager).addForBackup(captor.capture());
-        TodoEntry todoEntry = captor.getValue();
-        assertThat(todoEntry.getChangedFile()).isEqualTo(expectedPath);
-        assertThat(todoEntry.getType()).isEqualTo(PathChangeType.MODIFIED);
+        verify(eventBus)
+                .publish("backup", new FileChangedEvent(new Client(expectedClient), expectedPath, EventType.MODIFIED));
     }
 
     @Test

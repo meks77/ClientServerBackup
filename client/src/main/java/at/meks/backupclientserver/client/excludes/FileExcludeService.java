@@ -3,13 +3,14 @@ package at.meks.backupclientserver.client.excludes;
 import at.meks.backupclientserver.client.ApplicationConfig;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.TreeSet;
 
-@Singleton
+@ApplicationScoped
 public class FileExcludeService {
 
     @Inject

@@ -10,6 +10,7 @@ dependencies {
     implementation enforcedPlatform('io.quarkus:quarkus-bom:1.5.2.Final')
     implementation 'io.quarkus:quarkus-rest-client-jackson'
     implementation 'io.quarkus:quarkus-scheduler'
+    implementation 'io.quarkus:quarkus-vertx'
 
     implementation project (':common')
     implementation('commons-io:commons-io:2.6')

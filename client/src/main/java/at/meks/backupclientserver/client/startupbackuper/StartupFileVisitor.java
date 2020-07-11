@@ -1,10 +1,11 @@
 package at.meks.backupclientserver.client.startupbackuper;
 
 import at.meks.backupclientserver.client.ErrorReporter;
-import at.meks.backupclientserver.client.backupmanager.BackupManager;
-import at.meks.backupclientserver.client.backupmanager.PathChangeType;
-import at.meks.backupclientserver.client.backupmanager.TodoEntry;
+import at.meks.backupclientserver.client.backup.model.Client;
+import at.meks.backupclientserver.client.backup.model.EventType;
+import at.meks.backupclientserver.client.backup.model.FileChangedEvent;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
+import io.vertx.core.eventbus.EventBus;
 import lombok.AllArgsConstructor;
 
 import java.io.IOException;
@@ -16,7 +17,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 @AllArgsConstructor
 public class StartupFileVisitor extends SimpleFileVisitor<Path> {
 
-    private final BackupManager backupManager;
+    private final String clientId;
+    private final EventBus eventBus;
     private final ErrorReporter errorReporter;
     private final FileExcludeService fileExcludeService;
 
@@ -30,7 +32,7 @@ public class StartupFileVisitor extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-        backupManager.addForBackup(new TodoEntry(PathChangeType.MODIFIED, file));
+        eventBus.publish("backup", new FileChangedEvent(new Client(clientId), file, EventType.MODIFIED));
         return FileVisitResult.CONTINUE;
     }
 

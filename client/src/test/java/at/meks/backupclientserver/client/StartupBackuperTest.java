@@ -1,9 +1,9 @@
 package at.meks.backupclientserver.client;
 
-import at.meks.backupclientserver.client.backupmanager.BackupManager;
-import at.meks.backupclientserver.client.backupmanager.TodoEntry;
+import at.meks.backupclientserver.client.backup.model.FileChangedEvent;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import at.meks.backupclientserver.client.startupbackuper.StartupBackuper;
+import io.vertx.core.eventbus.EventBus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -23,20 +23,25 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class StartupBackuperTest {
 
     @Mock
-    private BackupManager backupManager;
-
-    @Mock
-    private FileExcludeService fileExcludeService;
+    private EventBus eventBus;
 
     @TempDir
     Path backupSetPath;
+
+    @Mock
+    private SystemService systemService;
+
+    @Mock
+    private ErrorReporter errorReporter;
+
+    @Mock
+    private FileExcludeService fileExcludeService;
 
     @InjectMocks
     private StartupBackuper startupBackuper;
@@ -44,7 +49,7 @@ public class StartupBackuperTest {
     @Test
     public void givenEmptyDirectoryWhenBackupIfNecessarThenEndsWithoutException() {
         startupBackuper.backupIfNecessary(new Path[]{backupSetPath});
-        verify(backupManager, timeout(300).times(0)).addForBackup(any());
+        verifyNoInteractions(eventBus);
     }
 
     @Test
@@ -52,7 +57,7 @@ public class StartupBackuperTest {
         createSubFolder(backupSetPath, "subFolder");
 
         startupBackuper.backupIfNecessary(new Path[]{backupSetPath});
-        verify(backupManager, timeout(300).times(0)).addForBackup(any());
+        verifyNoInteractions(eventBus);
     }
 
     @Test
@@ -65,17 +70,17 @@ public class StartupBackuperTest {
 
         startupBackuper.backupIfNecessary(new Path[]{backupSetPath});
 
-        ArgumentCaptor<TodoEntry> captor = ArgumentCaptor.forClass(TodoEntry.class);
-        verify(backupManager, timeout(3000).times(13)).addForBackup(captor.capture());
+        ArgumentCaptor<FileChangedEvent> captor = ArgumentCaptor.forClass(FileChangedEvent.class);
+        verify(eventBus, times(13)).publish(eq("backup"), captor.capture());
 
         verifyBackupManagerInvocationsForFolder(captor.getAllValues(), backupSetPath);
 
     }
 
-    private void verifyBackupManagerInvocationsForFolder(List<TodoEntry> actualEntries,  Path backupSetPath) {
+    private void verifyBackupManagerInvocationsForFolder(List<FileChangedEvent> actualEntries,  Path backupSetPath) {
         List<Path> expectedFileBackupInvocations = getAllFileRecursive(backupSetPath.toFile());
         assertThat(actualEntries)
-                .extracting(TodoEntry::getChangedFile)
+                .extracting(FileChangedEvent::changedFile)
                 .containsExactlyInAnyOrder(expectedFileBackupInvocations.toArray(new Path[0]));
     }
 
@@ -92,14 +97,13 @@ public class StartupBackuperTest {
         return fileList;
     }
 
-    private Path createDirectoryHierarchyWithEmptyFiles(Path backupSetPath, String folderName) throws IOException {
+    private void createDirectoryHierarchyWithEmptyFiles(Path backupSetPath, String folderName) throws IOException {
         Path folder1 = createSubFolder(backupSetPath, folderName);
         Path folder1SubSubFolder1 = createSubFolder(folder1, "subSubFolder1");
         Path folder1SubSubFolder2 = createSubFolder(folder1, "subSubFolder2");
         createFile(folder1);
         createFile(folder1SubSubFolder1);
         createFile(folder1SubSubFolder2);
-        return folder1;
     }
 
     private void createFile(Path targetFolder) throws IOException {
@@ -121,6 +125,6 @@ public class StartupBackuperTest {
 
         startupBackuper.backupIfNecessary(new Path[]{backupSetPath});
 
-        verify(backupManager, timeout(nrOfFiles).times(nrOfFiles)).addForBackup(any());
+        verify(eventBus, times(nrOfFiles)).publish(eq("backup"), any());
     }
 }

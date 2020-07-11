@@ -72,7 +72,7 @@ public class BackupedFile {
         try {
             fileSystem.writeToFile(pathToContent, fileContent);
             if (!versions.isEmpty() && !isDeleted()) {
-                String checksumOfCurrentVersion = versions.getLast().getCheckSum();
+                String checksumOfCurrentVersion = latestMd5Hex();
                 String checksumOfNewVersion = md5HexFor(pathToContent);
                 validate().that(checksumOfNewVersion)
                         .withMessage(() -> "file content didn't change")
@@ -83,6 +83,10 @@ public class BackupedFile {
             Files.deleteIfExists(pathToContent);
             throw e;
         }
+    }
+
+    public String latestMd5Hex() {
+        return versions.getLast().getCheckSum();
     }
 
     private boolean isDeleted() {
@@ -104,7 +108,7 @@ public class BackupedFile {
     }
 
     public boolean isCurrentChecksumEqualTo(String md5Checksum) {
-        return versions.getLast().getCheckSum().equals(md5Checksum);
+        return latestMd5Hex().equals(md5Checksum);
     }
 
     public void markDeleted(ZonedDateTime timestamp) {

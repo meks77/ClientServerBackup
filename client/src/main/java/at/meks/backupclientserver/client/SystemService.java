@@ -2,11 +2,12 @@ package at.meks.backupclientserver.client;
 
 import org.apache.commons.lang3.SystemUtils;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Singleton;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-@Singleton
+@ApplicationScoped
 public class SystemService {
 
     public String getHostname() {
