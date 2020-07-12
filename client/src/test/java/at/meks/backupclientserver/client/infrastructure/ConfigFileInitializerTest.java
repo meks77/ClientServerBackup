@@ -1,5 +1,8 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.infrastructure;
 
+import at.meks.backupclientserver.client.ClientBackupException;
+import at.meks.backupclientserver.client.infrastructure.ConfigFileInitializer;
+import at.meks.backupclientserver.client.infrastructure.SystemService;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

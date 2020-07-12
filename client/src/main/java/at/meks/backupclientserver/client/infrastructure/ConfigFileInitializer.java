@@ -1,4 +1,6 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.infrastructure;
+
+import at.meks.backupclientserver.client.ClientBackupException;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

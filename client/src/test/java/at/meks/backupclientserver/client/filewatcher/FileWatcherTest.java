@@ -2,7 +2,7 @@ package at.meks.backupclientserver.client.filewatcher;
 
 import at.meks.backupclientserver.client.ApplicationConfig;
 import at.meks.backupclientserver.client.ErrorReporter;
-import at.meks.backupclientserver.client.FileService;
+import at.meks.backupclientserver.client.infrastructure.FileService;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
 import io.quarkus.runtime.StartupEvent;
 import org.apache.commons.io.FileUtils;

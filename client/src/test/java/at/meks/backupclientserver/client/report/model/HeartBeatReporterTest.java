@@ -1,5 +1,7 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.report.model;
 
+import at.meks.backupclientserver.client.ErrorReporter;
+import at.meks.backupclientserver.client.ServerStatusService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,10 +57,5 @@ class HeartBeatReporterTest {
         verify(errorReporter, timeout(1500).times(1)).reportError(any(), same(expectedException));
     }
 
-    @Test
-    void whenHearbeatIsReportedSuccessfullyThenServerStatusIsSetToAvailable() {
-        heartBeatReporter.reportHeartbeat();
-        verify(serverStatusService, timeout(1000)).setServerAvailable(true);
-    }
 
 }

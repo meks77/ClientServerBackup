@@ -1,4 +1,6 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.infrastructure;
+
+import at.meks.backupclientserver.client.ClientBackupException;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -24,7 +26,7 @@ public class FileService {
     @Inject
     ConfigFileInitializer configFileInitializer;
 
-    Path getConfigFile() {
+    public Path getConfigFile() {
         return rethrowException(() -> {
             Path configFile = getApplicationDirectory().resolve(".config");
             configInitLock.lock();

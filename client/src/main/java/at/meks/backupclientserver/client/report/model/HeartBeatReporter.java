@@ -1,5 +1,7 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.report.model;
 
+import at.meks.backupclientserver.client.ErrorReporter;
+import at.meks.backupclientserver.client.ServerStatusService;
 import io.quarkus.scheduler.Scheduled;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,8 +15,8 @@ class HeartBeatReporter {
     @Inject
     ErrorReporter errorReporter;
 
-    @Inject
-    ServerStatusService serverStatusService;
+//    @Inject
+//    ServerStatusService serverStatusService;
 
     @Scheduled(every = "30s")
     void reportHeartbeat() {
@@ -22,7 +24,8 @@ class HeartBeatReporter {
             log.info("start sending heartbeat");
             // TODO use remote service class to to heartbeat, if necessary
 //            jsonHttpClient.put(heartbeatUrl, null, Void.TYPE, false);
-            serverStatusService.setServerAvailable(true);
+            // TODO move server available to backup or different responsibility!?
+//            serverStatusService.setServerAvailable(true);
         } catch (Exception e) {
             errorReporter.reportError("couldn't send heartbeat", e);
         }

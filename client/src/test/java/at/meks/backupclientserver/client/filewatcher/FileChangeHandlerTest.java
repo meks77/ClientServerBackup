@@ -2,7 +2,7 @@ package at.meks.backupclientserver.client.filewatcher;
 
 import at.meks.backupclientserver.client.ClientBackupException;
 import at.meks.backupclientserver.client.ErrorReporter;
-import at.meks.backupclientserver.client.SystemService;
+import at.meks.backupclientserver.client.infrastructure.SystemService;
 import at.meks.backupclientserver.client.backup.model.BackupCandidateService;
 import at.meks.backupclientserver.client.backup.model.Client;
 import at.meks.backupclientserver.client.backup.model.EventType;

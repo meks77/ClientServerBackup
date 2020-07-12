@@ -1,5 +1,6 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.infrastructure;
 
+import at.meks.backupclientserver.client.ClientBackupException;
 import org.apache.commons.lang3.SystemUtils;
 
 import javax.enterprise.context.ApplicationScoped;
