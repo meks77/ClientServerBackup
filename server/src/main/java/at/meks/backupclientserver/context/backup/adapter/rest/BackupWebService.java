@@ -1,6 +1,5 @@
 package at.meks.backupclientserver.context.backup.adapter.rest;
 
-import at.meks.backupclientserver.common.service.fileup2date.FileUp2dateResult;
 import at.meks.backupclientserver.context.backup.model.BackupedFile;
 import at.meks.backupclientserver.context.backup.model.BackupedFileRepository;
 import at.meks.backupclientserver.context.backup.model.Client;
@@ -18,7 +17,6 @@ import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -98,18 +96,6 @@ public class BackupWebService {
 
     private Directory getContainingDirectory(String directory) {
         return new Directory(toPath(directory));
-    }
-
-    @GET
-    @javax.ws.rs.Path("/isFileUpToDate")
-    @Counted(name = "performedIsFileUp2date", description = "How many file status checks have been performed.")
-    @Timed(name = "isFileUp2dateTimer", description = "A measure of how long it takes to perform a file status check.", unit = MetricUnits.MILLISECONDS)
-    public FileUp2dateResult isFileUp2date(@PathParam("clientId") String clientId, @PathParam("directory") String directory,
-                                           @PathParam("filename") String filename, @HeaderParam("md5Checksum") String md5Checksum) {
-        Optional<BackupedFile> backupedFile = findBackupedFile(clientId, decode(directory), decode(filename));
-        boolean upToDate = backupedFile.map(file -> file.isCurrentChecksumEqualTo(md5Checksum)).orElse(false);
-        log.info("{}}/{}} is up2date: {}", directory, filename, upToDate);
-        return new FileUp2dateResult(upToDate);
     }
 
     @GET

@@ -7,6 +7,4 @@ public interface FileSystem {
 
     void writeToFile(Path targetFile, InputStream fileContent);
 
-    boolean exists(Path path);
-
 }

@@ -25,8 +25,4 @@ public class FileSystemService implements FileSystem {
         IOUtils.copy(fileContent, outputStream);
     }
 
-    @Override
-    public boolean exists(Path path) {
-        return Files.exists(path);
-    }
 }

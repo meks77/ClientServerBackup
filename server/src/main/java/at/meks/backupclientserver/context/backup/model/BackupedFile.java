@@ -107,10 +107,6 @@ public class BackupedFile {
         }
     }
 
-    public boolean isCurrentChecksumEqualTo(String md5Checksum) {
-        return latestMd5Hex().equals(md5Checksum);
-    }
-
     public void markDeleted(ZonedDateTime timestamp) {
         deletedTimestamps.add(timestamp);
     }

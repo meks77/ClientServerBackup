@@ -28,11 +28,6 @@ public interface RemoteBackupService {
                                @PathParam("filename") String encodedFilename, InputStream fileContent);
 
     @GET
-    @Path("/isFileUpToDate")
-    FileUp2dateResult isFileUp2date(@PathParam("clientId") String clientId, @PathParam("directory") String directory,
-                                           @PathParam("filename") String filename, @HeaderParam("md5Checksum") String md5Checksum);
-
-    @GET
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/md5Hex")
     String getMd5Hex(@PathParam("clientId") String clientId, @PathParam("directory") String directory,
