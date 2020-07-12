@@ -1,8 +1,11 @@
-package at.meks.backupclientserver.client;
+package at.meks.backupclientserver.client.startupbackuper;
 
+import at.meks.backupclientserver.client.ApplicationConfig;
+import at.meks.backupclientserver.client.ErrorReporter;
+import at.meks.backupclientserver.client.SystemService;
 import at.meks.backupclientserver.client.backup.model.FileChangedEvent;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
-import at.meks.backupclientserver.client.startupbackuper.StartupBackuper;
+import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.eventbus.EventBus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,11 +31,11 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class StartupBackuperTest {
 
-    @Mock
-    private EventBus eventBus;
-
     @TempDir
     Path backupSetPath;
+
+    @Mock
+    private EventBus eventBus;
 
     @Mock
     private SystemService systemService;
@@ -43,20 +46,25 @@ public class StartupBackuperTest {
     @Mock
     private FileExcludeService fileExcludeService;
 
+    @Mock
+    private ApplicationConfig config;
+
     @InjectMocks
     private StartupBackuper startupBackuper;
 
     @Test
     public void givenEmptyDirectoryWhenBackupIfNecessarThenEndsWithoutException() {
-        startupBackuper.backupIfNecessary(new Path[]{backupSetPath});
+        when(config.getBackupedDirs()).thenReturn(new Path[]{backupSetPath});
+        startupBackuper.onStart(new StartupEvent());
         verifyNoInteractions(eventBus);
     }
 
     @Test
     public void givenDirectoryWithEmptyDirectoryWhenBackupIfNecessaryThenBackupManagerIsNotInvoked() throws IOException {
         createSubFolder(backupSetPath, "subFolder");
+        when(config.getBackupedDirs()).thenReturn(new Path[]{backupSetPath});
 
-        startupBackuper.backupIfNecessary(new Path[]{backupSetPath});
+        startupBackuper.onStart(new StartupEvent());
         verifyNoInteractions(eventBus);
     }
 
@@ -67,8 +75,9 @@ public class StartupBackuperTest {
         createDirectoryHierarchyWithEmptyFiles(backupSetPath, "subFolder2");
         createDirectoryHierarchyWithEmptyFiles(backupSetPath, "subFolder3");
         createDirectoryHierarchyWithEmptyFiles(backupSetPath, "subFolder4");
+        when(config.getBackupedDirs()).thenReturn(new Path[]{backupSetPath});
 
-        startupBackuper.backupIfNecessary(new Path[]{backupSetPath});
+        startupBackuper.onStart(new StartupEvent());
 
         ArgumentCaptor<FileChangedEvent> captor = ArgumentCaptor.forClass(FileChangedEvent.class);
         verify(eventBus, times(13)).publish(eq("backup"), captor.capture());
@@ -122,8 +131,9 @@ public class StartupBackuperTest {
         for (int i = 0; i < nrOfFiles; i++) {
             createFile(backupSetPath);
         }
+        when(config.getBackupedDirs()).thenReturn(new Path[]{backupSetPath});
 
-        startupBackuper.backupIfNecessary(new Path[]{backupSetPath});
+        startupBackuper.onStart(new StartupEvent());
 
         verify(eventBus, times(nrOfFiles)).publish(eq("backup"), any());
     }

@@ -1,4 +1,4 @@
-package at.meks.backupclientserver.client.filechangehandler;
+package at.meks.backupclientserver.client.filewatcher;
 
 import at.meks.backupclientserver.client.ClientBackupException;
 import at.meks.backupclientserver.client.ErrorReporter;
@@ -6,7 +6,6 @@ import at.meks.backupclientserver.client.SystemService;
 import at.meks.backupclientserver.client.backup.model.Client;
 import at.meks.backupclientserver.client.backup.model.EventType;
 import at.meks.backupclientserver.client.backup.model.FileChangedEvent;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.mutiny.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +22,7 @@ import java.util.Optional;
 
 @Singleton
 @Slf4j
-public class FileChangeHandlerImpl implements FileChangeHandler {
+class FileChangeHandler {
 
     @Inject
     ErrorReporter errorReporter;
@@ -37,8 +36,7 @@ public class FileChangeHandlerImpl implements FileChangeHandler {
     @Inject
     Vertx vertx;
 
-    @Override
-    public void fileChanged(WatchEvent.Kind<?> kind, Path changedFile) {
+    void fileChanged(WatchEvent.Kind<?> kind, Path changedFile) {
         try {
             if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
                 eventBus.publish("backup", new FileChangedEvent(new Client(systemService.getHostname()),

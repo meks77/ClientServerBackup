@@ -19,7 +19,7 @@ class HeartBeatReporter {
     @Scheduled(every = "30s")
     void reportHeartbeat() {
         try {
-            log.debug("start sending heartbeat");
+            log.info("start sending heartbeat");
             // TODO use remote service class to to heartbeat, if necessary
 //            jsonHttpClient.put(heartbeatUrl, null, Void.TYPE, false);
             serverStatusService.setServerAvailable(true);

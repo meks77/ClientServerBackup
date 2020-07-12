@@ -1,13 +1,15 @@
 package at.meks.backupclientserver.client.filewatcher;
 
+import at.meks.backupclientserver.client.ApplicationConfig;
 import at.meks.backupclientserver.client.ClientBackupException;
 import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.FileService;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
-import at.meks.backupclientserver.client.filechangehandler.FileChangeHandler;
+import io.quarkus.runtime.StartupEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -40,21 +42,21 @@ public class FileWatcher {
     @Inject
     FileExcludeService fileExcludeService;
 
-    private Path[] pathsToWatch;
-    private FileChangeHandler onChangeConsumer;
+    @Inject
+    FileChangeHandler onChangeConsumer;
+
+    @Inject
+    ApplicationConfig config;
+
     private MemoryOptimizedMap pathMap;
     private Thread listenThread;
     private WatchService watchService;
 
-    public void setPathsToWatch(Path[] pathsToWatch) {
-        this.pathsToWatch = pathsToWatch;
+    void onStart(@Observes StartupEvent ev) {
+        startWatching();
     }
 
-    public void setOnChangeConsumer(FileChangeHandler onChangeConsumer) {
-        this.onChangeConsumer = onChangeConsumer;
-    }
-
-    public void startWatching() {
+    private void startWatching() {
         try {
             fileService.cleanupDirectoriesMapFiles();
             pathMap = new MemoryOptimizedMap(fileService.getDirectoriesMapFile().toFile());
@@ -80,7 +82,7 @@ public class FileWatcher {
     }
 
     private void initializeWatching(WatchService watchService) {
-        for (Path path : pathsToWatch) {
+        for (Path path : config.getBackupedDirs()) {
             registerDirectory(watchService, path);
         }
     }

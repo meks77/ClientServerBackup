@@ -1,12 +1,15 @@
 package at.meks.backupclientserver.client.startupbackuper;
 
+import at.meks.backupclientserver.client.ApplicationConfig;
 import at.meks.backupclientserver.client.ErrorReporter;
 import at.meks.backupclientserver.client.SystemService;
 import at.meks.backupclientserver.client.excludes.FileExcludeService;
+import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.nio.file.Files;
@@ -30,8 +33,15 @@ public class StartupBackuper {
     @Inject
     EventBus eventBus;
 
-    public void backupIfNecessary(Path[] paths) {
-        Stream.of(paths).forEach(this::walkThroughDirectoryAndBackupFiles);
+    @Inject
+    ApplicationConfig config;
+
+    void onStart(@Observes StartupEvent ev) {
+        backupIfNecessary();
+    }
+
+    private void backupIfNecessary() {
+        Stream.of(config.getBackupedDirs()).forEach(this::walkThroughDirectoryAndBackupFiles);
     }
 
     private void walkThroughDirectoryAndBackupFiles(Path backupSetPath) {

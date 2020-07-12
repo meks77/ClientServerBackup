@@ -1,4 +1,4 @@
-package at.meks.backupclientserver.client.filechangehandler;
+package at.meks.backupclientserver.client.filewatcher;
 
 import at.meks.backupclientserver.client.ClientBackupException;
 import at.meks.backupclientserver.client.ErrorReporter;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @Slf4j
-class FileChangeHandlerImplTest {
+class FileChangeHandlerTest {
 
     @InjectMock
     ErrorReporter errorReporter;
@@ -47,7 +47,7 @@ class FileChangeHandlerImplTest {
     BackupCandidateService backupCandidateService;
 
     @Inject
-    FileChangeHandlerImpl handler;
+    FileChangeHandler handler;
 
     private Path tempFile;
 

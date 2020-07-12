@@ -30,7 +30,7 @@ public class ApplicationConfig {
     @Inject
     FileService fileService;
 
-    Path[] getBackupedDirs() {
+    public Path[] getBackupedDirs() {
         return getProperties().stringPropertyNames().stream()
                     .filter(s -> s.startsWith("backupset.dir"))
                     .map(properties::get)

@@ -36,16 +36,16 @@ public class BackupCandidateService {
             log.info("Delay backup because file modification date is too new");
             vertx.setTimer(BACKUP_DELAY, id -> eventBus.publish("backup", fileChangedEvent));
         } else {
-            log.info("do backup");
+            log.debug("do if necessary backup");
             final Client client = fileChangedEvent.client();
             final EventType eventType = fileChangedEvent.eventType();
-            log.info("before getting md5");
+            log.debug("before getting md5");
             final Optional<String> latestRemoteMd5Hex = repository.getLatestMd5Hex(client, changedFile);
 
-            log.info("md5 of remote: {}", latestRemoteMd5Hex);
+            log.debug("md5 of remote: {}", latestRemoteMd5Hex);
             BackupCandidate backupCandidate = new BackupCandidate(client, changedFile, eventType, latestRemoteMd5Hex.orElse(null));
             if (backupCandidate.isBackupNeeded()) {
-                log.info("backup is necessary");
+                log.info("backup file {}", fileChangedEvent.changedFile());
                 repository.save(backupCandidate);
             }
         }
