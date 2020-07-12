@@ -1,7 +1,9 @@
 package at.meks.backupclientserver.client.backup.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.ToString;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.InputStream;
@@ -9,6 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @RequiredArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class BackupCandidate {
 
     private final Client client;
@@ -39,7 +43,4 @@ public class BackupCandidate {
         return file;
     }
 
-    public EventType eventType() {
-        return eventType;
-    }
 }

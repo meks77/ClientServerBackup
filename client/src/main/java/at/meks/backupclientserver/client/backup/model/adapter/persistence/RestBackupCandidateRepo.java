@@ -6,8 +6,8 @@ import at.meks.backupclientserver.client.backup.model.Client;
 import lombok.SneakyThrows;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +18,7 @@ import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
-@Singleton
+@ApplicationScoped
 public class RestBackupCandidateRepo implements BackupCandidateRepository {
 
     @Inject

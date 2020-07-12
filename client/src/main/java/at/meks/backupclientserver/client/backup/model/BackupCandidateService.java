@@ -5,7 +5,6 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.mutiny.core.Vertx;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -41,19 +40,13 @@ public class BackupCandidateService {
             final Client client = fileChangedEvent.client();
             final EventType eventType = fileChangedEvent.eventType();
             log.info("before getting md5");
-            try {
-                final Optional<String> latestRemoteMd5Hex = repository.getLatestMd5Hex(client, changedFile);
+            final Optional<String> latestRemoteMd5Hex = repository.getLatestMd5Hex(client, changedFile);
 
-                log.info("md5 of remote: {}", latestRemoteMd5Hex);
-                BackupCandidate backupCandidate = new BackupCandidate(client, changedFile, eventType, latestRemoteMd5Hex.orElse(null));
-                if (backupCandidate.isBackupNeeded()) {
-                    log.info("backup is necessary");
-                    repository.save(backupCandidate);
-                } else {
-                    log.info("backup is not necessary");
-                }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
+            log.info("md5 of remote: {}", latestRemoteMd5Hex);
+            BackupCandidate backupCandidate = new BackupCandidate(client, changedFile, eventType, latestRemoteMd5Hex.orElse(null));
+            if (backupCandidate.isBackupNeeded()) {
+                log.info("backup is necessary");
+                repository.save(backupCandidate);
             }
         }
     }
