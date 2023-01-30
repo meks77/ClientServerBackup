@@ -1,0 +1,4 @@
+plugins {
+    id 'at.meks.backup.java-common-conventions'
+    id 'application'
+}
