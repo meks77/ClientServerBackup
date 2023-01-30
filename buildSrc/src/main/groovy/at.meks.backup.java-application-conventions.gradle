@@ -1,4 +1,12 @@
+
 plugins {
     id 'at.meks.backup.java-common-conventions'
-    id 'application'
+    id 'io.quarkus'
+}
+
+dependencies {
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+}
+test {
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 }
