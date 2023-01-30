@@ -16,8 +16,12 @@ dependencies {
     constraints {
         // Define dependency versions as constraints
 //        implementation 'org.apache.commons:commons-text:1.9'
-
     }
+
+    testImplementation 'org.mockito:mockito-core:5.1.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.1.0'
+
+
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 

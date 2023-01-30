@@ -1,3 +1,3 @@
 package at.meks.backup.server.domain.model.directory;
 
-public record BackupedDirectoryId(String id) { }
+public record DirectoryId(String id) { }
