@@ -9,6 +9,3 @@ client.log
 
 .idea
 *.iml
-
-# Ignore Gradle build output directory
-build
