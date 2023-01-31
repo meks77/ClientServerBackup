@@ -17,15 +17,16 @@ import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class DirectoryServiceTest {
+class DirectoryServiceTest {
 
-    public static final PathOnClient PICTURES_PATH = new PathOnClient(Path.of("home", "bbanner", "Pictures"));
-    public static final ClientId CLIENT_ID = new ClientId(UUID.randomUUID().toString());
+    static final PathOnClient PICTURES_PATH = new PathOnClient(Path.of("home", "bbanner", "Pictures"));
+    static final ClientId CLIENT_ID = new ClientId(UUID.randomUUID().toString());
+
     @InjectMocks
-    private DirectoryService service;
+    DirectoryService service;
 
     @Mock
-    private DirectoryRepository repository;
+    DirectoryRepository repository;
 
     @Test void completlyNewDirectoryWasAdded() {
         service.directoryWasAdded(CLIENT_ID, PICTURES_PATH);

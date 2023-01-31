@@ -2,11 +2,15 @@ package at.meks.backup.server.domain.model.directory;
 
 import java.nio.file.Path;
 
-public class PathOnClient {
-    private final Path path;
+import static at.meks.validation.args.ArgValidator.validate;
 
-    public PathOnClient(Path path) {
-        this.path = path;
+public record PathOnClient(Path path) {
+
+    public PathOnClient {
+        validate()
+                .that(path)
+                .withMessage(() -> "path")
+                .isNotNull();
     }
 
     public String asText() {

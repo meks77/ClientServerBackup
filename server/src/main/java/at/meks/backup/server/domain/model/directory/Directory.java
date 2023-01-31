@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import static at.meks.validation.args.ArgValidator.validate;
+
 @Accessors(fluent = true, chain = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Getter
@@ -28,9 +30,12 @@ public class Directory {
     }
 
     private Directory(ClientId clientId, PathOnClient path) {
+        validate().that(clientId).withMessage(() -> "clientId").isNotNull();
+        validate().that(path).withMessage(() -> "path").isNotNull();
+
         this.clientId = clientId;
         this.path = path;
-        id = new DirectoryId(clientId.id() + ":" + path.asText());
+        id = new DirectoryId(clientId.text() + ":" + path.asText());
     }
 
     public void directoryWasRemoved(){

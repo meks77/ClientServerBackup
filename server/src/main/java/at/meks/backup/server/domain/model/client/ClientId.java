@@ -1,4 +1,14 @@
 package at.meks.backup.server.domain.model.client;
 
-public record ClientId(String id) {
+import static at.meks.validation.args.ArgValidator.validate;
+
+public record ClientId(String text) {
+
+    public ClientId {
+        validate()
+                .that(text)
+                .withMessage(() -> "id text")
+                .isNotBlank();
+    }
+
 }

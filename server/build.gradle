@@ -8,5 +8,6 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'io.quarkus:quarkus-resteasy-reactive-qute'
     implementation 'io.quarkus:quarkus-arc'
+    implementation 'at.meks:easy-validation-args'
 }
 
