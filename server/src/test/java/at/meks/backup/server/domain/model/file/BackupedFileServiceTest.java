@@ -3,6 +3,7 @@ package at.meks.backup.server.domain.model.file;
 import at.meks.backup.server.domain.model.client.ClientId;
 import at.meks.backup.server.domain.model.directory.PathOnClient;
 import at.meks.backup.server.domain.model.time.UtcClock;
+import org.assertj.core.api.RecursiveComparisonAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,10 +15,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,18 +45,25 @@ public class BackupedFileServiceTest {
     }
 
     @Test void backupNewFile() {
-        BackupedFile backupedFile = BackupedFile.newFileForBackup(BUSINESS_KEY);
-        when(fileRepository.add(backupedFile))
-                .thenReturn(backupedFile);
+        when(fileRepository.add(backupedFile()))
+                .thenReturn(backupedFile());
 
         service.backup(BUSINESS_KEY, FILE_CONTENT);
 
         verify(fileRepository)
-                .add(backupedFile);
-        assertThat(createdVersion())
+                .add(backupedFile());
+        assertCreatedVersion()
+                .isEqualTo(expectedVersion(backupedFile()));
+    }
+
+    private RecursiveComparisonAssert<?> assertCreatedVersion() {
+        return assertThat(createdVersion())
                 .usingRecursiveComparison()
-                .ignoringFields("id")
-                .isEqualTo(expectedVersion(backupedFile));
+                .ignoringFields("id");
+    }
+
+    private static BackupedFile backupedFile() {
+        return BackupedFile.newFileForBackup(BUSINESS_KEY);
     }
 
     private Version createdVersion() {
@@ -68,6 +79,17 @@ public class BackupedFileServiceTest {
                 backupedFile.id(),
                 new BackupTime(currentTime),
                 FILE_CONTENT);
+    }
+
+    @Test void backupExistingFile() {
+        when(fileRepository.get(BUSINESS_KEY))
+                .thenReturn(Optional.of(backupedFile()));
+
+        service.backup(BUSINESS_KEY, FILE_CONTENT);
+
+        verify(fileRepository, never()).add(any());
+        assertCreatedVersion()
+                .isEqualTo(expectedVersion(backupedFile()));
     }
 
 }
