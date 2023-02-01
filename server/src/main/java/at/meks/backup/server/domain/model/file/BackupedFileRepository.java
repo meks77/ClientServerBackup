@@ -3,7 +3,7 @@ package at.meks.backup.server.domain.model.file;
 import java.util.Optional;
 
 public interface BackupedFileRepository {
-    Optional<BackupedFile> get(FileId fileId);
+    Optional<BackupedFile> get(BusinessKey businessKey);
 
-    void save(BackupedFile newFileForBackup);
+    BackupedFile add(BackupedFile newFileForBackup);
 }

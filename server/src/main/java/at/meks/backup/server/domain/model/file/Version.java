@@ -1,3 +1,8 @@
 package at.meks.backup.server.domain.model.file;
 
-record Version(int number, Content fileContent) { }
+record Version(
+        VersionId id,
+        BusinessKey businessKey,
+        BackupTime backuptime,
+        Content fileContent) {
+}

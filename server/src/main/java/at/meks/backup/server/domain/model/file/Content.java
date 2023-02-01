@@ -1,4 +1,6 @@
 package at.meks.backup.server.domain.model.file;
 
-record Content() {
+import java.io.InputStream;
+
+record Content(InputStream inputStream) {
 }

@@ -1,5 +1,6 @@
 package at.meks.backup.server.domain.model.file;
 
+import at.meks.backup.server.domain.model.time.UtcClock;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
@@ -8,11 +9,14 @@ import java.util.Optional;
 public class BackupedFileService {
 
     private BackupedFileRepository fileRepository;
+    private VersionRepository versionRepository;
+    private UtcClock clock;
 
-    public void backup(FileId fileId, byte[] bytes) {
-        Optional<BackupedFile> backupedFile = fileRepository.get(fileId);
+    public void backup(BusinessKey businessKey, Content fileContent) {
+        Optional<BackupedFile> backupedFile = fileRepository.get(businessKey);
         if (backupedFile.isEmpty()) {
-            fileRepository.save(BackupedFile.newFileForBackup(fileId));
+            BackupedFile newFile = fileRepository.add(BackupedFile.newFileForBackup(businessKey));
+            versionRepository.add(newFile.newVersion(new BackupTime(clock.now()), fileContent));
         }
     }
 }

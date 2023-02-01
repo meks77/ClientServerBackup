@@ -2,7 +2,6 @@ package at.meks.backup.server.domain.model.file;
 
 import at.meks.backup.server.domain.model.client.ClientId;
 import at.meks.backup.server.domain.model.directory.PathOnClient;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -13,12 +12,12 @@ class FileIdTest {
 
     @Test void clientIdIsNull() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> FileId.idFor(null, new PathOnClient(Path.of("whatever"))));
+                .isThrownBy(() -> BusinessKey.idFor(null, new PathOnClient(Path.of("whatever"))));
     }
 
     @Test void pathIdNull() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> FileId.idFor(new ClientId("whatever"), null));
+                .isThrownBy(() -> BusinessKey.idFor(new ClientId("whatever"), null));
     }
 
 }
