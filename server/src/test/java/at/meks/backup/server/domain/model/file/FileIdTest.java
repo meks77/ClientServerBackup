@@ -12,12 +12,12 @@ class FileIdTest {
 
     @Test void clientIdIsNull() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> BusinessKey.idFor(null, new PathOnClient(Path.of("whatever"))));
+                .isThrownBy(() -> FileId.idFor(null, new PathOnClient(Path.of("whatever"))));
     }
 
     @Test void pathIdNull() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> BusinessKey.idFor(new ClientId("whatever"), null));
+                .isThrownBy(() -> FileId.idFor(new ClientId("whatever"), null));
     }
 
 }

@@ -10,15 +10,15 @@ import static at.meks.validation.args.ArgValidator.validate;
 
 @Value
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class BusinessKey {
+public class FileId {
 
     ClientId clientId;
     PathOnClient pathOnClient;
 
-    public static BusinessKey idFor(ClientId clientId, PathOnClient path) {
+    public static FileId idFor(ClientId clientId, PathOnClient path) {
         validate().that(clientId).withMessage(() -> "clientId").isNotNull();
         validate().that(path).withMessage(() -> "path").isNotNull();
-        return new BusinessKey(clientId, path);
+        return new FileId(clientId, path);
     }
 
 }
