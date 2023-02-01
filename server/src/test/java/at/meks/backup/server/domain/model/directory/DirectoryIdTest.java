@@ -1,26 +1,28 @@
 package at.meks.backup.server.domain.model.directory;
 
+import at.meks.backup.server.domain.model.client.ClientId;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 class DirectoryIdTest {
 
+    protected static final PathOnClient PATH = new PathOnClient(Path.of("aDirectory"));
+
     @Test
-    void idIsNull() {
+    void clientIdIsNull() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> new DirectoryId(null))
-                .withMessageContaining("id text");
+                .isThrownBy(() -> DirectoryId.idFor(null, PATH))
+                .withMessageContaining("clientId");
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"", " "})
-    void idIsBlank(String idText) {
+    @Test
+    void pathIsNull() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> new DirectoryId(idText))
-                .withMessageContaining("id text");
+                .isThrownBy(() -> DirectoryId.idFor(new ClientId("whatever"), null))
+                .withMessageContaining("path");
     }
 
 }

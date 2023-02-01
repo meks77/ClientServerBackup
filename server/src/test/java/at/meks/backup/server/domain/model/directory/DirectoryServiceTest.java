@@ -63,7 +63,7 @@ class DirectoryServiceTest {
     }
 
     @Test void removedDirectoryWasNotAdded() {
-        DirectoryId id = new DirectoryId("justAnotherId");
+        DirectoryId id = DirectoryId.idFor(new ClientId("whatever"), new PathOnClient(Path.of("whatever")));
         when(repository.get(id))
                 .thenReturn(Optional.empty());
 

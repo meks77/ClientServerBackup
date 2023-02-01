@@ -35,7 +35,7 @@ public class Directory {
 
         this.clientId = clientId;
         this.path = path;
-        id = new DirectoryId(clientId.text() + ":" + path.asText());
+        id = DirectoryId.idFor(clientId, path);
     }
 
     public void directoryWasRemoved(){

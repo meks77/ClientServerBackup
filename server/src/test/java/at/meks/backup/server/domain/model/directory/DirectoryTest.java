@@ -21,7 +21,7 @@ class DirectoryTest {
         assertThat(backupedDirectory)
                 .isNotNull()
                 .extracting(Directory::id)
-                .isEqualTo(new DirectoryId("whateverId:home/bwayne/pictures"));
+                .isEqualTo(DirectoryId.idFor(CLIENT_ID, PATH_TO_PICTURES));
     }
 
     @Test
