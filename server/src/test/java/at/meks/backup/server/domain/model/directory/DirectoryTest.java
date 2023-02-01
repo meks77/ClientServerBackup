@@ -38,4 +38,14 @@ class DirectoryTest {
                 .withMessageContaining("path");
     }
 
+    @Test
+    void equalsOnlyForId() {
+        Directory left = directoryWasAdded(CLIENT_ID, PATH_TO_PICTURES);
+        Directory right = directoryWasAdded(CLIENT_ID, PATH_TO_PICTURES);
+        right.directoryWasRemoved();
+
+        assertThat(left).isEqualTo(right);
+        assertThat(left).hasSameHashCodeAs(right);
+    }
+
 }

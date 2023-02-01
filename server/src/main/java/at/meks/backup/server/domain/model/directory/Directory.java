@@ -15,11 +15,10 @@ import static at.meks.validation.args.ArgValidator.validate;
 public class Directory {
 
     @EqualsAndHashCode.Include
-    private final ClientId clientId;
-
-    private final PathOnClient path;
-
     private final DirectoryId id;
+
+    private final ClientId clientId;
+    private final PathOnClient path;
 
     @Setter(AccessLevel.PRIVATE)
     private boolean active;

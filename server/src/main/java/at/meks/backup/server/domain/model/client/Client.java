@@ -1,13 +1,12 @@
 package at.meks.backup.server.domain.model.client;
 
-import lombok.NonNull;
-import lombok.Value;
+import static at.meks.validation.args.ArgValidator.validate;
 
-@Value
-public class Client {
+public record Client (ClientId id, ClientName name) {
 
-    @NonNull
-    ClientId id;
-    @NonNull
-    ClientName name;
+    public Client {
+        validate().that(id).withMessage(() -> "id").isNotNull();
+        validate().that(name).withMessage(() -> "name").isNotNull();
+    }
+
 }
