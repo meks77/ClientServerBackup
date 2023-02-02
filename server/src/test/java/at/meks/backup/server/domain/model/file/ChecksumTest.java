@@ -17,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ChecksumTest {
 
-    @SneakyThrows
     @Test void bodyIsEmpty() {
         Checksum result = checksumFor("emptyfile.txt");
         assertThat(result).isEqualTo(new Checksum(0L));
@@ -32,7 +31,6 @@ class ChecksumTest {
         return Objects.requireNonNull(getClass().getResource(filePath)).toURI();
     }
 
-    @SneakyThrows
     @Test void bodyIsNotEmpty() {
         Checksum result = checksumFor("fileWithLittleContent.txt");
         assertThat(result.hash()).isGreaterThan(0L);
@@ -41,7 +39,7 @@ class ChecksumTest {
     @RepeatedTest(5)
     @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
     @SneakyThrows
-    void performancetest() {
+    void performancetestWithSmallSourceFiles() {
         Path src = Path.of("src");
         try (Stream<Path> walk = Files.walk(src)) {
             walk.filter(Files::isRegularFile)

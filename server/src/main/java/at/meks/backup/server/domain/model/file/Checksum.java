@@ -24,7 +24,7 @@ public record Checksum(long hash) {
     }
 
     private static void readCompleteFile(CheckedInputStream checkedInputStream) throws IOException {
-        byte[] buffer = new byte[64];
+        byte[] buffer = new byte[256];
         int readBytes;
         do {
             readBytes = checkedInputStream.read(buffer, 0, buffer.length);
