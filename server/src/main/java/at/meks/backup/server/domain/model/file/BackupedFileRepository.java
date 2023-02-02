@@ -5,5 +5,5 @@ import java.util.Optional;
 public interface BackupedFileRepository {
     Optional<BackupedFile> get(FileId fileId);
 
-    void add(BackupedFile newFileForBackup);
+    BackupedFile add(BackupedFile newFileForBackup);
 }
