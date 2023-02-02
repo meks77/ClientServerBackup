@@ -23,12 +23,12 @@ public class BackupedFileService {
         }
     }
 
-    public boolean isBackupNecessarry(FileId fileId, FileHash fileHash) {
+    public boolean isBackupNecessarry(FileId fileId, Checksum checksum) {
         return fileRepository.get(fileId)
                 .map(BackupedFile::latestVersionHash)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(file -> !file.equals(fileHash))
+                .map(file -> !file.equals(checksum))
                 .orElse(true);
     }
 }

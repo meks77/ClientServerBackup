@@ -20,18 +20,18 @@ public class BackupedFile {
     @Getter
     private final FileId id;
 
-    private FileHash latestVersionHash;
+    private Checksum latestVersionHash;
 
     static BackupedFile newFileForBackup(FileId id) {
         validate().that(id).withMessage(() -> "id").isNotNull();
         return new BackupedFile(id);
     }
 
-    public Optional<FileHash> latestVersionHash() {
+    public Optional<Checksum> latestVersionHash() {
         return Optional.ofNullable(latestVersionHash);
     }
 
-    public void versionWasBackedup(FileHash fileHash) {
-        this.latestVersionHash = fileHash;
+    public void versionWasBackedup(Checksum checksum) {
+        this.latestVersionHash = checksum;
     }
 }

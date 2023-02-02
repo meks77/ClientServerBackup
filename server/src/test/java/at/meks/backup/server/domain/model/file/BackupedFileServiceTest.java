@@ -104,12 +104,12 @@ public class BackupedFileServiceTest {
 
         @Test void latestVersionHashIsEqual() {
             BackupedFile backupedFile = backupedFile();
-            backupedFile.versionWasBackedup(new FileHash(20));
+            backupedFile.versionWasBackedup(new Checksum(20));
             when(fileRepository.get(FILE_ID))
                     .thenReturn(Optional.of(backupedFile));
             Content content = mock(Content.class);
             when(content.hash())
-                    .thenReturn(new FileHash(20));
+                    .thenReturn(new Checksum(20));
 
 
             service.backup(FILE_ID, content);
@@ -122,39 +122,39 @@ public class BackupedFileServiceTest {
     class BackupIsNecessaryTest {
 
         @Test void fileDoesntExist() {
-            FileHash fileHash = new FileHash(10);
-            boolean result = service.isBackupNecessarry(FILE_ID, fileHash);
+            Checksum checksum = new Checksum(10);
+            boolean result = service.isBackupNecessarry(FILE_ID, checksum);
             assertThat(result).isTrue();
         }
 
         @Test void noVersionExists() {
-            FileHash fileHash = new FileHash(10);
+            Checksum checksum = new Checksum(10);
             when(fileRepository.get(FILE_ID))
                     .thenReturn(Optional.of(backupedFile()));
 
-            boolean result = service.isBackupNecessarry(FILE_ID, fileHash);
+            boolean result = service.isBackupNecessarry(FILE_ID, checksum);
 
             assertThat(result).isTrue();
         }
 
         @Test void latestVersionHashIsDifferent() {
             BackupedFile backupedFile = backupedFile();
-            backupedFile.versionWasBackedup(new FileHash(20));
+            backupedFile.versionWasBackedup(new Checksum(20));
             when(fileRepository.get(FILE_ID))
                     .thenReturn(Optional.of(backupedFile));
 
-            boolean result = service.isBackupNecessarry(FILE_ID, new FileHash(21));
+            boolean result = service.isBackupNecessarry(FILE_ID, new Checksum(21));
 
             assertThat(result).isTrue();
         }
 
         @Test void latestVersionHashIsEqual() {
             BackupedFile backupedFile = backupedFile();
-            backupedFile.versionWasBackedup(new FileHash(20));
+            backupedFile.versionWasBackedup(new Checksum(20));
             when(fileRepository.get(FILE_ID))
                     .thenReturn(Optional.of(backupedFile));
 
-            boolean result = service.isBackupNecessarry(FILE_ID, new FileHash(20));
+            boolean result = service.isBackupNecessarry(FILE_ID, new Checksum(20));
 
             assertThat(result).isFalse();
         }

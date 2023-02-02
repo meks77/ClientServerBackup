@@ -1,12 +1,12 @@
 package at.meks.backup.server.domain.model.file.version;
 
-import at.meks.backup.server.domain.model.file.FileHash;
+import at.meks.backup.server.domain.model.file.Checksum;
 
 import java.net.URI;
 
 public record Content(URI uriToContent) {
-    public FileHash hash() {
+    public Checksum hash() {
         //TODO implement has des Contents
-        return new FileHash(0);
+        return new Checksum(0);
     }
 }
