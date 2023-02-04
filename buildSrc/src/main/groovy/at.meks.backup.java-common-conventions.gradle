@@ -14,8 +14,6 @@ java {
 
 dependencies {
     constraints {
-        // Define dependency versions as constraints
-//        implementation 'org.apache.commons:commons-text:1.9'
         implementation 'at.meks:easy-validation-args:2.0.0-RC5'
     }
 

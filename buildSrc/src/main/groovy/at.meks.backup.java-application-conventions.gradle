@@ -6,6 +6,8 @@ plugins {
 
 dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    testImplementation('io.quarkus:quarkus-junit5')
+    testImplementation('io.quarkus:quarkus-junit5-mockito')
 }
 test {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
