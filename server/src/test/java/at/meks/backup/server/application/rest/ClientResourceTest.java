@@ -9,11 +9,16 @@ import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import javax.enterprise.inject.Produces;
+
 @QuarkusTest
 class ClientResourceTest {
 
     @InjectSpy
     ClientService service;
+
+    @Produces
+    MemoryClientRepository repository = new MemoryClientRepository();
 
     @Test
     void clientRegistersWithNameNull() {
