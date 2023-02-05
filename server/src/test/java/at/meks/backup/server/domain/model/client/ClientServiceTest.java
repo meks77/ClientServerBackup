@@ -25,15 +25,14 @@ class ClientServiceTest {
         service.register(expectedResult);
 
         assertThat(registeredName())
-                .isSameAs(expectedResult);
+                .isEqualTo(expectedResult);
     }
 
     private ClientName registeredName() {
         ArgumentCaptor<Client> clientCaptor = ArgumentCaptor.forClass(Client.class);
         verify(repository)
                 .create(clientCaptor.capture());
-        ClientName registeredName = clientCaptor.getValue().name();
-        return registeredName;
+        return clientCaptor.getValue().name();
     }
 
 
