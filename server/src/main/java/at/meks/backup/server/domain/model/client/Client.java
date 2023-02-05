@@ -1,12 +1,23 @@
 package at.meks.backup.server.domain.model.client;
 
-import static at.meks.validation.args.ArgValidator.validate;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+import lombok.experimental.Accessors;
 
-public record Client (ClientId id, ClientName name) {
+@Value
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Accessors(fluent = true, chain = false)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Client {
 
-    public Client {
-        validate().that(id).withMessage(() -> "id").isNotNull();
-        validate().that(name).withMessage(() -> "name").isNotNull();
+    @EqualsAndHashCode.Include
+    ClientId id;
+    ClientName name;
+
+    public static Client newClient(String name) {
+        return new Client(ClientId.newId(), new ClientName(name));
     }
 
 }

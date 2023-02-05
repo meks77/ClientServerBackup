@@ -11,7 +11,7 @@ class ClientIdTest {
     @Test
     void idTextIsNull() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> new ClientId(null))
+                .isThrownBy(() -> ClientId.existingId(null))
                 .withMessageContaining("id text");
     }
 
@@ -19,7 +19,7 @@ class ClientIdTest {
     @ValueSource(strings = {"", " "})
     void idTextIsBlank(String text) {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> new ClientId(text))
+                .isThrownBy(() -> ClientId.existingId(text))
                 .withMessageContaining("id text");
     }
 

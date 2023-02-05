@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 class DirectoryTest {
 
     public static final PathOnClient PATH_TO_PICTURES = new PathOnClient(Path.of("home", "bwayne", "pictures"));
-    public static final ClientId CLIENT_ID = new ClientId("whateverId");
+    public static final ClientId CLIENT_ID = ClientId.newId();
 
     @Test
     void newDirectoryIsCreated() {

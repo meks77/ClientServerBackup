@@ -7,7 +7,10 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'io.quarkus:quarkus-resteasy-reactive-qute'
+    implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
     implementation 'io.quarkus:quarkus-arc'
+    implementation("io.quarkus:quarkus-micrometer-registry-prometheus")
     implementation 'at.meks:easy-validation-args'
+    testImplementation("io.rest-assured:rest-assured")
 }
 

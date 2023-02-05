@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class BackupedFileServiceTest {
 
-    protected static final FileId FILE_ID = FileId.idFor(new ClientId("client1"), new PathOnClient(Path.of("whatever")));
+    protected static final FileId FILE_ID = FileId.idFor(ClientId.newId(), new PathOnClient(Path.of("whatever")));
     protected static final Content FILE_CONTENT = new Content(uri());
 
     @SneakyThrows

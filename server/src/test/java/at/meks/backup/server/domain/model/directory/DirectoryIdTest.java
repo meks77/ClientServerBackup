@@ -21,7 +21,7 @@ class DirectoryIdTest {
     @Test
     void pathIsNull() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> DirectoryId.idFor(new ClientId("whatever"), null))
+                .isThrownBy(() -> DirectoryId.idFor(ClientId.newId(), null))
                 .withMessageContaining("path");
     }
 

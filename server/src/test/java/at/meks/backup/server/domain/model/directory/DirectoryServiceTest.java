@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -20,7 +19,7 @@ import static org.mockito.Mockito.*;
 class DirectoryServiceTest {
 
     static final PathOnClient PICTURES_PATH = new PathOnClient(Path.of("home", "bbanner", "Pictures"));
-    static final ClientId CLIENT_ID = new ClientId(UUID.randomUUID().toString());
+    static final ClientId CLIENT_ID = ClientId.newId();
 
     @InjectMocks
     DirectoryService service;
@@ -63,7 +62,7 @@ class DirectoryServiceTest {
     }
 
     @Test void removedDirectoryWasNotAdded() {
-        DirectoryId id = DirectoryId.idFor(new ClientId("whatever"), new PathOnClient(Path.of("whatever")));
+        DirectoryId id = DirectoryId.idFor(ClientId.newId(), new PathOnClient(Path.of("whatever")));
         when(repository.get(id))
                 .thenReturn(Optional.empty());
 

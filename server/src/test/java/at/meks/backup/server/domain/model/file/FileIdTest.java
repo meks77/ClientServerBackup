@@ -17,7 +17,7 @@ class FileIdTest {
 
     @Test void pathIdNull() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> FileId.idFor(new ClientId("whatever"), null));
+                .isThrownBy(() -> FileId.idFor(ClientId.newId(), null));
     }
 
 }

@@ -1,17 +1,14 @@
 package at.meks.backup.server.domain.model.client;
 
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ClientServiceTest {
@@ -21,43 +18,23 @@ class ClientServiceTest {
 
     @Mock
     ClientRepository repository;
-    private ClientId clientId;
-    private ClientName clientName;
 
     @Test
     void clientIsNotRegistered() {
-        givenClientId("adsf");
-        givenClientName("Bruce' Buddy");
+        final ClientName expectedResult = new ClientName("Bruce' Buddy");
+        service.register(expectedResult);
 
-        when_register();
+        assertThat(registeredName())
+                .isSameAs(expectedResult);
+    }
 
+    private ClientName registeredName() {
+        ArgumentCaptor<Client> clientCaptor = ArgumentCaptor.forClass(Client.class);
         verify(repository)
-                .create(new Client(clientId, clientName));
+                .create(clientCaptor.capture());
+        ClientName registeredName = clientCaptor.getValue().name();
+        return registeredName;
     }
 
-    @Test
-    void clientIsAlreadyRegistered() {
-        givenClientId("4711");
-        givenClientName("Bruce' Supercomputer");
-        when(repository.find(clientId))
-                .thenReturn(Optional.of(new Client(clientId, clientName)));
-
-        assertThatThrownBy(this::when_register)
-                .isInstanceOf(ClientAlreadyRegistered.class)
-                .hasMessage("Client with id 4711 is already registered. Please choose a different id for registration");
-    }
-
-    private void givenClientId(String idText) {
-        clientId = new ClientId(idText);
-    }
-
-    private void givenClientName(String clientName) {
-        this.clientName = new ClientName(clientName);
-    }
-
-    @SneakyThrows
-    private void when_register() {
-        service.register(clientId, clientName);
-    }
 
 }

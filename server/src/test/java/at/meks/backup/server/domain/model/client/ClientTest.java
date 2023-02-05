@@ -6,14 +6,9 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 class ClientTest {
 
-    @Test void idIsNull() {
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> new Client(null, new ClientName("whatever")));
-    }
-
     @Test void nameIsNull() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> new Client(new ClientId("whatever"), null));
+                .isThrownBy(() -> Client.newClient(null));
     }
 
 }
