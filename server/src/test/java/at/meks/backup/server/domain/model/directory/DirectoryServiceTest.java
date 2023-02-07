@@ -31,7 +31,7 @@ class DirectoryServiceTest {
         service.directoryWasAdded(CLIENT_ID, PICTURES_PATH);
 
         verify(repository)
-                .save(Directory.directoryWasAdded(CLIENT_ID, PICTURES_PATH));
+                .add(Directory.directoryWasAdded(CLIENT_ID, PICTURES_PATH));
     }
 
     @Test void directoryWasRemoved() {
@@ -42,7 +42,7 @@ class DirectoryServiceTest {
         service.directoryWasRemoved(directory.id());
 
         verify(repository)
-                .save(same(directory));
+                .add(same(directory));
         assertThat(directory.active())
                 .isFalse();
     }
@@ -56,7 +56,7 @@ class DirectoryServiceTest {
         service.directoryWasRemoved(directory.id());
 
         verify(repository)
-                .save(same(directory));
+                .add(same(directory));
         assertThat(directory.active())
                 .isFalse();
     }
@@ -68,7 +68,7 @@ class DirectoryServiceTest {
 
         service.directoryWasRemoved(id);
 
-        verify(repository, never()).save(any());
+        verify(repository, never()).add(any());
     }
 
 

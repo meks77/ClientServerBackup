@@ -3,13 +3,20 @@ package at.meks.backup.server.domain.model.directory;
 import at.meks.backup.server.domain.model.client.ClientId;
 import lombok.RequiredArgsConstructor;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
+
+@Named
+@ApplicationScoped
 @RequiredArgsConstructor
 public class DirectoryService {
 
     private final DirectoryRepository repository;
 
-    public void directoryWasAdded(ClientId clientId, PathOnClient path) {
-        repository.save(Directory.directoryWasAdded(clientId, path));
+    public Directory directoryWasAdded(ClientId clientId, PathOnClient path) {
+        Directory addedDirectory = Directory.directoryWasAdded(clientId, path);
+        repository.add(addedDirectory);
+        return addedDirectory;
     }
 
     public void directoryWasRemoved(DirectoryId id) {
@@ -19,7 +26,7 @@ public class DirectoryService {
 
     private void removeDirectory(Directory directory) {
         directory.directoryWasRemoved();
-        repository.save(directory);
+        repository.add(directory);
     }
 
 }

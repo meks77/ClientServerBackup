@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import static at.meks.validation.args.ArgValidator.validate;
@@ -12,6 +13,7 @@ import static at.meks.validation.args.ArgValidator.validate;
 @Accessors(fluent = true, chain = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Getter
+@ToString
 public class Directory {
 
     @EqualsAndHashCode.Include

@@ -7,9 +7,10 @@ import io.quarkus.test.junit.mockito.InjectSpy;
 import io.restassured.RestAssured;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import javax.enterprise.inject.Produces;
+
+import static org.mockito.Mockito.verify;
 
 @QuarkusTest
 class ClientResourceTest {
@@ -35,7 +36,7 @@ class ClientResourceTest {
                 .then()
                 .statusCode(RestResponse.StatusCode.OK);
 
-        Mockito.verify(service).register(new ClientName("myName"));
+        verify(service).register(new ClientName("myName"));
     }
 
 }
