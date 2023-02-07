@@ -15,14 +15,14 @@ public class MemoryClientRepository implements ClientRepository {
     private final Collection<Client> clients = new HashSet<>();
 
     @Override
-    public Optional<Client> find(ClientId id) {
+    public Optional<Client> get(ClientId id) {
         return clients.stream()
                 .filter(client -> client.id().equals(id))
                 .findFirst();
     }
 
     @Override
-    public void create(Client client) {
+    public void add(Client client) {
         clients.add(client);
     }
 }

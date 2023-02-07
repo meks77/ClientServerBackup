@@ -4,8 +4,8 @@ import java.util.Optional;
 
 public interface ClientRepository {
 
-    Optional<Client> find(ClientId id);
+    Optional<Client> get(ClientId id);
 
-    void create(Client client);
+    void add(Client client);
 
 }

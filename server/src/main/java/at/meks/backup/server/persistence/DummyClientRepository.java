@@ -11,12 +11,12 @@ import java.util.Optional;
 public class DummyClientRepository implements ClientRepository {
 
     @Override
-    public Optional<Client> find(ClientId id) {
+    public Optional<Client> get(ClientId id) {
         return Optional.empty();
     }
 
     @Override
-    public void create(Client client) {
+    public void add(Client client) {
 
     }
 }

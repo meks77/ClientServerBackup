@@ -14,7 +14,7 @@ public class ClientService {
 
     public Client register(ClientName clientName) {
         Client client = Client.newClient(clientName.text());
-        repository.create(client);
+        repository.add(client);
         return client;
     }
 }

@@ -6,8 +6,10 @@ import at.meks.backup.server.domain.model.file.version.VersionRepository;
 import at.meks.backup.server.domain.model.time.UtcClock;
 import lombok.RequiredArgsConstructor;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.util.Optional;
 
+@ApplicationScoped
 @RequiredArgsConstructor
 public class BackupedFileService {
 

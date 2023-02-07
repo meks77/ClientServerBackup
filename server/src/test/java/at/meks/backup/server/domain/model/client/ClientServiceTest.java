@@ -31,7 +31,7 @@ class ClientServiceTest {
     private ClientName registeredName() {
         ArgumentCaptor<Client> clientCaptor = ArgumentCaptor.forClass(Client.class);
         verify(repository)
-                .create(clientCaptor.capture());
+                .add(clientCaptor.capture());
         return clientCaptor.getValue().name();
     }
 
