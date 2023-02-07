@@ -4,18 +4,22 @@ import at.meks.backup.server.domain.model.file.version.Content;
 import at.meks.backup.server.domain.model.file.version.Version;
 import at.meks.backup.server.domain.model.file.version.VersionRepository;
 import at.meks.backup.server.domain.model.time.UtcClock;
-import lombok.RequiredArgsConstructor;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.Optional;
 
 @ApplicationScoped
-@RequiredArgsConstructor
 public class BackupedFileService {
 
-    private BackupedFileRepository fileRepository;
-    private VersionRepository versionRepository;
-    private UtcClock clock;
+    private final BackupedFileRepository fileRepository;
+    private final VersionRepository versionRepository;
+    private final UtcClock clock;
+
+    BackupedFileService(BackupedFileRepository fileRepository, VersionRepository versionRepository, UtcClock clock) {
+        this.fileRepository = fileRepository;
+        this.versionRepository = versionRepository;
+        this.clock = clock;
+    }
 
     public void backup(FileId fileId, Content fileContent) {
         BackupedFile backupedFile = fileRepository.get(fileId)

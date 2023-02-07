@@ -11,14 +11,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import java.nio.file.Paths;
 
-@Path("/v1/clients/")
+@Path("/v1/clients/{clientId}/directories/{path}")
 public class DirectoryResource {
 
     @Inject
     DirectoryService service;
 
     @POST
-    @Path("{clientId}/{path}")
     public Uni<Directory> add(
             @PathParam("clientId") String clientId,
             @PathParam("path") String directoryPath) {

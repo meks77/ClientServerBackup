@@ -22,7 +22,7 @@ public class BackupedFile {
 
     private Checksum latestVersionHash;
 
-    static BackupedFile newFileForBackup(FileId id) {
+    public static BackupedFile newFileForBackup(FileId id) {
         validate().that(id).withMessage(() -> "id").isNotNull();
         return new BackupedFile(id);
     }

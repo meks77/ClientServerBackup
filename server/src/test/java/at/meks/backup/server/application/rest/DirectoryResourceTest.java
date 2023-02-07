@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.not;
 @QuarkusTest
 public class DirectoryResourceTest {
 
+    public static final String PATH = "/v1/clients/{clientId}/directories/{directory}";
     MemoryDirectoryRespository repository = new MemoryDirectoryRespository();
 
     @Produces
@@ -37,7 +38,7 @@ public class DirectoryResourceTest {
                 .pathParam("clientId", "clientIdX")
                 .pathParam("directory", "/home/theuser/Documents")
             .when()
-                .post("/v1/clients/{clientId}/{directory}")
+                .post(PATH)
             .then()
                 .statusCode(RestResponse.StatusCode.OK)
                 .body("directory.id", not(emptyString()));
@@ -56,7 +57,7 @@ public class DirectoryResourceTest {
                 .pathParam("clientId", "clientIdX")
                 .pathParam("directory", "C:\\Users\\theuser\\Pictures")
             .when()
-                .post("/v1/clients/{clientId}/{directory}")
+                .post(PATH)
             .then()
                 .statusCode(RestResponse.StatusCode.OK)
                 .body("directory.id", not(emptyString()));

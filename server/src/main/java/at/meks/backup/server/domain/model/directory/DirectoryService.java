@@ -1,17 +1,17 @@
 package at.meks.backup.server.domain.model.directory;
 
 import at.meks.backup.server.domain.model.client.ClientId;
-import lombok.RequiredArgsConstructor;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
 
-@Named
 @ApplicationScoped
-@RequiredArgsConstructor
 public class DirectoryService {
 
     private final DirectoryRepository repository;
+
+    DirectoryService(DirectoryRepository repository) {
+        this.repository = repository;
+    }
 
     public Directory directoryWasAdded(ClientId clientId, PathOnClient path) {
         Directory addedDirectory = Directory.directoryWasAdded(clientId, path);
