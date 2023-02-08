@@ -1,4 +1,4 @@
-package at.meks.backup.server.application.rest;
+package at.meks.backup.server.application.rest.directory;
 
 import at.meks.backup.server.domain.model.client.ClientId;
 import at.meks.backup.server.domain.model.directory.DirectoryService;

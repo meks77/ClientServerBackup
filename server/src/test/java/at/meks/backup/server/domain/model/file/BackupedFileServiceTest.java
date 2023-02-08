@@ -2,13 +2,8 @@ package at.meks.backup.server.domain.model.file;
 
 import at.meks.backup.server.domain.model.client.ClientId;
 import at.meks.backup.server.domain.model.directory.PathOnClient;
-import at.meks.backup.server.domain.model.file.version.Content;
-import at.meks.backup.server.domain.model.file.version.Version;
-import at.meks.backup.server.domain.model.file.version.VersionId;
 import at.meks.backup.server.domain.model.file.version.VersionRepository;
 import at.meks.backup.server.domain.model.time.UtcClock;
-import lombok.SneakyThrows;
-import org.assertj.core.api.RecursiveComparisonAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,26 +13,24 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class BackupedFileServiceTest {
 
-    protected static final FileId FILE_ID = FileId.idFor(ClientId.newId(), new PathOnClient(Path.of("whatever")));
-    protected static final Content FILE_CONTENT = new Content(uri());
-
-    @SneakyThrows
-    private static URI uri() {
-        return new URI("file://wherever");
-    }
+    private static final Path fileForBackup = Path.of("src", "test", "resources", "fileuploads", "file1.txt")
+            .toAbsolutePath();
+    protected static final FileId FILE_ID = FileId.idFor(ClientId.newId(), new PathOnClient(fileForBackup));
 
     @InjectMocks BackupedFileService service;
 
@@ -59,62 +52,47 @@ public class BackupedFileServiceTest {
 
     @Nested
     class BackupTest {
-        @Test void backupNewFile() {
-            when(fileRepository.add(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            service.backup(FILE_ID, FILE_CONTENT);
+        @Test void backupNewFile() {
+            Path fileForBackup = Path.of("src", "test", "resources", "fileuploads", "file1.txt");
+            when(fileRepository.add(any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            service.backup(FILE_ID, fileForBackup);
 
             verify(fileRepository)
                     .add(backupedFile());
-            assertCreatedVersion()
-                    .isEqualTo(expectedVersion(backupedFile()));
+
+            verifyVersion(fileForBackup);
         }
 
-        private RecursiveComparisonAssert<?> assertCreatedVersion() {
-            return assertThat(createdVersion())
-                    .usingRecursiveComparison()
-                    .ignoringFields("id");
-        }
-
-        private Version createdVersion() {
-            ArgumentCaptor<Version> versionCaptor = ArgumentCaptor.forClass(Version.class);
+        private void verifyVersion(Path fileForBackup) {
+            ArgumentCaptor<BackupTime> backupTimeCaptor = ArgumentCaptor.forClass(BackupTime.class);
             verify(versionRespository)
-                    .add(versionCaptor.capture());
-            return versionCaptor.getValue();
-        }
-
-        private Version expectedVersion(BackupedFile backupedFile) {
-            return new Version(
-                    new VersionId(UUID.randomUUID()),
-                    backupedFile.id(),
-                    new BackupTime(currentTime),
-                    FILE_CONTENT);
+                    .add(eq(FILE_ID), backupTimeCaptor.capture(), eq(fileForBackup));
+            assertThat(backupTimeCaptor.getValue().backupTime())
+                    .isEqualTo(currentTime);
         }
 
         @Test void backupExistingFile() {
             when(fileRepository.get(FILE_ID))
                     .thenReturn(Optional.of(backupedFile()));
 
-            service.backup(FILE_ID, FILE_CONTENT);
+            service.backup(FILE_ID, fileForBackup);
 
             verify(fileRepository, never()).add(any());
-            assertCreatedVersion()
-                    .isEqualTo(expectedVersion(backupedFile()));
+            verifyVersion(fileForBackup);
         }
 
         @Test void latestVersionHashIsEqual() {
             BackupedFile backupedFile = backupedFile();
-            backupedFile.versionWasBackedup(new Checksum(20));
+            backupedFile.versionWasBackedup(Checksum.forContentOf(fileForBackup.toUri()));
             when(fileRepository.get(FILE_ID))
                     .thenReturn(Optional.of(backupedFile));
-            Content content = mock(Content.class);
-            when(content.hash())
-                    .thenReturn(new Checksum(20));
 
+            service.backup(FILE_ID, fileForBackup);
 
-            service.backup(FILE_ID, content);
-
-            verify(versionRespository, never()).add(any());
+            verify(versionRespository, never()).add(any(), any(), any());
         }
     }
 

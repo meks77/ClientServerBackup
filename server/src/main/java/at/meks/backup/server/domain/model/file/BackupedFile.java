@@ -27,7 +27,7 @@ public class BackupedFile {
         return new BackupedFile(id);
     }
 
-    public Optional<Checksum> latestVersionHash() {
+    public Optional<Checksum> latestVersionChecksum() {
         return Optional.ofNullable(latestVersionHash);
     }
 

@@ -1,4 +1,4 @@
-package at.meks.backup.server.application.rest;
+package at.meks.backup.server.application.rest.file;
 
 import at.meks.backup.server.domain.model.client.ClientId;
 import at.meks.backup.server.domain.model.directory.PathOnClient;
@@ -8,6 +8,7 @@ import at.meks.backup.server.domain.model.file.FileId;
 import io.quarkus.test.junit.QuarkusTest;
 import org.hamcrest.Matchers;
 import org.jboss.resteasy.reactive.RestResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,23 +18,31 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZonedDateTime;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
 class FileResourceTest {
 
+    protected static final String FILE_URL_PATH = "/v1/clients/{clientId}/file/{filepath}";
+
     @Produces
     private final MemoryFileRespository fileRespository = new MemoryFileRespository();
 
-    @BeforeEach
-    void cleanup() {
-        fileRespository.clear();
-    }
+    @Produces
+    private final MemoryVersionRepository versionRepository = new MemoryVersionRepository();
 
     @Nested
     class IsBackupNecessary {
-        public static final String PATH = "/v1/clients/{clientId}/file/{filepath}/latestChecksum/{checksum}";
+
+        public static final String PATH = FILE_URL_PATH + "/latestChecksum/{checksum}";
+
+        @BeforeEach
+        void cleanup() {
+            fileRespository.clear();
+        }
 
         @Test
         void notExistingFile() {
@@ -92,4 +101,31 @@ class FileResourceTest {
 
     }
 
+    @Nested
+    class Backup {
+
+        @AfterEach
+        void resetRepository() {
+            versionRepository.clear();
+        }
+
+        @Test
+        void newVersionOfNewFile() {
+            ZonedDateTime timeBeforeBackup = ZonedDateTime.now();
+            ClientId clientId = ClientId.existingId("peterParkersMobile");
+            Path filePath = Paths.get("/root/test.txt");
+            given()
+                    .pathParam("clientId", clientId.text())
+                    .pathParam("filepath", URLDecoder.decode(filePath.toString(), StandardCharsets.UTF_8))
+                    .multiPart(Path.of("build", "resources", "test", "fileuploads", "file1.txt").toAbsolutePath().toFile())
+                    .when()
+                    .post(FILE_URL_PATH)
+                    .then()
+                    .statusCode(RestResponse.StatusCode.NO_CONTENT);
+            assertThat(versionRepository.stream()
+                            .filter(version -> version.backuptime().backupTime().isAfter(timeBeforeBackup))
+                            .findFirst())
+                    .isNotEmpty();
+        }
+    }
 }
