@@ -14,6 +14,6 @@ public record PathOnClient(Path path) {
     }
 
     public String asText() {
-        return path.toString();
+        return path.toString().replace("\\", "/");
     }
 }

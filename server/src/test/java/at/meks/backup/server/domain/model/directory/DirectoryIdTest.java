@@ -51,7 +51,7 @@ class DirectoryIdTest {
                 new PathOnClient(Paths.get(path)));
 
         assertThat(result.text())
-                .isEqualTo("%s:%s", clientId, path);
+                .isEqualTo("%s:%s", clientId, "C:/Users/theusername/Documents");
     }
 
 }
