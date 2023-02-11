@@ -6,10 +6,14 @@ plugins {
 dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor('io.quarkus:quarkus-panache-common')
     implementation 'io.quarkus:quarkus-resteasy-reactive-qute'
-    implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
+    implementation('io.quarkus:quarkus-resteasy-reactive-jackson')
     implementation 'io.quarkus:quarkus-arc'
     implementation("io.quarkus:quarkus-micrometer-registry-prometheus")
+    implementation('io.quarkus:quarkus-hibernate-orm-panache')
+    implementation('io.quarkus:quarkus-jdbc-h2')
+    implementation('io.quarkus:quarkus-flyway')
     implementation 'at.meks:easy-validation-args'
     testImplementation("io.rest-assured:rest-assured")
 }

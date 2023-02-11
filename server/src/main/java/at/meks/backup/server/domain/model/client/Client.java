@@ -20,4 +20,8 @@ public class Client {
         return new Client(ClientId.newId(), new ClientName(name));
     }
 
+    public static Client existingClient(ClientId id, ClientName name) {
+        return new Client(id, name);
+    }
+
 }
