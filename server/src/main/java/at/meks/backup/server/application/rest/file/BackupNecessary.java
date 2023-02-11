@@ -1,4 +1,4 @@
-package at.meks.backup.server.application.rest;
+package at.meks.backup.server.application.rest.file;
 
 import lombok.Value;
 

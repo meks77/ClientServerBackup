@@ -1,4 +1,4 @@
-package at.meks.backup.server.application.rest;
+package at.meks.backup.server.application.rest.file;
 
 import at.meks.backup.server.domain.model.file.BackupedFile;
 import at.meks.backup.server.domain.model.file.BackupedFileRepository;
