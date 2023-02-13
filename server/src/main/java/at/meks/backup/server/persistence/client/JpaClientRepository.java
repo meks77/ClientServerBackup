@@ -1,4 +1,4 @@
-package at.meks.backup.server.persistence;
+package at.meks.backup.server.persistence.client;
 
 import at.meks.backup.server.domain.model.client.Client;
 import at.meks.backup.server.domain.model.client.ClientId;

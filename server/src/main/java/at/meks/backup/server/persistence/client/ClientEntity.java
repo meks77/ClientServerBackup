@@ -1,4 +1,4 @@
-package at.meks.backup.server.persistence;
+package at.meks.backup.server.persistence.client;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import lombok.Getter;

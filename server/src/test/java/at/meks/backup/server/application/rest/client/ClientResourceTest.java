@@ -2,7 +2,7 @@ package at.meks.backup.server.application.rest.client;
 
 import at.meks.backup.server.domain.model.client.ClientName;
 import at.meks.backup.server.domain.model.client.ClientService;
-import at.meks.backup.server.persistence.ClientEntity;
+import at.meks.backup.server.persistence.client.ClientEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectSpy;
 import io.restassured.RestAssured;
