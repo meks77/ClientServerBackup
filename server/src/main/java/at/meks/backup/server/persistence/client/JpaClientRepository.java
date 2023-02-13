@@ -18,15 +18,17 @@ class JpaClientRepository implements ClientRepository {
     }
 
     private Client toDomainEntity(ClientEntity clientEntity) {
-        return Client.existingClient(ClientId.existingId(clientEntity.id()), new ClientName(clientEntity.name()));
+        return Client.existingClient(
+                ClientId.existingId(clientEntity.id),
+                new ClientName(clientEntity.name));
     }
 
     @Override
     public void add(Client client) {
-        new ClientEntity()
-                .id(client.id().text())
-                .name(client.name().text())
-                .persist();
+        ClientEntity entity = new ClientEntity();
+        entity.id = client.id().text();
+        entity.name = client.name().text();
+        entity.persist();
     }
 
 }

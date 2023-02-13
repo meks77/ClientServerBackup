@@ -49,7 +49,7 @@ class ClientResourceTest {
 
         List<ClientEntity> list = ClientEntity.findAll().list();
         assertThat(list)
-                .extracting(ClientEntity::name)
+                .extracting(client -> client.name)
                 .containsExactly("myName");
     }
 
