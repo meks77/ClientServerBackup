@@ -4,6 +4,7 @@ import at.meks.backup.server.domain.model.client.ClientId;
 import at.meks.backup.server.domain.model.directory.PathOnClient;
 import at.meks.backup.server.domain.model.file.Checksum;
 import at.meks.backup.server.persistence.file.BackupedFileEntity;
+import at.meks.backup.server.persistence.file.version.VersionDbEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import org.hamcrest.Matchers;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -11,13 +12,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import javax.enterprise.inject.Produces;
 import javax.transaction.Transactional;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 import static at.meks.backup.server.domain.model.file.TestUtils.pathOf;
@@ -28,9 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FileResourceTest {
 
     protected static final String FILE_URL_PATH = "/v1/clients/{clientId}/file/{filepath}";
-
-    @Produces
-    private final MemoryVersionRepository versionRepository = new MemoryVersionRepository();
 
     @Transactional
     void givenBackupedFile(ClientId clientId, Path filePath, long checksum) {
@@ -45,6 +43,7 @@ class FileResourceTest {
     @Transactional
     void deleteAllFiles() {
         BackupedFileEntity.deleteAll();
+        VersionDbEntity.deleteAll();
     }
 
     @Nested
@@ -90,7 +89,6 @@ class FileResourceTest {
         }
 
 
-
         @Test
         void existingFileDifferentChecksum() {
             ClientId clientId = ClientId.existingId("peterParkersMobile");
@@ -116,11 +114,10 @@ class FileResourceTest {
         private final ClientId clientId = ClientId.existingId("peterParkersMobile");
         private Path fileForBackup;
         private final Path filePath = Paths.get("/root/test.txt");
-        private final ZonedDateTime timeBeforeBackup = ZonedDateTime.now();
+        private final LocalDateTime timeBeforeBackup = LocalDateTime.now();
 
         @BeforeEach
         void resetRepository() {
-            versionRepository.clear();
             deleteAllFiles();
             fileForBackup = pathOf("/fileuploads/file1.txt");
         }
@@ -130,9 +127,10 @@ class FileResourceTest {
             whenBackup();
 
             assertThatRepositoryContains(clientId, filePath, fileForBackup);
-            assertThat(versionRepository.stream()
-                            .filter(version -> version.backuptime().backupTime().isAfter(timeBeforeBackup))
-                            .findFirst())
+            assertThat(VersionDbEntity.<VersionDbEntity>findAll().stream()
+                    .filter(version -> Objects.nonNull(version.backupTime))
+                    .filter(version -> version.backupTime.isAfter(timeBeforeBackup))
+                    .findFirst())
                     .isNotEmpty();
         }
 
@@ -165,13 +163,14 @@ class FileResourceTest {
 
         @Test
         void existingFileDifferentChecksum() {
-            givenBackupedFile(clientId, filePath,  -1L);
+            givenBackupedFile(clientId, filePath, -1L);
 
             whenBackup();
 
             assertThatRepositoryContains(clientId, filePath, fileForBackup);
-            assertThat(versionRepository.stream()
-                    .filter(version -> version.backuptime().backupTime().isAfter(timeBeforeBackup))
+            assertThat(VersionDbEntity.<VersionDbEntity>findAll().stream()
+                    .filter(version -> Objects.nonNull(version.backupTime))
+                    .filter(version -> version.backupTime.isAfter(timeBeforeBackup))
                     .findFirst())
                     .isNotEmpty();
         }
@@ -182,7 +181,7 @@ class FileResourceTest {
             whenBackup();
 
             assertThatRepositoryContains(clientId, filePath, fileForBackup);
-            assertThat(versionRepository.stream())
+            assertThat(VersionDbEntity.<VersionDbEntity>findAll().stream())
                     .isEmpty();
         }
     }

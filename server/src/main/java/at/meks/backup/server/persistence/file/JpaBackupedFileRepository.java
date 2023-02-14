@@ -6,7 +6,6 @@ import at.meks.backup.server.domain.model.file.BackupedFile;
 import at.meks.backup.server.domain.model.file.BackupedFileRepository;
 import at.meks.backup.server.domain.model.file.Checksum;
 import at.meks.backup.server.domain.model.file.FileId;
-import io.quarkus.panache.common.Parameters;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.nio.file.Path;
@@ -23,11 +22,7 @@ public class JpaBackupedFileRepository implements BackupedFileRepository {
     }
 
     private static Optional<BackupedFileEntity> findById(FileId fileId) {
-        return BackupedFileEntity.<BackupedFileEntity>find(
-                        "#BackupedFileEntity.findByFileId",
-                        Parameters.with("clientId", fileId.clientId().text())
-                                .and("pathOnClient", fileId.pathOnClient().asText()).map())
-                .firstResultOptional();
+        return BackupedFileEntity.findByFileId(fileId);
     }
 
     private BackupedFile toDomainEntity(BackupedFileEntity dbEntity) {

@@ -33,12 +33,12 @@ public class BackupedFileService {
         if (backupedFile.isPresent() && !checksum.equals(backupedFile.get().latestVersionChecksum().orElse(null))) {
             backupedFile.get().versionWasBackedup(checksum);
             fileRepository.set(backupedFile.get());
-            versionRepository.add(fileId, new BackupTime(clock.now()), file);
+            versionRepository.add(backupedFile.get(), new BackupTime(clock.now()), file);
         } else if (backupedFile.isEmpty()){
             BackupedFile newFileForBackup = BackupedFile.newFileForBackup(fileId);
             newFileForBackup.versionWasBackedup(checksum);
             fileRepository.add(newFileForBackup);
-            versionRepository.add(fileId, new BackupTime(clock.now()), file);
+            versionRepository.add(newFileForBackup, new BackupTime(clock.now()), file);
         }
     }
 

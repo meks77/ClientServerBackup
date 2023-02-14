@@ -73,7 +73,7 @@ public class BackupedFileServiceTest {
         private void verifyVersion(Path fileForBackup) {
             ArgumentCaptor<BackupTime> backupTimeCaptor = ArgumentCaptor.forClass(BackupTime.class);
             verify(versionRespository)
-                    .add(eq(fileId), backupTimeCaptor.capture(), eq(fileForBackup));
+                    .add(eq(backupedFile()), backupTimeCaptor.capture(), eq(fileForBackup));
             assertThat(backupTimeCaptor.getValue().backupTime())
                     .isEqualTo(currentTime);
         }

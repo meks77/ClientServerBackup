@@ -1,6 +1,8 @@
 package at.meks.backup.server.persistence.file;
 
+import at.meks.backup.server.domain.model.file.FileId;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import io.quarkus.panache.common.Parameters;
 import lombok.ToString;
 
 import javax.persistence.Column;
@@ -8,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import java.util.Optional;
 
 @Entity
 @Table(name = "BACKUPED_FILE")
@@ -28,4 +31,11 @@ public class BackupedFileEntity extends PanacheEntityBase {
     @Column(name = "LATEST_VERSION_CHECKSUM")
     public Long latestVersionChecksum;
 
+    public static Optional<BackupedFileEntity> findByFileId(FileId fileId) {
+        return BackupedFileEntity.<BackupedFileEntity>find(
+                        "#BackupedFileEntity.findByFileId",
+                        Parameters.with("clientId", fileId.clientId().text())
+                                .and("pathOnClient", fileId.pathOnClient().asText()).map())
+                .firstResultOptional();
+    }
 }
