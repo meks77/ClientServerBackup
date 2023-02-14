@@ -112,6 +112,11 @@ class FileResourceTest {
     @Nested
     class Backup {
 
+        private final ClientId clientId = ClientId.existingId("peterParkersMobile");
+        private final Path fileForBackup = Path.of("build", "resources", "test", "fileuploads", "file1.txt").toAbsolutePath();
+        private final Path filePath = Paths.get("/root/test.txt");
+        private final ZonedDateTime timeBeforeBackup = ZonedDateTime.now();
+
         @BeforeEach
         void resetRepository() {
             versionRepository.clear();
@@ -120,10 +125,16 @@ class FileResourceTest {
 
         @Test
         void newVersionOfNewFile() {
-            ZonedDateTime timeBeforeBackup = ZonedDateTime.now();
-            ClientId clientId = ClientId.existingId("peterParkersMobile");
-            Path filePath = Paths.get("/root/test.txt");
-            Path fileForBackup = Path.of("build", "resources", "test", "fileuploads", "file1.txt").toAbsolutePath();
+            whenBackup();
+
+            assertThatRepositoryContains(clientId, filePath, fileForBackup);
+            assertThat(versionRepository.stream()
+                            .filter(version -> version.backuptime().backupTime().isAfter(timeBeforeBackup))
+                            .findFirst())
+                    .isNotEmpty();
+        }
+
+        private void whenBackup() {
             given()
                     .pathParam("clientId", clientId.text())
                     .pathParam("filepath", URLDecoder.decode(filePath.toString(), StandardCharsets.UTF_8))
@@ -132,22 +143,45 @@ class FileResourceTest {
                     .post(FILE_URL_PATH)
                     .then()
                     .statusCode(RestResponse.StatusCode.NO_CONTENT);
+        }
 
-            BackupedFileEntity expectedFile = new BackupedFileEntity();
-            expectedFile.clientId = clientId.text();
-            expectedFile.pathOnClient = new PathOnClient(filePath).asText();
-            expectedFile.latestVersionChecksum = Checksum.forContentOf(fileForBackup.toUri()).hash();
+        private void assertThatRepositoryContains(ClientId clientId, Path filePath, Path fileForBackup) {
+            BackupedFileEntity expectedFile = expectedFile(clientId, filePath, fileForBackup);
 
             assertThat(BackupedFileEntity.findAll().<BackupedFileEntity>list())
                     .usingRecursiveFieldByFieldElementComparatorOnFields("clientId", "pathOnClient", "latestVersionChecksum")
                     .containsExactly(expectedFile);
+        }
+
+        private BackupedFileEntity expectedFile(ClientId clientId, Path filePath, Path fileForBackup) {
+            BackupedFileEntity expectedFile = new BackupedFileEntity();
+            expectedFile.clientId = clientId.text();
+            expectedFile.pathOnClient = new PathOnClient(filePath).asText();
+            expectedFile.latestVersionChecksum = Checksum.forContentOf(fileForBackup.toUri()).hash();
+            return expectedFile;
+        }
+
+        @Test
+        void existingFileDifferentChecksum() {
+            givenBackupedFile(clientId, filePath,  -1L);
+
+            whenBackup();
+
+            assertThatRepositoryContains(clientId, filePath, fileForBackup);
             assertThat(versionRepository.stream()
-                            .filter(version -> version.backuptime().backupTime().isAfter(timeBeforeBackup))
-                            .findFirst())
+                    .filter(version -> version.backuptime().backupTime().isAfter(timeBeforeBackup))
+                    .findFirst())
                     .isNotEmpty();
         }
 
-        //TODO: newVersionOfExistingBackup
-        //TODO: sameVersionOfExistingBackup
+        @Test
+        void existingFileSameChecksum() {
+            givenBackupedFile(clientId, filePath, Checksum.forContentOf(fileForBackup.toUri()).hash());
+            whenBackup();
+
+            assertThatRepositoryContains(clientId, filePath, fileForBackup);
+            assertThat(versionRepository.stream())
+                    .isEmpty();
+        }
     }
 }

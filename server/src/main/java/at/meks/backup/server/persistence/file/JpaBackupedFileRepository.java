@@ -18,13 +18,16 @@ public class JpaBackupedFileRepository implements BackupedFileRepository {
 
     @Override
     public Optional<BackupedFile> get(FileId fileId) {
+        return findById(fileId)
+                .map(this::toDomainEntity);
+    }
 
+    private static Optional<BackupedFileEntity> findById(FileId fileId) {
         return BackupedFileEntity.<BackupedFileEntity>find(
                         "#BackupedFileEntity.findByFileId",
                         Parameters.with("clientId", fileId.clientId().text())
                                 .and("pathOnClient", fileId.pathOnClient().asText()).map())
-                .firstResultOptional()
-                .map(this::toDomainEntity);
+                .firstResultOptional();
     }
 
     private BackupedFile toDomainEntity(BackupedFileEntity dbEntity) {
@@ -36,19 +39,29 @@ public class JpaBackupedFileRepository implements BackupedFileRepository {
 
     @Override
     public BackupedFile add(BackupedFile newFileForBackup) {
+        BackupedFileEntity entity = toDbEntity(newFileForBackup);
+        entity.persist();
+        return newFileForBackup;
+    }
+
+    private BackupedFileEntity toDbEntity(BackupedFile newFileForBackup) {
         BackupedFileEntity entity = new BackupedFileEntity();
         entity.id = UUID.randomUUID().toString();
         entity.clientId = newFileForBackup.id().clientId().text();
         entity.pathOnClient = newFileForBackup.id().pathOnClient().asText();
         newFileForBackup.latestVersionChecksum()
                 .ifPresent(checksum -> entity.latestVersionChecksum = checksum.hash());
-        entity.persist();
-        return newFileForBackup;
+        return entity;
     }
 
     @Override
-    public void set(BackupedFile backupedFile) {
-
+    public void set(BackupedFile fileForBackup) {
+        findById(fileForBackup.id())
+                .ifPresentOrElse(
+                        dbEntity -> dbEntity.latestVersionChecksum =
+                                fileForBackup.latestVersionChecksum().map(Checksum::hash).orElse(null),
+                        () -> add(fileForBackup)
+                );
     }
 
 }
