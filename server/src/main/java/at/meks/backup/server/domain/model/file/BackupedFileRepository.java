@@ -6,4 +6,6 @@ public interface BackupedFileRepository {
     Optional<BackupedFile> get(FileId fileId);
 
     BackupedFile add(BackupedFile newFileForBackup);
+
+    void set(BackupedFile backupedFile);
 }
