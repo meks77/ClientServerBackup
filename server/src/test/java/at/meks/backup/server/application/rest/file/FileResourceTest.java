@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import static at.meks.backup.server.domain.model.file.TestUtils.pathOf;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -113,7 +114,7 @@ class FileResourceTest {
     class Backup {
 
         private final ClientId clientId = ClientId.existingId("peterParkersMobile");
-        private final Path fileForBackup = Path.of("build", "resources", "test", "fileuploads", "file1.txt").toAbsolutePath();
+        private Path fileForBackup;
         private final Path filePath = Paths.get("/root/test.txt");
         private final ZonedDateTime timeBeforeBackup = ZonedDateTime.now();
 
@@ -121,6 +122,7 @@ class FileResourceTest {
         void resetRepository() {
             versionRepository.clear();
             deleteAllFiles();
+            fileForBackup = pathOf("/fileuploads/file1.txt");
         }
 
         @Test
