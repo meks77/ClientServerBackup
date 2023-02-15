@@ -1,0 +1,11 @@
+plugins {
+    id 'at.meks.backup.java-application-conventions'
+    id 'io.quarkus' version "${quarkusPluginVersion}"
+}
+
+version '0.1-SNAPSHOT'
+
+dependencies {
+    implementation 'io.quarkus:quarkus-arc'
+
+}
