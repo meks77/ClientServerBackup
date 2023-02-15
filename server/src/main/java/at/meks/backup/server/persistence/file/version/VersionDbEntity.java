@@ -12,7 +12,7 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.sql.Blob;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "BACKUPED_FILE_VERSION")
@@ -27,7 +27,7 @@ public class VersionDbEntity extends PanacheEntityBase {
     public BackupedFileEntity backupedFileEntity;
 
     @Column(name = "BACKUP_TIME")
-    public LocalDateTime backupTime;
+    public ZonedDateTime backupTime;
 
     @Lob
     public Blob content;

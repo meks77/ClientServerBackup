@@ -17,9 +17,9 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.Objects;
+import java.time.ZonedDateTime;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static at.meks.backup.server.domain.model.file.TestUtils.pathOf;
 import static io.restassured.RestAssured.given;
@@ -114,7 +114,7 @@ class FileResourceTest {
         private final ClientId clientId = ClientId.existingId("peterParkersMobile");
         private Path fileForBackup;
         private final Path filePath = Paths.get("/root/test.txt");
-        private final LocalDateTime timeBeforeBackup = LocalDateTime.now();
+        private final ZonedDateTime timeBeforeBackup = ZonedDateTime.now();
 
         @BeforeEach
         void resetRepository() {
@@ -127,11 +127,15 @@ class FileResourceTest {
             whenBackup();
 
             assertThatRepositoryContains(clientId, filePath, fileForBackup);
-            assertThat(VersionDbEntity.<VersionDbEntity>findAll().stream()
-                    .filter(version -> Objects.nonNull(version.backupTime))
-                    .filter(version -> version.backupTime.isAfter(timeBeforeBackup))
-                    .findFirst())
-                    .isNotEmpty();
+            assertVersionOfFile();
+        }
+
+        private void assertVersionOfFile() {
+            Stream<VersionDbEntity> versionen = VersionDbEntity.<VersionDbEntity>findAll().stream();
+            assertThat(versionen)
+                    .allSatisfy(version ->
+                            assertThat(version.backupTime)
+                                    .isAfterOrEqualTo(this.timeBeforeBackup));
         }
 
         private void whenBackup() {
@@ -168,11 +172,7 @@ class FileResourceTest {
             whenBackup();
 
             assertThatRepositoryContains(clientId, filePath, fileForBackup);
-            assertThat(VersionDbEntity.<VersionDbEntity>findAll().stream()
-                    .filter(version -> Objects.nonNull(version.backupTime))
-                    .filter(version -> version.backupTime.isAfter(timeBeforeBackup))
-                    .findFirst())
-                    .isNotEmpty();
+            assertVersionOfFile();
         }
 
         @Test
