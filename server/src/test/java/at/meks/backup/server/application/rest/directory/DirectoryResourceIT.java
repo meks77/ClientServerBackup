@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.not;
 
 @QuarkusTest
-public class DirectoryResourceTest {
+public class DirectoryResourceIT {
 
     public static final String PATH = "/v1/clients/{clientId}/directories/{directory}";
     MemoryDirectoryRespository repository = new MemoryDirectoryRespository();

@@ -8,10 +8,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.sql.Blob;
 import java.time.ZonedDateTime;
 
 @Entity
@@ -29,6 +27,4 @@ public class VersionDbEntity extends PanacheEntityBase {
     @Column(name = "BACKUP_TIME")
     public ZonedDateTime backupTime;
 
-    @Lob
-    public Blob content;
 }

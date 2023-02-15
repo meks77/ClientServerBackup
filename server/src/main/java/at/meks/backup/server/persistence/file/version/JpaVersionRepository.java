@@ -32,9 +32,14 @@ public class JpaVersionRepository implements VersionRepository {
         VersionDbEntity version = new VersionDbEntity();
         version.backupedFileEntity = entity;
         version.id = UUID.randomUUID().toString();
-        version.content = BlobProxy.generateProxy(Files.newInputStream(file), Files.size(file));
         version.backupTime = backupTime.backupTime();
         version.persist();
+
+        FileContent content = new FileContent();
+        content.id = UUID.randomUUID().toString();
+        content.version = version;
+        content.content = BlobProxy.generateProxy(Files.newInputStream(file), Files.size(file));
+        content.persist();
     }
 
 }

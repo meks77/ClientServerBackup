@@ -4,6 +4,7 @@ import at.meks.backup.server.domain.model.client.ClientId;
 import at.meks.backup.server.domain.model.directory.PathOnClient;
 import at.meks.backup.server.domain.model.file.Checksum;
 import at.meks.backup.server.persistence.file.BackupedFileEntity;
+import at.meks.backup.server.persistence.file.version.FileContent;
 import at.meks.backup.server.persistence.file.version.VersionDbEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import org.hamcrest.Matchers;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import javax.transaction.Transactional;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
@@ -26,7 +28,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
-class FileResourceTest {
+class FileResourceIT {
 
     protected static final String FILE_URL_PATH = "/v1/clients/{clientId}/file/{filepath}";
 
@@ -44,6 +46,7 @@ class FileResourceTest {
     void deleteAllFiles() {
         BackupedFileEntity.deleteAll();
         VersionDbEntity.deleteAll();
+        FileContent.deleteAll();
     }
 
     @Nested
@@ -133,9 +136,21 @@ class FileResourceTest {
         private void assertVersionOfFile() {
             Stream<VersionDbEntity> versionen = VersionDbEntity.<VersionDbEntity>findAll().stream();
             assertThat(versionen)
-                    .allSatisfy(version ->
+                    .allSatisfy(version -> {
                             assertThat(version.backupTime)
-                                    .isAfterOrEqualTo(this.timeBeforeBackup));
+                                    .isAfterOrEqualTo(this.timeBeforeBackup);
+                            assertThat(version.id).isNotBlank();
+                            assertThat(version.backupedFileEntity).isNotNull();
+                    });
+            Stream<FileContent> fileContents = FileContent.findAll().stream();
+            assertThat(fileContents)
+                    .allSatisfy(content -> {
+                        assertThat(content.id).isNotBlank();
+                        assertThat(content.version).isNotNull();
+                        assertThat(content.content.getBinaryStream())
+                                .hasSameContentAs(Files.newInputStream(fileForBackup));
+                            });
+
         }
 
         private void whenBackup() {
