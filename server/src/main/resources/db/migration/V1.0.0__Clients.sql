@@ -1,4 +1,4 @@
 create table CLIENTS (
     ID VARCHAR PRIMARY KEY,
     NAME VARCHAR
-)
+);
