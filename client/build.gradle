@@ -7,5 +7,5 @@ version '0.1-SNAPSHOT'
 
 dependencies {
     implementation 'io.quarkus:quarkus-arc'
-
+    implementation 'io.quarkus:quarkus-rest-client-reactive-jackson'
 }
