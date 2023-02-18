@@ -10,11 +10,12 @@ import org.mockito.Mockito;
 
 import javax.inject.Inject;
 import java.nio.file.Path;
+import java.time.Duration;
 
+import static org.awaitility.Awaitility.waitAtMost;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-//TODO:it seems the events are async. Therefore the verification must consider that
 @QuarkusTest
 class QuarkusEventBusTest {
 
@@ -42,7 +43,9 @@ class QuarkusEventBusTest {
         }
 
         private void verifyListenerInvocation(FileEventListener listener) {
-            verify(listener).onFileChanged(expectedEvent);
+            waitAtMost(Duration.ofSeconds(1))
+                    .pollInterval(Duration.ofMillis(50))
+                    .untilAsserted(() -> verify(listener).onFileChanged(expectedEvent));
             verifyNoMoreInteractions(listener);
         }
 
@@ -72,7 +75,9 @@ class QuarkusEventBusTest {
         }
 
         private void verifyListenerInvocation(FileEventListener listener) {
-            verify(listener).onFileNeedsBackup(expectedEvent);
+            waitAtMost(Duration.ofSeconds(1))
+                    .pollInterval(Duration.ofMillis(50))
+                    .untilAsserted(() -> verify(listener).onFileNeedsBackup(expectedEvent));
             verifyNoMoreInteractions(listener);
         }
 

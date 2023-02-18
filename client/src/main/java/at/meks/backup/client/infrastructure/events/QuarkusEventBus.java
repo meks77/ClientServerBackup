@@ -11,7 +11,6 @@ import javax.inject.Singleton;
 import java.util.HashSet;
 import java.util.Set;
 
-//TODO implementation of the event bus
 @Singleton
 @Slf4j
 public class QuarkusEventBus implements Events {

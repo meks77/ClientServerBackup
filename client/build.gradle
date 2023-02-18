@@ -10,4 +10,5 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest-client-reactive-jackson'
     implementation 'io.quarkus:quarkus-scheduler'
     implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
+    testImplementation 'org.awaitility:awaitility'
 }
