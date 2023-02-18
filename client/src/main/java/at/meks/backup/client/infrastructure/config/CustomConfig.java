@@ -1,4 +1,4 @@
-package at.meks.backup.client.application;
+package at.meks.backup.client.infrastructure.config;
 
 import io.quarkus.runtime.annotations.StaticInitSafe;
 import org.eclipse.microprofile.config.spi.ConfigSource;
@@ -10,8 +10,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+//TODO tests
 @StaticInitSafe
-public class Config implements ConfigSource {
+public class CustomConfig implements ConfigSource {
 
     private static final Properties properties = new Properties();
 
@@ -22,7 +23,7 @@ public class Config implements ConfigSource {
             if (Files.notExists(properties)) {
                 Files.createFile(properties);
             }
-            Config.properties.load(Files.newBufferedReader(properties));
+            CustomConfig.properties.load(Files.newBufferedReader(properties));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

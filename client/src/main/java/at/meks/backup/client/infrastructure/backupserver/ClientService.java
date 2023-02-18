@@ -1,4 +1,4 @@
-package at.meks.backup.client.application;
+package at.meks.backup.client.infrastructure.backupserver;
 
 import io.smallrye.mutiny.Uni;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;

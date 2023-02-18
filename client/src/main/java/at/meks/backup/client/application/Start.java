@@ -1,11 +1,8 @@
 package at.meks.backup.client.application;
 
-
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.QuarkusApplication;
-import io.quarkus.runtime.annotations.QuarkusMain;
+import at.meks.backup.client.model.Config;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.imageio.ImageIO;
 import java.awt.Desktop;
@@ -20,41 +17,29 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
-@QuarkusMain
+@RequiredArgsConstructor
 @Slf4j
-public class BackupClientMain implements QuarkusApplication {
+public class Start {
 
-    @ConfigProperty(name = "at.meks.backup.client.id")
-    String clientId;
+    private final Config config;
+    private final ExitAction exitAction;
 
-    @ConfigProperty(name = "at.meks.backup.client.directories", defaultValue = " ")
-    List<String> backupedDirectories;
-
-    @Override
-    public int run(String... args) throws Exception {
-
+    public void start() throws Exception {
         SystemTray systemTray = SystemTray.getSystemTray();
         Image icon = ImageIO.read(requireNonNull(getClass().getResourceAsStream("/images/tray-icon.png")))
                 .getScaledInstance(16, 16, Image.SCALE_DEFAULT);
         PopupMenu popup = new PopupMenu();
-        popup.add(new MenuItem("ClientId: " + clientId));
+        popup.add(new MenuItem("ClientId: " + config.clientId()));
         popup.add(menuItem("About", this::openGithubUrl));
-        popup.add(menuItem("Exit", this::exitApplication));
+        popup.add(menuItem("Exit", exitAction::exit));
         systemTray.add(new TrayIcon(icon, "Backup", popup));
-        log.info("Backuped Directories: \n{}", backupedDirectories);
-
-        Quarkus.waitForExit();
-        return 0;
+        log.info("Backuped Directories: \n{}", List.of(config.backupedDirectories()));
     }
 
     private MenuItem menuItem(String text, Runnable action) {
         MenuItem menuItem = new MenuItem(text);
         menuItem.addActionListener(e -> action.run());
         return menuItem;
-    }
-
-    private void exitApplication() {
-        Quarkus.asyncExit(0);
     }
 
     private void openGithubUrl() {
@@ -64,5 +49,4 @@ public class BackupClientMain implements QuarkusApplication {
             throw new RuntimeException(e);
         }
     }
-
 }
