@@ -1,6 +1,7 @@
 package at.meks.backup.client.application;
 
 import at.meks.backup.client.model.Config;
+import at.meks.backup.client.model.Events;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +24,7 @@ public class Start {
 
     private final Config config;
     private final ExitAction exitAction;
+    private final Events events;
 
     public void start() throws Exception {
         SystemTray systemTray = SystemTray.getSystemTray();
@@ -34,6 +36,7 @@ public class Start {
         popup.add(menuItem("Exit", exitAction::exit));
         systemTray.add(new TrayIcon(icon, "Backup", popup));
         log.info("Backuped Directories: \n{}", List.of(config.backupedDirectories()));
+        events.fireScanDirectories();
     }
 
     private MenuItem menuItem(String text, Runnable action) {

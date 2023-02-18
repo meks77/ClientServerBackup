@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FileEventListener {
 
-    public void onFileNeedsBackup(Events.FileNeedsBackupEvent event) {
+    public void onFileNeedsBackup(Events.BackupCommand event) {
         log.info("file needs backup {}", event.file());
     }
 
