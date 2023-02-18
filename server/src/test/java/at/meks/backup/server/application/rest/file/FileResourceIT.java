@@ -44,9 +44,9 @@ class FileResourceIT {
 
     @Transactional
     void deleteAllFiles() {
-        BackupedFileEntity.deleteAll();
-        VersionDbEntity.deleteAll();
         FileContent.deleteAll();
+        VersionDbEntity.deleteAll();
+        BackupedFileEntity.deleteAll();
     }
 
     @Nested
