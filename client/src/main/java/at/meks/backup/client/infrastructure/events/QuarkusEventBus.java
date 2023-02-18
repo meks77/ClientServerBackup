@@ -18,6 +18,7 @@ public class QuarkusEventBus implements Events {
 
     static final String BACKUP_QUEUE = "backup";
     static final String STATUS_CHECK_QUEUE = "statusCheck";
+    private static final String SCAN_DIRECTORIES_QUEUE = "scanDirectories";
 
     @Inject
     EventBus eventBus;
@@ -26,18 +27,19 @@ public class QuarkusEventBus implements Events {
 
     @Override
     public void fireScanDirectories() {
-        eventBus.publish(BACKUP_QUEUE, new ScanDirectoriesCommand());
+        log.trace("fire scan directories command");
+        eventBus.publish(SCAN_DIRECTORIES_QUEUE, new ScanDirectoriesCommand());
     }
 
     @Override
     public void fireFileChanged(FileChangedEvent event) {
-        log.info("fire event");
+        log.trace("fire " + event);
         eventBus.publish(STATUS_CHECK_QUEUE, event);
     }
 
     @Override
     public void fireFileNeedsBackup(BackupCommand event) {
-        log.info("fire event");
+        log.trace("fire " + event);
         eventBus.publish(BACKUP_QUEUE, event);
     }
 
@@ -53,16 +55,19 @@ public class QuarkusEventBus implements Events {
 
     @ConsumeEvent(BACKUP_QUEUE)
     void onBackup(BackupCommand command) {
+        log.trace("received " + command);
         fileEventListeners.forEach(l -> l.onFileNeedsBackup(command));
     }
 
     @ConsumeEvent(STATUS_CHECK_QUEUE)
     void onFileChanged(FileChangedEvent event) {
+        log.trace("received " + event);
         fileEventListeners.forEach(l -> l.onFileChanged(event));
     }
 
-    @ConsumeEvent(BACKUP_QUEUE)
+    @ConsumeEvent(SCAN_DIRECTORIES_QUEUE)
     void onScanDirectories(ScanDirectoriesCommand command) {
+        log.trace("received " + command);
         scanDirectoryCommandListeners.forEach(ScanDirectoryCommandListener::scanDirectories);
     }
 

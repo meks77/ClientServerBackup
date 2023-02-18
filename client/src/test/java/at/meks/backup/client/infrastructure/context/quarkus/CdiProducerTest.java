@@ -5,6 +5,7 @@ import at.meks.backup.client.application.Start;
 import at.meks.backup.client.infrastructure.config.QuarkusConfig;
 import at.meks.backup.client.infrastructure.events.QuarkusEventBus;
 import at.meks.backup.client.model.Config;
+import at.meks.backup.client.model.DirectoryScanner;
 import at.meks.backup.client.model.Events;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,9 @@ class CdiProducerTest {
     @Inject
     ExitAction exitAction;
 
+    @Inject
+    DirectoryScanner directoryScanner;
+
     @Test
     void startClassIAvailable() {
         assertThat(applicationStart).isNotNull();
@@ -47,4 +51,10 @@ class CdiProducerTest {
     void exitActionIsAvailable() {
         assertThat(exitAction).isInstanceOf(QuarkusExit.class);
     }
+
+    @Test
+    void directoryScannerIsAvailable() {
+        assertThat(directoryScanner).isNotNull();
+    }
+
 }

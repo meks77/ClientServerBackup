@@ -1,7 +1,9 @@
 package at.meks.backup.client.application;
 
 import at.meks.backup.client.model.Config;
+import at.meks.backup.client.model.DirectoryScanner;
 import at.meks.backup.client.model.Events;
+import at.meks.backup.client.model.FileEventListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +27,8 @@ public class Start {
     private final Config config;
     private final ExitAction exitAction;
     private final Events events;
+    private final DirectoryScanner directoryScanner;
+    private final FileEventListener fileEventListener;
 
     public void start() throws Exception {
         SystemTray systemTray = SystemTray.getSystemTray();
@@ -35,8 +39,10 @@ public class Start {
         popup.add(menuItem("About", this::openGithubUrl));
         popup.add(menuItem("Exit", exitAction::exit));
         systemTray.add(new TrayIcon(icon, "Backup", popup));
-        log.info("Backuped Directories: \n{}", List.of(config.backupedDirectories()));
+        events.register(directoryScanner);
+        events.register(fileEventListener);
         events.fireScanDirectories();
+        log.info("Backuped Directories: \n{}", List.of(config.backupedDirectories()));
     }
 
     private MenuItem menuItem(String text, Runnable action) {
