@@ -6,9 +6,10 @@ public interface Events {
 
     record FileChangedEvent(Path file) {  }
 
-    record FileNeedsBackupEvent(Path file) {  }
+    record FileNeedsBackupEvent(Path file) {
+    }
 
-    void fireFileNeedsBackupCheck(FileNeedsBackupEvent event);
+    void fireFileChanged(FileChangedEvent event);
 
     void fireFileNeedsBackup(FileNeedsBackupEvent event);
 
