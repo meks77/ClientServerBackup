@@ -1,4 +1,4 @@
-package at.meks.backup.client.application;
+package at.meks.backup.client.application.file;
 
 import io.micrometer.core.annotation.Counted;
 import io.quarkus.vertx.ConsumeEvent;
@@ -10,16 +10,10 @@ import javax.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class FileNeedsBackupListener {
 
-    @ConsumeEvent("backup")
+    @ConsumeEvent(Events.BACKUP_QUEUE)
     @Counted
     void fileNeedsBackup(FileNeedsBackupEvent event) {
         log.info("start backup {}", event.file());
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        log.info("finished backup {}", event.file());
     }
 
 }
