@@ -1,5 +1,6 @@
 package at.meks.backup.server.domain.model.client;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ClientRepository {
@@ -8,4 +9,5 @@ public interface ClientRepository {
 
     void add(Client client);
 
+    List<Client> findAll();
 }

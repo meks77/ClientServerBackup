@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Hello {name ?: "Qute"}</title>
+    <title>Clients</title>
     <style>
         body {
             background-color: #000;
@@ -23,8 +23,10 @@
     </style>
 </head>
 <body>
-<h1>Welcome to your backup</h1>
-
-<p><a href="/clients">Clients</a></p>
+<ul>
+    {#for client in clients}
+        <li><a href="/files/{client.id.text}">{client.name.text}</a></li>
+    {/for}
+</ul>
 </body>
 </html>

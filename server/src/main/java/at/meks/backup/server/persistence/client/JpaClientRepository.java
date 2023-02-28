@@ -6,7 +6,9 @@ import at.meks.backup.server.domain.model.client.ClientName;
 import at.meks.backup.server.domain.model.client.ClientRepository;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 class JpaClientRepository implements ClientRepository {
@@ -31,4 +33,11 @@ class JpaClientRepository implements ClientRepository {
         entity.persist();
     }
 
+    @Override
+    public List<Client> findAll() {
+        return ClientEntity.<ClientEntity>findAll()
+                .stream()
+                .map(this::toDomainEntity)
+                .collect(Collectors.toList());
+    }
 }
