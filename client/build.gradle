@@ -7,7 +7,9 @@ version '0.1-SNAPSHOT'
 
 dependencies {
     implementation 'io.quarkus:quarkus-arc'
-    implementation 'io.quarkus:quarkus-rest-client-reactive-jackson'
+    implementation 'io.quarkus:quarkus-rest-client'
+    implementation 'io.quarkus:quarkus-resteasy-jackson'
+    implementation 'io.quarkus:quarkus-resteasy-multipart'
     implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
     testImplementation 'org.awaitility:awaitility'
 }

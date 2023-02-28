@@ -1,4 +1,4 @@
 package at.meks.backup.client.model;
 
-public record ClientId(String clientId) {
+public record ClientId(String text) {
 }

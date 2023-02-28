@@ -5,6 +5,7 @@ import at.meks.backup.server.domain.model.directory.PathOnClient;
 import at.meks.backup.server.domain.model.file.BackupedFileService;
 import at.meks.backup.server.domain.model.file.Checksum;
 import at.meks.backup.server.domain.model.file.FileId;
+import io.smallrye.mutiny.Uni;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -31,15 +32,18 @@ public class FileResource {
     @Path("latestChecksum/{checksum}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public BackupNecessary isBackupNeeded(
+    @Transactional
+    public Uni<BackupNecessary> isBackupNeeded(
             @PathParam("clientId") String clientId,
             @PathParam("filepath") String filePath,
             @PathParam("checksum") long checksum) {
+        log.info("Status for file {} requested", filePath);
         FileId fileId = FileId.idFor(
                 ClientId.existingId(clientId),
                 new PathOnClient(Paths.get(filePath)));
-        boolean backupNecessarry = fileService.isBackupNecessarry(fileId, new Checksum(checksum));
-        return new BackupNecessary(backupNecessarry);
+        return Uni.createFrom()
+                .item(() -> fileService.isBackupNecessarry(fileId, new Checksum(checksum)))
+                .onItem().transform(BackupNecessary::new);
     }
 
     @POST
@@ -48,10 +52,12 @@ public class FileResource {
             @PathParam("clientId") String clientId,
             @PathParam("filepath") String filePath,
             @RestForm("file") FileUpload uploadedFile) {
+        log.trace("Beginn upload of file {}", filePath);
         fileService.backup(
                 FileId.idFor(ClientId.existingId(clientId), new PathOnClient(Paths.get(filePath))),
                 uploadedFile.uploadedFile());
         FileResource.delete(uploadedFile);
+        log.debug("Finished upload of file {}", filePath);
     }
 
     private static void delete(FileUpload path) {

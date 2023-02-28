@@ -5,6 +5,7 @@ import at.meks.backup.client.model.Config;
 import at.meks.backup.client.model.DirectoryScanner;
 import at.meks.backup.client.model.Events;
 import at.meks.backup.client.model.FileEventListener;
+import at.meks.backup.client.model.FileService;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
@@ -25,8 +26,8 @@ public class CdiProducer {
 
     @Produces
     @ApplicationScoped
-    FileEventListener fileEventListener() {
-        return new FileEventListener();
+    FileEventListener fileEventListener(FileService fileService, Config config, Events events) {
+        return new FileEventListener(fileService, config, events);
     }
 
 }

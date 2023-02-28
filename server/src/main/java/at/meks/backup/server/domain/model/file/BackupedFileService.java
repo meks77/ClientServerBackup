@@ -3,6 +3,7 @@ package at.meks.backup.server.domain.model.file;
 import at.meks.backup.server.domain.model.file.version.VersionRepository;
 import at.meks.backup.server.domain.model.time.UtcClock;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.transaction.Transactional;
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 @ApplicationScoped
+@Slf4j
 public class BackupedFileService {
 
     private final BackupedFileRepository fileRepository;
@@ -39,6 +41,7 @@ public class BackupedFileService {
             newFileForBackup.versionWasBackedup(checksum);
             fileRepository.add(newFileForBackup);
             versionRepository.add(newFileForBackup, new BackupTime(clock.now()), file);
+            log.trace("client {}:new file {} persisted", fileId.clientId().text(), fileId.pathOnClient());
         }
     }
 
