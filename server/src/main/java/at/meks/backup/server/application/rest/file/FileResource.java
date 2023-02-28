@@ -37,7 +37,7 @@ public class FileResource {
             @PathParam("clientId") String clientId,
             @PathParam("filepath") String filePath,
             @PathParam("checksum") long checksum) {
-        log.info("Status for file {} requested", filePath);
+        log.trace("Status for file {} requested", filePath);
         FileId fileId = FileId.idFor(
                 ClientId.existingId(clientId),
                 new PathOnClient(Paths.get(filePath)));
@@ -57,7 +57,7 @@ public class FileResource {
                 FileId.idFor(ClientId.existingId(clientId), new PathOnClient(Paths.get(filePath))),
                 uploadedFile.uploadedFile());
         FileResource.delete(uploadedFile);
-        log.debug("Finished upload of file {}", filePath);
+        log.info("Finished upload of file {}", filePath);
     }
 
     private static void delete(FileUpload path) {

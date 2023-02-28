@@ -16,7 +16,6 @@ import java.util.Set;
 @Slf4j
 public class QuarkusEventBus implements Events {
 
-    static final String BACKUP_QUEUE = "backup";
     static final String STATUS_CHECK_QUEUE = "statusCheck";
     private static final String SCAN_DIRECTORIES_QUEUE = "scanDirectories";
 
@@ -38,12 +37,6 @@ public class QuarkusEventBus implements Events {
     }
 
     @Override
-    public void fireFileNeedsBackup(BackupCommand event) {
-        log.trace("fire " + event);
-        eventBus.publish(BACKUP_QUEUE, event);
-    }
-
-    @Override
     public void register(FileEventListener fileEventListener) {
         fileEventListeners.add(fileEventListener);
     }
@@ -51,12 +44,6 @@ public class QuarkusEventBus implements Events {
     @Override
     public void register(ScanDirectoryCommandListener scanDirectoryCommandListener) {
         scanDirectoryCommandListeners.add(scanDirectoryCommandListener);
-    }
-
-    @ConsumeEvent(BACKUP_QUEUE)
-    void onBackup(BackupCommand command) {
-        log.trace("received " + command);
-        fileEventListeners.forEach(l -> l.onFileNeedsBackup(command));
     }
 
     @ConsumeEvent(STATUS_CHECK_QUEUE)

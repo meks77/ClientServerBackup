@@ -1,5 +1,6 @@
 package at.meks.backup.client.model;
 
+import at.meks.backup.client.usecases.DirectoryScanner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;

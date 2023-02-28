@@ -1,9 +1,9 @@
 package at.meks.backup.client.application;
 
 import at.meks.backup.client.model.Config;
-import at.meks.backup.client.model.DirectoryScanner;
 import at.meks.backup.client.model.Events;
 import at.meks.backup.client.model.FileEventListener;
+import at.meks.backup.client.usecases.DirectoryScanner;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

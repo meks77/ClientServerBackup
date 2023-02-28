@@ -2,10 +2,10 @@ package at.meks.backup.client.infrastructure.context.quarkus;
 
 import at.meks.backup.client.application.Start;
 import at.meks.backup.client.model.Config;
-import at.meks.backup.client.model.DirectoryScanner;
 import at.meks.backup.client.model.Events;
 import at.meks.backup.client.model.FileEventListener;
 import at.meks.backup.client.model.FileService;
+import at.meks.backup.client.usecases.DirectoryScanner;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
@@ -26,8 +26,8 @@ public class CdiProducer {
 
     @Produces
     @ApplicationScoped
-    FileEventListener fileEventListener(FileService fileService, Config config, Events events) {
-        return new FileEventListener(fileService, config, events);
+    FileEventListener fileEventListener(FileService fileService, Config config) {
+        return new FileEventListener(fileService, config);
     }
 
 }

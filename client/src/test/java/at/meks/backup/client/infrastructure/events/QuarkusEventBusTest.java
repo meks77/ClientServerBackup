@@ -64,40 +64,6 @@ class QuarkusEventBusTest {
     }
 
     @Nested
-    class FileNeedsBackup {
-
-        final Events.BackupCommand expectedEvent = new Events.BackupCommand(Path.of("myFile"));
-        FileEventListener listener1 = Mockito.mock(FileEventListener.class);
-        FileEventListener listener2 = Mockito.mock(FileEventListener.class);
-
-        @Test
-        void oneListenerIsRegistered() {
-            quarkusEventBus.register(listener1);
-            quarkusEventBus.fireFileNeedsBackup(expectedEvent);
-            verifyListenerInvocation(listener1);
-        }
-
-        private void verifyListenerInvocation(FileEventListener listener) {
-            waitAtMost(Duration.ofSeconds(1))
-                    .pollInterval(Duration.ofMillis(50))
-                    .untilAsserted(() -> verify(listener).onFileNeedsBackup(expectedEvent));
-            verifyNoMoreInteractions(listener);
-        }
-
-        @Test
-        void moreListenersAreRegistered() {
-            quarkusEventBus.register(listener1);
-            quarkusEventBus.register(listener2);
-
-            quarkusEventBus.fireFileNeedsBackup(expectedEvent);
-
-            verifyListenerInvocation(listener1);
-            verifyListenerInvocation(listener2);
-        }
-
-    }
-
-    @Nested
     class FireScanDirectories {
 
         final ScanDirectoryCommandListener listener1 = mock(ScanDirectoryCommandListener.class);

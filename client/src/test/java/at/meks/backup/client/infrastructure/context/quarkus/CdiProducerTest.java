@@ -5,8 +5,8 @@ import at.meks.backup.client.application.Start;
 import at.meks.backup.client.infrastructure.config.QuarkusConfig;
 import at.meks.backup.client.infrastructure.events.QuarkusEventBus;
 import at.meks.backup.client.model.Config;
-import at.meks.backup.client.model.DirectoryScanner;
 import at.meks.backup.client.model.Events;
+import at.meks.backup.client.usecases.DirectoryScanner;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
