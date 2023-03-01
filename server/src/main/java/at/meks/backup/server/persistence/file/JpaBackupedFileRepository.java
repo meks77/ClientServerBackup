@@ -6,6 +6,7 @@ import at.meks.backup.server.domain.model.file.BackupedFile;
 import at.meks.backup.server.domain.model.file.BackupedFileRepository;
 import at.meks.backup.server.domain.model.file.Checksum;
 import at.meks.backup.server.domain.model.file.FileId;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.nio.file.Path;
@@ -15,6 +16,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
+@Slf4j
 public class JpaBackupedFileRepository implements BackupedFileRepository {
 
     @Override
@@ -63,6 +65,7 @@ public class JpaBackupedFileRepository implements BackupedFileRepository {
 
     @Override
     public List<BackupedFile> find(ClientId clientId) {
+        log.info("searchive files for client {}", clientId.text());
         return BackupedFileEntity.<BackupedFileEntity>list("clientId", clientId.text()).stream()
                 .map(this::toDomainEntity)
                 .collect(Collectors.toList());

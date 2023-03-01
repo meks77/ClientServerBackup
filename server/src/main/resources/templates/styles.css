@@ -1,0 +1,36 @@
+body {
+    background-color: #000;
+    color: #fff;
+}
+
+h1 {
+    color: #4695EB;
+    font-size: 6vw;
+}
+
+h1 b {
+    color: #be9100;
+}
+
+p {
+    font-size: 2vw;
+}
+
+table {
+    width: 80%;
+    position: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: darkslateblue;
+    color: white;
+}
+
+tr:nth-child(even){
+    background-color: darkslategrey;
+}

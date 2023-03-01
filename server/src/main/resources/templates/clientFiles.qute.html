@@ -1,33 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Files</title>
-    <style>
-        body {
-            background-color: #000;
-            color: #fff;
-        }
-        h1 {
-            color: #4695EB;
-            font-size: 6vw;
-        }
-
-        h1 b {
-            color: #be9100;
-        }
-
-        p {
-            font-size: 2vw;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-<ul>
-    {#for file in files}
-        <li>{file.path}</li>
-
-    {/for}
-</ul>
+<div style="overflow-x:auto;">
+    <table>
+        <tr>
+            <th>File</th>
+            <th>latest checksum</th>
+        </tr>
+        {#for file in files}
+            <tr>
+            <td>{file.name}</td>
+            <td>{file.latestChecksum}</td>
+            </tr>
+        {/for}
+    </table>
+</div>
 </body>
 </html>

@@ -11,6 +11,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.stream.Collectors;
 
 @Path("/files/{clientId}")
 public class ClientFiles {
@@ -27,6 +28,10 @@ public class ClientFiles {
     @Produces(MediaType.TEXT_HTML)
     @Transactional
     public TemplateInstance files(@PathParam("clientId") String clientId) {
-        return clientFiles.data("files", fileRepository.find(ClientId.existingId(clientId)));
+        return clientFiles.data(
+                "files",
+                fileRepository.find(ClientId.existingId(clientId)).stream()
+                        .map(File::fileFor)
+                        .collect(Collectors.toList()));
     }
 }
