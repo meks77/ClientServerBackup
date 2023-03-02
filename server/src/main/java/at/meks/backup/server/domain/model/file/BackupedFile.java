@@ -1,6 +1,7 @@
 package at.meks.backup.server.domain.model.file;
 
 
+import at.meks.backup.shared.model.Checksum;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

@@ -1,0 +1,20 @@
+plugins {
+    id 'at.meks.backup.java-library-conventions'
+}
+
+version '0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor('org.projectlombok:lombok')
+}
+
+test {
+    useJUnitPlatform()
+}

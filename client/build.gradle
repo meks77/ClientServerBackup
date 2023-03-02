@@ -11,5 +11,6 @@ dependencies {
     implementation 'io.quarkus:quarkus-resteasy-jackson'
     implementation 'io.quarkus:quarkus-resteasy-multipart'
     implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
+    implementation project(':shared')
     testImplementation 'org.awaitility:awaitility'
 }

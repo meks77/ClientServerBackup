@@ -17,6 +17,7 @@ dependencies {
     implementation('io.quarkus:quarkus-jdbc-h2')
     implementation('io.quarkus:quarkus-flyway')
     implementation 'at.meks:easy-validation-args'
+    implementation project(':shared')
     testImplementation("io.rest-assured:rest-assured")
 }
 

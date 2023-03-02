@@ -4,8 +4,8 @@ import at.meks.backup.server.domain.model.client.ClientId;
 import at.meks.backup.server.domain.model.directory.PathOnClient;
 import at.meks.backup.server.domain.model.file.BackupedFile;
 import at.meks.backup.server.domain.model.file.BackupedFileRepository;
-import at.meks.backup.server.domain.model.file.Checksum;
 import at.meks.backup.server.domain.model.file.FileId;
+import at.meks.backup.shared.model.Checksum;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.context.ApplicationScoped;

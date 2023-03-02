@@ -1,8 +1,8 @@
 package at.meks.backup.client.infrastructure.remote;
 
-import at.meks.backup.client.model.Checksum;
 import at.meks.backup.client.model.ClientId;
 import at.meks.backup.client.model.FileService;
+import at.meks.backup.shared.model.Checksum;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.rest.client.inject.RestClient;

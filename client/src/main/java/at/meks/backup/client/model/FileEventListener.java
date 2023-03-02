@@ -1,5 +1,6 @@
 package at.meks.backup.client.model;
 
+import at.meks.backup.shared.model.Checksum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

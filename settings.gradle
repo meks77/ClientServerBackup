@@ -12,4 +12,5 @@ pluginManagement {
 rootProject.name = 'ClientServerBackup'
 include('server')
 include 'client'
+include 'shared'
 

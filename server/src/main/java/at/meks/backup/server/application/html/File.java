@@ -1,7 +1,7 @@
 package at.meks.backup.server.application.html;
 
 import at.meks.backup.server.domain.model.file.BackupedFile;
-import at.meks.backup.server.domain.model.file.Checksum;
+import at.meks.backup.shared.model.Checksum;
 
 public record File(String name, String latestChecksum) {
 

@@ -1,4 +1,4 @@
-package at.meks.backup.client.model;
+package at.meks.backup.shared.model;
 
 import lombok.SneakyThrows;
 

@@ -1,5 +1,7 @@
 package at.meks.backup.client.model;
 
+import at.meks.backup.shared.model.Checksum;
+
 import java.nio.file.Path;
 
 public interface FileService {

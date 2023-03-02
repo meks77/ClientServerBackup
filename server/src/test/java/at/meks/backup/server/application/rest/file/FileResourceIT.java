@@ -2,10 +2,10 @@ package at.meks.backup.server.application.rest.file;
 
 import at.meks.backup.server.domain.model.client.ClientId;
 import at.meks.backup.server.domain.model.directory.PathOnClient;
-import at.meks.backup.server.domain.model.file.Checksum;
 import at.meks.backup.server.persistence.file.BackupedFileEntity;
 import at.meks.backup.server.persistence.file.version.FileContent;
 import at.meks.backup.server.persistence.file.version.VersionDbEntity;
+import at.meks.backup.shared.model.Checksum;
 import io.quarkus.test.junit.QuarkusTest;
 import org.hamcrest.Matchers;
 import org.jboss.resteasy.reactive.RestResponse;

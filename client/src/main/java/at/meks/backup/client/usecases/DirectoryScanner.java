@@ -10,14 +10,8 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.stream.Stream;
-
-import static com.sun.nio.file.ExtendedWatchEventModifier.FILE_TREE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 @Slf4j
 public class DirectoryScanner implements ScanDirectoryCommandListener {
@@ -57,10 +51,10 @@ public class DirectoryScanner implements ScanDirectoryCommandListener {
     private void listenToChanges(DirectoryForBackup folder) throws IOException {
         // TODO Listen to changes and fire event
         WatchService watchService = FileSystems.getDefault().newWatchService();
-        WatchKey watchKey = folder.file().register(
-                watchService,
-                new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_MODIFY},
-                FILE_TREE);
+//        WatchKey watchKey = folder.file().register(
+//                watchService,
+//                new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_MODIFY},
+//                FILE_TREE);
 
     }
 
