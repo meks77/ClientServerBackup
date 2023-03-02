@@ -19,10 +19,11 @@ public class QuarkusEventBus implements Events {
     static final String STATUS_CHECK_QUEUE = "statusCheck";
     private static final String SCAN_DIRECTORIES_QUEUE = "scanDirectories";
 
-    @Inject
-    EventBus eventBus;
     private final Set<FileEventListener> fileEventListeners = new HashSet<>();
     private final Set<ScanDirectoryCommandListener> scanDirectoryCommandListeners = new HashSet<>();
+
+    @Inject
+    EventBus eventBus;
 
     @Override
     public void fireScanDirectories() {

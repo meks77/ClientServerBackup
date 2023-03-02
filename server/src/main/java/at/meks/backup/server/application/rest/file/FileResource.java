@@ -19,6 +19,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -37,13 +39,18 @@ public class FileResource {
             @PathParam("clientId") String clientId,
             @PathParam("filepath") String filePath,
             @PathParam("checksum") long checksum) {
-        log.trace("Status for file {} requested", filePath);
+        String decodedFilePath = decode(filePath);
+        log.trace("Status for file {} requested", decodedFilePath);
         FileId fileId = FileId.idFor(
                 ClientId.existingId(clientId),
-                new PathOnClient(Paths.get(filePath)));
+                new PathOnClient(Paths.get(decodedFilePath)));
         return Uni.createFrom()
                 .item(() -> fileService.isBackupNecessarry(fileId, new Checksum(checksum)))
                 .onItem().transform(BackupNecessary::new);
+    }
+
+    private String decode(String filePath) {
+        return URLDecoder.decode(filePath, StandardCharsets.UTF_8);
     }
 
     @POST
@@ -52,12 +59,13 @@ public class FileResource {
             @PathParam("clientId") String clientId,
             @PathParam("filepath") String filePath,
             @RestForm("file") FileUpload uploadedFile) {
-        log.trace("Beginn upload of file {}", filePath);
+        String decodedFilePath = decode(filePath);
+        log.trace("Beginn upload of file {}", decodedFilePath);
         fileService.backup(
-                FileId.idFor(ClientId.existingId(clientId), new PathOnClient(Paths.get(filePath))),
+                FileId.idFor(ClientId.existingId(clientId), new PathOnClient(Paths.get(decodedFilePath))),
                 uploadedFile.uploadedFile());
         FileResource.delete(uploadedFile);
-        log.info("Finished upload of file {}", filePath);
+        log.info("Finished upload of file {}", decodedFilePath);
     }
 
     private static void delete(FileUpload path) {
