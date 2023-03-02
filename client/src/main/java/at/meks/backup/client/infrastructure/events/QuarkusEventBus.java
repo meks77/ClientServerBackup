@@ -47,13 +47,13 @@ public class QuarkusEventBus implements Events {
         scanDirectoryCommandListeners.add(scanDirectoryCommandListener);
     }
 
-    @ConsumeEvent(STATUS_CHECK_QUEUE)
+    @ConsumeEvent(value = STATUS_CHECK_QUEUE, blocking = true)
     void onFileChanged(FileChangedEvent event) {
         log.trace("received " + event);
         fileEventListeners.forEach(l -> l.onFileChanged(event));
     }
 
-    @ConsumeEvent(SCAN_DIRECTORIES_QUEUE)
+    @ConsumeEvent(value = SCAN_DIRECTORIES_QUEUE, blocking = true)
     void onScanDirectories(ScanDirectoriesCommand command) {
         log.trace("received " + command);
         scanDirectoryCommandListeners.forEach(ScanDirectoryCommandListener::scanDirectories);
