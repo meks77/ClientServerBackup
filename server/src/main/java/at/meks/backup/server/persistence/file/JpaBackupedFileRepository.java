@@ -65,7 +65,7 @@ public class JpaBackupedFileRepository implements BackupedFileRepository {
 
     @Override
     public List<BackupedFile> find(ClientId clientId) {
-        log.info("searchive files for client {}", clientId.text());
+        log.info("search files for client {}", clientId.text());
         return BackupedFileEntity.<BackupedFileEntity>list("clientId", clientId.text()).stream()
                 .map(this::toDomainEntity)
                 .collect(Collectors.toList());
