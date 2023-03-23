@@ -8,6 +8,7 @@ import at.meks.backup.client.model.FileService;
 import at.meks.backup.client.usecases.BackupEachFileScanner;
 import at.meks.backup.client.usecases.DirectoryScanner;
 import at.meks.backup.client.usecases.FileChangeListener;
+import at.meks.backup.client.usecases.FileChangeQueue;
 import at.meks.backup.client.usecases.WatchKeyRegistry;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -30,9 +31,15 @@ public class CdiProducer {
     }
 
     @Produces
-    @ApplicationScoped
-    FileChangeListener fileChangeListener(Events events, WatchKeyRegistry watchKeyRegistry) {
-        return new FileChangeListener(events, watchKeyRegistry);
+    @Singleton
+    FileChangeQueue fileChangeQueue() {
+        return new FileChangeQueue();
+    }
+
+    @Produces
+    @Singleton
+    FileChangeListener fileChangeListener(Events events, WatchKeyRegistry watchKeyRegistry, FileChangeQueue fileChangeQueue) {
+        return new FileChangeListener(events, watchKeyRegistry, fileChangeQueue);
     }
 
     @Produces

@@ -29,7 +29,7 @@ class FileChangeListenerTest {
     Events events;
 
     @SneakyThrows
-    @RepeatedTest(2)
+    @RepeatedTest(10)
     void fileInRootDirChanged(@TempDir Path directory) {
         Path testedFile = createFile(directory.resolve("testfile.txt"));
         log.trace("start setup listener");

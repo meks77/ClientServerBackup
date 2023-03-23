@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
@@ -23,20 +24,28 @@ public class FileChangeListener {
 
     private final WatchKeyRegistry watchKeyRegistry;
 
-    public FileChangeListener(Events events, WatchKeyRegistry watchKeyRegistry) {
+    private final FileChangeQueue fileChangeQueue;
+
+    public FileChangeListener(Events events, WatchKeyRegistry watchKeyRegistry, FileChangeQueue fileChangeQueue) {
         this.events = events;
         this.watchKeyRegistry = watchKeyRegistry;
+        this.fileChangeQueue = fileChangeQueue;
     }
 
     void listenToChangesAsync(DirectoryForBackup folder) {
         log.debug("start listenToChanges");
-        Thread thread = new Thread(() -> listenToChangesWrappingException(folder));
-        thread.setPriority(Thread.MIN_PRIORITY);
-        thread.start();
+        startThread(() -> listenToFilesystemWrappingException(folder));
+        startThread(this::backupFilesFromQueue);
 
     }
 
-    private void listenToChangesWrappingException(DirectoryForBackup folder) {
+    private void startThread(Runnable process) {
+        Thread thread = new Thread(process);
+        thread.setPriority(Thread.MIN_PRIORITY);
+        thread.start();
+    }
+
+    private void listenToFilesystemWrappingException(DirectoryForBackup folder) {
         try {
             listenToChangesThrowingException(folder);
         } catch (IOException e) {
@@ -65,8 +74,8 @@ public class FileChangeListener {
                 try {
                     WatchKey key = watchService.take();
                     changedFile(key)
-                            .map(Events.FileChangedEvent::new)
-                            .ifPresent(events::fireFileChanged);
+                            .filter(Files::isRegularFile)
+                            .ifPresent(fileChangeQueue::add);
                     key.reset();
                 } catch (InterruptedException e) {
                     log.warn("Watching for file changes was interrupted", e);
@@ -90,6 +99,14 @@ public class FileChangeListener {
         WatchEvent<?> event = watchEvents.get(0);
         log.debug("got event of kind {} for {}", event.kind(), event.context());
         return Optional.of((WatchEvent<Path>) event);
+    }
+
+    private void backupFilesFromQueue() {
+        do {
+            Path changedFile = fileChangeQueue.next();
+            log.debug("fire file changed: {}", changedFile);
+            events.fireFileChanged(new Events.FileChangedEvent(changedFile));
+        } while (true);
     }
 
 }
