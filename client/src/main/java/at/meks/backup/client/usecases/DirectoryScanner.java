@@ -2,60 +2,30 @@ package at.meks.backup.client.usecases;
 
 import at.meks.backup.client.model.Config;
 import at.meks.backup.client.model.DirectoryForBackup;
-import at.meks.backup.client.model.Events;
 import at.meks.backup.client.model.ScanDirectoryCommandListener;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.WatchService;
-import java.util.stream.Stream;
 
 @Slf4j
 public class DirectoryScanner implements ScanDirectoryCommandListener {
 
     private final Config config;
-    private final Events events;
+    private final BackupEachFileScanner backupEachFileScanner;
+    private final FileChangeListener fileChangeListener;
 
-    public DirectoryScanner(Config config, Events events) {
+    public DirectoryScanner(Config config, BackupEachFileScanner backupEachFileScanner, FileChangeListener fileChangeListener) {
         this.config = config;
-        this.events = events;
+        this.backupEachFileScanner = backupEachFileScanner;
+        this.fileChangeListener = fileChangeListener;
     }
 
     @Override
     public void scanDirectories() {
         log.info("start scanning directories");
-        try {
-            for (DirectoryForBackup folder : config.backupedDirectories()) {
-                log.info("start scanning folder " + folder.file());
-                listenToChanges(folder);
-                fireChangedEventForEachFile(folder);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        for (DirectoryForBackup folder : config.backupedDirectories()) {
+            log.info("start scanning folder " + folder.file());
+            fileChangeListener.listenToChangesAsync(folder);
+            backupEachFileScanner.fireChangedEventForEachFileAsync(folder);
         }
-    }
-
-    private void fireChangedEventForEachFile(DirectoryForBackup folder) {
-        try (Stream<Path> pathStream = Files.walk(folder.file(), Integer.MAX_VALUE)) {
-                pathStream.filter(Files::isRegularFile)
-                    .map(Events.FileChangedEvent::new)
-                    .forEach(events::fireFileChanged);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void listenToChanges(DirectoryForBackup folder) throws IOException {
-        // TODO Listen to changes and fire event
-        WatchService watchService = FileSystems.getDefault().newWatchService();
-//        WatchKey watchKey = folder.file().register(
-//                watchService,
-//                new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_MODIFY},
-//                FILE_TREE);
-
     }
 
 }

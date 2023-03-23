@@ -48,6 +48,7 @@ public class JpaBackupedFileRepository implements BackupedFileRepository {
         entity.id = UUID.randomUUID().toString();
         entity.clientId = newFileForBackup.id().clientId().text();
         entity.pathOnClient = newFileForBackup.id().pathOnClient().asText();
+        entity.latestSize = newFileForBackup.latestSize();
         newFileForBackup.latestVersionChecksum()
                 .ifPresent(checksum -> entity.latestVersionChecksum = checksum.hash());
         return entity;

@@ -44,7 +44,8 @@ class CdiProducerTest {
 
     @Test
     void eventsClassIsAvailable() {
-        assertThat(events).isInstanceOf(QuarkusEventBus.class);
+        assertThat(events)
+                .isInstanceOf(QuarkusEventBus.class);
     }
 
     @Test

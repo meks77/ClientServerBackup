@@ -31,6 +31,9 @@ public class BackupedFileEntity extends PanacheEntityBase {
     @Column(name = "LATEST_VERSION_CHECKSUM")
     public Long latestVersionChecksum;
 
+    @Column(name = "LATEST_SIZE")
+    public Long latestSize;
+
     public static Optional<BackupedFileEntity> findByFileId(FileId fileId) {
         return BackupedFileEntity.<BackupedFileEntity>find(
                         "#BackupedFileEntity.findByFileId",

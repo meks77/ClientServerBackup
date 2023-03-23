@@ -2,6 +2,7 @@ package at.meks.backup.server.domain.model.file;
 
 import at.meks.backup.server.domain.model.client.ClientId;
 import at.meks.backup.server.domain.model.directory.PathOnClient;
+import at.meks.backup.server.domain.model.file.version.Version;
 import at.meks.backup.server.domain.model.file.version.VersionRepository;
 import at.meks.backup.server.domain.model.time.UtcClock;
 import at.meks.backup.shared.model.Checksum;
@@ -22,7 +23,11 @@ import static at.meks.backup.server.domain.model.file.TestUtils.wrapException;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class BackupedFileServiceTest {
@@ -68,10 +73,10 @@ public class BackupedFileServiceTest {
         }
 
         private void verifyVersion(Path fileForBackup) {
-            ArgumentCaptor<BackupTime> backupTimeCaptor = ArgumentCaptor.forClass(BackupTime.class);
+            ArgumentCaptor<Version> versionCaptor = ArgumentCaptor.forClass(Version.class);
             verify(versionRespository)
-                    .add(eq(backupedFile()), backupTimeCaptor.capture(), eq(fileForBackup));
-            assertThat(backupTimeCaptor.getValue().backupTime())
+                    .add(versionCaptor.capture(), eq(fileForBackup));
+            assertThat(versionCaptor.getValue().backupTime().backupTime())
                     .isEqualTo(currentTime);
         }
 
@@ -93,7 +98,7 @@ public class BackupedFileServiceTest {
 
             service.backup(fileId, fileForBackup);
 
-            verify(versionRespository, never()).add(any(), any(), any());
+            verify(versionRespository, never()).add(any(), any());
         }
     }
 

@@ -1,5 +1,7 @@
 package at.meks.backup.server.domain.model.file;
 
+import at.meks.backup.server.domain.model.file.version.Version;
+import at.meks.backup.server.domain.model.file.version.VersionId;
 import at.meks.backup.server.domain.model.file.version.VersionRepository;
 import at.meks.backup.server.domain.model.time.UtcClock;
 import at.meks.backup.shared.model.Checksum;
@@ -8,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.transaction.Transactional;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -31,18 +34,34 @@ public class BackupedFileService {
     @SneakyThrows
     @Transactional
     public void backup(FileId fileId, Path file) {
-        Optional<BackupedFile> backupedFile = fileRepository.get(fileId);
         Checksum checksum = Checksum.forContentOf(file.toUri());
-        if (backupedFile.isPresent() && !checksum.equals(backupedFile.get().latestVersionChecksum().orElse(null))) {
-            backupedFile.get().versionWasBackedup(checksum);
+        BackupedFile backupedFile = getOrCreateFileMetadata(fileId);
+        if (isNewVersion(backupedFile, checksum)) {
+            backupedFile.versionWasBackedup(checksum);
+            backupedFile.latestSize(Files.size(file));
+            fileRepository.set(backupedFile);
+            Version version = new Version(
+                    VersionId.newId(),
+                    backupedFile.id(),
+                    new BackupTime(clock.now()),
+                    backupedFile.latestSize());
+            versionRepository.add(version, file);
+        }
+    }
+
+    private static boolean isNewVersion(BackupedFile backupedFile, Checksum checksum) {
+        return backupedFile.latestVersionChecksum().isEmpty() ||
+                !backupedFile.latestVersionChecksum().get().equals(checksum);
+    }
+
+    private BackupedFile getOrCreateFileMetadata(FileId fileId) {
+        Optional<BackupedFile> backupedFile = fileRepository.get(fileId);
+        if (backupedFile.isPresent()) {
             fileRepository.set(backupedFile.get());
-            versionRepository.add(backupedFile.get(), new BackupTime(clock.now()), file);
-        } else if (backupedFile.isEmpty()){
+            return backupedFile.get();
+        } else {
             BackupedFile newFileForBackup = BackupedFile.newFileForBackup(fileId);
-            newFileForBackup.versionWasBackedup(checksum);
-            fileRepository.add(newFileForBackup);
-            versionRepository.add(newFileForBackup, new BackupTime(clock.now()), file);
-            log.trace("client {}:new file {} persisted", fileId.clientId().text(), fileId.pathOnClient());
+            return fileRepository.add(newFileForBackup);
         }
     }
 
@@ -55,4 +74,5 @@ public class BackupedFileService {
                 .map(file -> !file.equals(checksum))
                 .orElse(true);
     }
+
 }

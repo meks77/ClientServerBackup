@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.util.Optional;
@@ -22,6 +23,10 @@ public class BackupedFile {
     private final FileId id;
 
     private Checksum latestVersionChecksum;
+
+    @Setter
+    @Getter
+    private long latestSize;
 
     public static BackupedFile newFileForBackup(FileId id) {
         validate().that(id).withMessage(() -> "id").isNotNull();

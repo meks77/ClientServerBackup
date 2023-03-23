@@ -27,4 +27,6 @@ public class VersionDbEntity extends PanacheEntityBase {
     @Column(name = "BACKUP_TIME")
     public ZonedDateTime backupTime;
 
+    public long size;
+
 }
