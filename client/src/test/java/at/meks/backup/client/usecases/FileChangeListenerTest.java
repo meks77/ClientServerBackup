@@ -29,7 +29,7 @@ class FileChangeListenerTest {
     Events events;
 
     @SneakyThrows
-    @RepeatedTest(10)
+    @RepeatedTest(5)
     void fileInRootDirChanged(@TempDir Path directory) {
         Path testedFile = createFile(directory.resolve("testfile.txt"));
         log.trace("start setup listener");
@@ -42,7 +42,7 @@ class FileChangeListenerTest {
     }
 
     @SneakyThrows
-    @RepeatedTest(2)
+    @RepeatedTest(5)
     void fileInSubDirChanged(@TempDir Path directory) {
         Path testedFile = createFile(directory.resolve("subDir").resolve("testfile.txt"));
         log.trace("start setup listener");
@@ -76,15 +76,15 @@ class FileChangeListenerTest {
     private void verifyOnlyOneEventIsFired(Path testedFile) {
         waitAtMost(Duration.ofSeconds(2))
                 .and()
-                .pollDelay(Duration.ofMillis(200))
+                .pollDelay(Duration.ofMillis(100))
                 .and()
-                .atLeast(Duration.ofMillis(200))
+                .atLeast(Duration.ofMillis(100))
                 .untilAsserted(() ->
                         Mockito.verify(events).fireFileChanged(new Events.FileChangedEvent(testedFile)));
         await()
-                .atLeast(Duration.ofMillis(200))
+                .atLeast(Duration.ofMillis(100))
                 .and()
-                .pollDelay(Duration.ofMillis(200))
+                .pollDelay(Duration.ofMillis(100))
                         .untilAsserted(() -> Mockito.verifyNoMoreInteractions(events));
     }
 

@@ -24,7 +24,7 @@ public class BackupEachFileScanner {
     }
 
     private void fireChangedEventForEachFile(DirectoryForBackup folder) {
-        try (Stream<Path> pathStream = Files.walk(folder.file(), Integer.MAX_VALUE)) {
+        try (Stream<Path> pathStream = Files.walk(folder.directory(), Integer.MAX_VALUE)) {
             fireChangedEventForEachFile(pathStream);
         } catch (IOException e) {
             throw new RuntimeException(e);

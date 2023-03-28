@@ -2,6 +2,7 @@ package at.meks.backup.client.usecases;
 
 import at.meks.backup.client.model.DirectoryForBackup;
 import at.meks.backup.client.model.Events;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -60,12 +61,20 @@ public class FileChangeListener {
     }
 
     private void registerDirectoryForChanges(DirectoryForBackup folder, WatchService watchService) throws IOException {
-        WatchKey watchKey = folder.file().register(
+        try(var fileWalker = Files.walk(folder.directory())) {
+                fileWalker.filter(Files::isDirectory)
+                    .forEach(path -> registerDirectoryForChanges(watchService, path));
+        }
+    }
+
+    @SneakyThrows
+    private void registerDirectoryForChanges(WatchService watchService, Path directory) {
+        WatchKey watchKey = directory.register(
                 watchService,
                 ENTRY_CREATE, ENTRY_MODIFY
         );
-        watchKeyRegistry.add(watchKey, folder.file());
-        log.debug("attached watcher for directory {}", folder.file());
+        watchKeyRegistry.add(watchKey, directory);
+        log.debug("attached watcher for directory {}", directory);
     }
 
     private void listenToAllChanges(WatchService watchService) {

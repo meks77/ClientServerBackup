@@ -22,7 +22,7 @@ public class DirectoryScanner implements ScanDirectoryCommandListener {
     public void scanDirectories() {
         log.info("start scanning directories");
         for (DirectoryForBackup folder : config.backupedDirectories()) {
-            log.info("start scanning folder " + folder.file());
+            log.info("start scanning folder " + folder.directory());
             fileChangeListener.listenToChangesAsync(folder);
             backupEachFileScanner.fireChangedEventForEachFileAsync(folder);
         }
