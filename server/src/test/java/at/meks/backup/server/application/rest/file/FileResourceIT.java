@@ -39,6 +39,7 @@ class FileResourceIT {
         entity.clientId = clientId.text();
         entity.pathOnClient = new PathOnClient(filePath).asText();
         entity.latestVersionChecksum = checksum;
+        entity.latestSize = 1245L;
         entity.persist();
     }
 

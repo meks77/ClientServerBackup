@@ -1,6 +1,7 @@
 package at.meks.backup.server.domain.model.file;
 
 import at.meks.backup.server.domain.model.client.ClientId;
+import at.meks.backup.server.domain.model.client.ClientService;
 import at.meks.backup.server.domain.model.directory.PathOnClient;
 import at.meks.backup.server.domain.model.file.version.Version;
 import at.meks.backup.server.domain.model.file.version.VersionRepository;
@@ -41,6 +42,7 @@ public class BackupedFileServiceTest {
     @Mock BackupedFileRepository fileRepository;
     @Mock VersionRepository versionRespository;
     @Mock UtcClock clock;
+    @Mock ClientService clientService;
 
     private final ZonedDateTime currentTime = ZonedDateTime.now();
 
