@@ -30,7 +30,7 @@ class JpaClientRepository implements ClientRepository {
         ClientEntity entity = new ClientEntity();
         entity.id = client.id().text();
         entity.name = client.name().text();
-        entity.persist();
+        entity.persistAndFlush();
     }
 
     @Override

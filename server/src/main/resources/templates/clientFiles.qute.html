@@ -10,11 +10,13 @@
     <table>
         <tr>
             <th>File</th>
+            <th>MB</th>
             <th>latest checksum</th>
         </tr>
         {#for file in files}
             <tr>
             <td>{file.name}</td>
+            <td>{file.sizeInMb}</td>
             <td>{file.latestChecksum}</td>
             </tr>
         {/for}

@@ -1,5 +1,6 @@
 package at.meks.backup.server.domain.model.file;
 
+import at.meks.backup.server.domain.model.client.ClientService;
 import at.meks.backup.server.domain.model.file.version.Version;
 import at.meks.backup.server.domain.model.file.version.VersionId;
 import at.meks.backup.server.domain.model.file.version.VersionRepository;
@@ -21,30 +22,34 @@ public class BackupedFileService {
     private final BackupedFileRepository fileRepository;
     private final VersionRepository versionRepository;
     private final UtcClock clock;
+    private final ClientService clientService;
 
     BackupedFileService(
             BackupedFileRepository fileRepository,
             VersionRepository versionRepository,
-            UtcClock clock) {
+            UtcClock clock,
+            ClientService clientService) {
         this.fileRepository = fileRepository;
         this.versionRepository = versionRepository;
         this.clock = clock;
+        this.clientService = clientService;
     }
 
     @SneakyThrows
     @Transactional
     public void backup(FileId fileId, Path file) {
         Checksum checksum = Checksum.forContentOf(file.toUri());
+        clientService.registerIfNotExists(fileId.clientId());
         BackupedFile backupedFile = getOrCreateFileMetadata(fileId);
         if (isNewVersion(backupedFile, checksum)) {
-            backupedFile.versionWasBackedup(checksum);
-            backupedFile.latestSize(Files.size(file));
-            fileRepository.set(backupedFile);
+            long fileSize = Files.size(file);
             Version version = new Version(
                     VersionId.newId(),
                     backupedFile.id(),
                     new BackupTime(clock.now()),
-                    backupedFile.latestSize());
+                    fileSize);
+            backupedFile.versionWasBackedup(checksum, fileSize);
+            fileRepository.set(backupedFile);
             versionRepository.add(version, file);
         }
     }

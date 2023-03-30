@@ -92,7 +92,7 @@ public class BackupedFileServiceTest {
 
         @Test void latestVersionHashIsEqual() {
             BackupedFile backupedFile = backupedFile();
-            backupedFile.versionWasBackedup(Checksum.forContentOf(fileForBackup.toUri()));
+            backupedFile.versionWasBackedup(Checksum.forContentOf(fileForBackup.toUri()), 0L);
             when(fileRepository.get(fileId))
                     .thenReturn(Optional.of(backupedFile));
 
@@ -123,7 +123,7 @@ public class BackupedFileServiceTest {
 
         @Test void latestVersionHashIsDifferent() {
             BackupedFile backupedFile = backupedFile();
-            backupedFile.versionWasBackedup(new Checksum(20));
+            backupedFile.versionWasBackedup(new Checksum(20), 0L);
             when(fileRepository.get(fileId))
                     .thenReturn(Optional.of(backupedFile));
 
@@ -134,7 +134,7 @@ public class BackupedFileServiceTest {
 
         @Test void latestVersionHashIsEqual() {
             BackupedFile backupedFile = backupedFile();
-            backupedFile.versionWasBackedup(new Checksum(20));
+            backupedFile.versionWasBackedup(new Checksum(20), 0L);
             when(fileRepository.get(fileId))
                     .thenReturn(Optional.of(backupedFile));
 

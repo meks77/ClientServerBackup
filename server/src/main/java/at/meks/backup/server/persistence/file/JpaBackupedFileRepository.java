@@ -30,10 +30,10 @@ public class JpaBackupedFileRepository implements BackupedFileRepository {
     }
 
     private BackupedFile toDomainEntity(BackupedFileEntity dbEntity) {
-        BackupedFile backupedFile = BackupedFile.newFileForBackup(
-                FileId.idFor(ClientId.existingId(dbEntity.clientId), new PathOnClient(Path.of(dbEntity.pathOnClient))));
-        backupedFile.versionWasBackedup(new Checksum(dbEntity.latestVersionChecksum));
-        return backupedFile;
+        return BackupedFile.persistedFile(
+                FileId.idFor(ClientId.existingId(dbEntity.clientId), new PathOnClient(Path.of(dbEntity.pathOnClient))),
+                new Checksum(dbEntity.latestVersionChecksum),
+                dbEntity.latestSize);
     }
 
     @Override
@@ -58,8 +58,11 @@ public class JpaBackupedFileRepository implements BackupedFileRepository {
     public void set(BackupedFile fileForBackup) {
         findById(fileForBackup.id())
                 .ifPresentOrElse(
-                        dbEntity -> dbEntity.latestVersionChecksum =
-                                fileForBackup.latestVersionChecksum().map(Checksum::hash).orElse(null),
+                        dbEntity -> {
+                            dbEntity.latestVersionChecksum =
+                                    fileForBackup.latestVersionChecksum().map(Checksum::hash).orElse(null);
+                            dbEntity.latestSize = fileForBackup.latestSize();
+                        },
                         () -> add(fileForBackup)
                 );
     }

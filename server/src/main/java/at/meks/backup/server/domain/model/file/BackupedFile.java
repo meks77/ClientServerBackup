@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.util.Optional;
@@ -24,7 +23,6 @@ public class BackupedFile {
 
     private Checksum latestVersionChecksum;
 
-    @Setter
     @Getter
     private long latestSize;
 
@@ -33,11 +31,19 @@ public class BackupedFile {
         return new BackupedFile(id);
     }
 
+    public static BackupedFile persistedFile(FileId id, Checksum latestVersionChecksum, long latestSize) {
+        BackupedFile file = new BackupedFile(id);
+        file.latestVersionChecksum = latestVersionChecksum;
+        file.latestSize = latestSize;
+        return file;
+    }
+
     public Optional<Checksum> latestVersionChecksum() {
         return Optional.ofNullable(latestVersionChecksum);
     }
 
-    public void versionWasBackedup(Checksum checksum) {
+    public void versionWasBackedup(Checksum checksum, long size) {
         this.latestVersionChecksum = checksum;
+        latestSize = size;
     }
 }
