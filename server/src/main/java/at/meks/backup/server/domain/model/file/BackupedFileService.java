@@ -60,14 +60,9 @@ public class BackupedFileService {
     }
 
     private BackupedFile getOrCreateFileMetadata(FileId fileId) {
-        Optional<BackupedFile> backupedFile = fileRepository.get(fileId);
-        if (backupedFile.isPresent()) {
-            fileRepository.set(backupedFile.get());
-            return backupedFile.get();
-        } else {
-            BackupedFile newFileForBackup = BackupedFile.newFileForBackup(fileId);
-            return fileRepository.add(newFileForBackup);
-        }
+        return fileRepository.get(fileId)
+                .orElseGet(() ->
+                        fileRepository.add(BackupedFile.newFileForBackup(fileId)));
     }
 
     @Transactional
